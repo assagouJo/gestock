@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Nouvel Achat | gestock{% endblock %}
+
+{% block styles %}
+    
+{% endblock %}
+{% block content %}
+<div class="py-2">
+<div class="row">
+    <div class="d-flex gap-4 align-items-center">
+      <h4>Etat Stock</h4>
+        <a class="btn btn-outline-success" data-bs-toggle="modal" 
+        data-bs-target="#addAchatModal">Entree Stock</a>        
+    </div>
+</div>
+<hr>
+{% if produits %}
+  <!-- <div class=""> -->
+      <form action="{{ url_for('delete_produits') }}" method="post">
+    <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+         <table class="table table-bordered table-hover mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>Produit</th>
+            <th>Stock disponible</th>
+            <th>Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in produits %}
+        <tr>
+            <td>{{ p.nom_produit }}</td>
+            <td>{{ p.stock }}</td>
+            <td>
+                {% if p.stock == 0 %}
+                    <span class="badge bg-danger">Rupture</span>
+                {% elif p.stock < 5 %}
+                    <span class="badge bg-warning text-dark">Faible</span>
+                {% else %}
+                    <span class="badge bg-success">Disponible</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4" class="text-center">
+                Aucun produit en stock
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    </div>
+    <button type="submit" class="btn btn-outline-danger" 
+      onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">Suprimer Produit
+    </button>
+    </form>
+  <!-- </div> -->
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+        Aucun Achat enregistré pour le moment.
+    </div>
+{% endif %}
+<!-- Modal Nouvel Achat -->
+<div class="modal  fade" id="addAchatModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg gap-2">
+    <div class="modal-content">
+
+      <!-- HEADER -->
+      <div class="modal-header border border-danger">
+        <h5 class="modal-title fw-bold text-primary">
+          <i class="bi bi-cart-plus"></i> Nouvel Entree Stock
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        <form method="post"
+              action="{{ url_for('entree_stock') }}"
+              class="p-3">
+
+            <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lignesStock">
+              <tr class="ligne-stock">
+                <td>
+                  <select name="produit_id[]" class="form-select" required>
+                    {% for p in produits %}
+                      <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <input type="number" name="quantite[]" class="form-control" required>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-danger btn-sm supprimer">✖</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button type="button" class="btn btn-outline-secondary mb-3" id="ajouterLigne">
+            ➕ Ajouter une ligne
+          </button>         
+          <!-- ACTIONS -->
+          <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Annuler
+          </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const modalEl = document.getElementById("addAchatModal");
+  const tbody = document.getElementById("lignesStock");
+  const btnAjouter = document.getElementById("ajouterLigne");
+
+  // Ajouter ligne
+  btnAjouter.addEventListener("click", () => {
+    const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
+
+    ligne.querySelectorAll("input").forEach(i => i.value = "");
+    ligne.querySelector("select").selectedIndex = 0;
+
+    tbody.appendChild(ligne);
+  });
+
+  // Supprimer ligne (event delegation)
+  tbody.addEventListener("click", function (e) {
+    if (e.target.classList.contains("supprimer")) {
+      if (tbody.children.length > 1) {
+        e.target.closest("tr").remove();
+      }
+    }
+  });
+
+  // Reset modal à la fermeture
+  modalEl.addEventListener("hidden.bs.modal", () => {
+    tbody.innerHTML = tbody.children[0].outerHTML;
+  });
+
+});
+
+</script>
+{% endblock %}

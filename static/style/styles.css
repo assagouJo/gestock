@@ -1,0 +1,158 @@
+.logo {
+  height: 80px;
+  width: auto;
+}
+
+body,html{
+    height: 100%;
+}
+
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #adcdbf, #d5f5e2, #adcdbf);
+}
+
+.bg-gradient-success2 {
+    background: linear-gradient(135deg, #ab9160bd, #dec184, #ab9160bd);
+}
+
+
+.bg-gradient-1 {
+    background: linear-gradient(135deg, #000000, #ffffff,#000000);
+}
+
+.bg-nav{
+    background-color: #113a248f;
+}
+
+.bg-nav2{
+    background-color: #a88524;
+}
+
+.bg-nav-hover:hover{
+    background-color: rgba(0, 128, 0, 0.477);
+}
+
+.bg-nav-hover2:hover{
+    background-color: rgba(249, 185, 10, 0.836);
+    color: #000;
+}
+
+.flash-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.flash {
+    padding: 10px 18px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: 400;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* catégories */
+.flash-success {
+    background-color: #28a745;
+}
+
+.flash-danger {
+    background-color: #dc3545;
+}
+
+.flash-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.flash-info {
+    background-color: #17a2b8;
+}
+
+
+
+/* Animation dropdown */
+.custom-dropdown-menu {
+  display: block;
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  transition: all 0.35s ease;
+  border-radius: 10px;
+  padding: 8px 0;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+/* Items */
+.dropdown-item {
+  padding: 10px 20px;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f3f5;
+}
+
+/* Nav link */
+.navbar .nav-link {
+  position: relative;
+  font-weight: 500;
+}
+
+/* Petit underline au hover */
+.navbar .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0;
+  height: 2px;
+  background-color: #0d6efd;
+  transition: width 0.3s ease;
+}
+
+.navbar .nav-link:hover::after,
+.navbar .nav-link.active::after {
+  width: 100%;
+}
+
+
+.hover-text {
+    position: relative;
+}
+
+.hover-message {
+    display: none;
+    position: absolute;
+    top: -30px;
+    left: 0;
+    background: #212529;
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.hover-text:hover .hover-message {
+    display: block;
+}
+
+
+.no-data {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #999;
+  pointer-events: none; /* 🔥 empêche le blocage */
+}

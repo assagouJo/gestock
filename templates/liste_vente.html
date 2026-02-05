@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle Vente{% endblock %}
+
+{% block content %}
+<div>
+  <a class="btn btn-outline-primary"
+     data-bs-toggle="modal"
+     data-bs-target="#venteModal">
+     Nouvelle Vente
+  </a>
+  <hr>
+</div>
+
+{% if produits %}
+  <!-- <div class=""> -->
+      <form action="{{ url_for('delete_produits') }}" method="post">
+    <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+         <table class="table table-bordered table-hover mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Produit</th>
+            <th>montant total</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vente in ventes %}
+          <tr>
+            <td class="text-center align-middle">
+              <input class="form-check-input border-success produit-checkbox"
+              name="vente_ids"
+              type="checkbox" value="{{vente.id}}">
+            </td>
+              <td>{{ vente.date_vente.strftime('%d/%m/%Y') }}</td>
+              <td>{{ vente.nom_client }}</td>
+              <td>{{ vente.produits  }}</td>
+              <td>{{ vente.total }}</td>
+              <td>
+                  <a href="{{ url_for('generer_facture', vente_id=vente.id) }}"
+                    class="btn btn-sm btn-primary">
+                      🧾 Facture
+                  </a>
+              </td>
+          </tr>
+      {% endfor %}
+    </tbody>
+</table>
+    </div>
+    <button type="submit" class="btn btn-outline-danger" 
+      onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">Suprimer Produit
+    </button>
+    </form>
+  <!-- </div> -->
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+        Aucun Achat enregistré pour le moment.
+    </div>
+{% endif %}
+
+<!-- MODAL VENTE -->
+<div class="modal fade" id="venteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-primary">
+          <i class="bi bi-receipt"></i> Nouvelle Vente
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        <form method="post" action="{{ url_for('nouvelle_vente') }}">
+
+          <!-- CLIENT -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Client</label>
+              <select name="client_id" class="form-select" required>
+                {% for c in clients %}
+                  <option value="{{ c.id }}">{{ c.nom_client }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- PRODUITS -->
+          <table class="table table-sm table-bordered">
+            <thead class="table-light">
+              <tr>
+                <th>Produit</th>
+                <th width="120">Quantité</th>
+                <th width="150">Prix unitaire</th>
+                <th width="40"></th>
+              </tr>
+            </thead>
+            <tbody id="lignesVente">
+              <tr class="ligne-vente">
+                <td>
+                  <select name="produit_id[]" class="form-select" required>
+                    {% for p in produits %}
+                      <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <input type="number" name="quantite[]" class="form-control" min="1" required>
+                </td>
+                <td>
+                  <input type="number" name="prix_unitaire[]" class="form-control" min="0" step="0.01" required>
+                </td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-danger btn-sm supprimer">✖</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button type="button"
+                  class="btn btn-outline-secondary mb-3"
+                  id="ajouterLigneVente">
+            ➕ Ajouter un produit
+          </button>
+
+          <!-- ACTIONS -->
+          <div class="d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-primary">
+              Valider la vente
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Annuler
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const tbody = document.getElementById("lignesVente");
+  const btnAjouter = document.getElementById("ajouterLigneVente");
+  const modal = document.getElementById("venteModal");
+
+  // Ajouter ligne
+  btnAjouter.addEventListener("click", () => {
+    const ligne = tbody.querySelector(".ligne-vente").cloneNode(true);
+
+    ligne.querySelectorAll("input").forEach(i => i.value = "");
+    ligne.querySelector("select").selectedIndex = 0;
+
+    tbody.appendChild(ligne);
+  });
+
+  // Supprimer ligne (delegation)
+  tbody.addEventListener("click", e => {
+    if (e.target.classList.contains("supprimer") && tbody.children.length > 1) {
+      e.target.closest("tr").remove();
+    }
+  });
+
+  // Reset modal à la fermeture
+  modal.addEventListener("hidden.bs.modal", () => {
+    tbody.innerHTML = tbody.children[0].outerHTML;
+  });
+
+});
+</script>
+
+
+{% endblock %}

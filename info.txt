@@ -1,0 +1,29 @@
+## Pour ajouter des colonnes dans SQLAlchemy avec Flask sans écraser la base de données, 
+la bonne pratique est d’utiliser Flask-Migrate (Alembic).
+
+✅ Solution recommandée : Flask-Migrate (migration de schéma)
+
+1️⃣ Installer Flask-Migrate
+## pip install Flask-Migrate
+
+2️⃣ Initialiser les migrations (une seule fois)
+## flask db init  👉 Cela crée le dossier migrations/
+
+3️⃣ Modifier ton modèle SQLAlchemy
+## flask db migrate -m "Ajout colonne telephone à user"
+
+➡️ Alembic détecte automatiquement la nouvelle colonne
+➡️ Les données existantes sont conservées
+
+5️⃣ Appliquer la migration
+
+## flask db upgrade
+
+🟢 Cas important : colonne NOT NULL
+
+Si tu ajoutes une colonne NOT NULL, il faut une valeur par défaut :
+-- age = db.Column(db.Integer, nullable=False, server_default="0")
+
+
+
+
