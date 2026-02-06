@@ -5,8 +5,8 @@ from flask_migrate import Migrate
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'you-will-never-guess'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gestock2.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY','you-will-never-guess')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL','sqlite:///gestock2.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'images')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -20,3 +20,5 @@ login_manager.init_app(app)
 
 import routes, models
 
+with app.app_context():
+    db.create_all()
