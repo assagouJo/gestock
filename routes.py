@@ -12,6 +12,20 @@ from decimal import Decimal
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from helper import generate_code_produit, generate_numero_facture
+from werkzeug.security import generate_password_hash
+
+
+
+@app.route("/create-admin")
+def create_admin():
+    user = User(
+        username="admin",
+        password=generate_password_hash("12345")
+    )
+    db.session.add(user)
+    db.session.commit()
+    return "Admin created"
+
 
 
 @app.template_filter('money')
