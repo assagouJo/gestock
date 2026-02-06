@@ -313,6 +313,8 @@ def delete_cloudinary_image(image_url):
         print("Cloudinary delete error:", e)
 
 
+from sqlalchemy import exists
+
 @app.route('/gestion_materiel/produit/delete', methods=['POST'])
 @login_required
 @role_required("admin")
@@ -324,27 +326,40 @@ def delete_produits():
         return redirect(url_for('produit'))
 
     produits = Produit.query.filter(Produit.id.in_(ids)).all()
+    produits_bloques = []
 
-    # 🔒 Vérifier que TOUS les produits ont un stock à 0
-    produits_bloques = [p.nom_produit for p in produits if p.stock > 0]
+    for p in produits:
+        # 🔒 Stock non nul
+        if p.stock > 0:
+            produits_bloques.append(f"{p.nom_produit} (stock non nul)")
+            continue
 
+        # 🔒 Produit déjà utilisé dans une vente
+        vente_existante = db.session.query(
+            exists().where(LigneVente.produit_id == p.id)
+        ).scalar()
+
+        if vente_existante:
+            produits_bloques.append(f"{p.nom_produit} (déjà vendu)")
+
+    # ⛔ BLOQUER AVANT DELETE
     if produits_bloques:
         flash(
-            "Impossible de supprimer ces produits car ils ont du stock : "
-            + ", ".join(produits_bloques),
+            "Impossible de supprimer : " + ", ".join(produits_bloques),
             "danger"
         )
         return redirect(url_for('produit'))
 
-    # ✅ Suppression produit + image Cloudinary
-    for produit in produits:
-        delete_cloudinary_image(produit.image)
-        db.session.delete(produit)
+    # ✅ Suppression sécurisée (produits jamais vendus)
+    for p in produits:
+        delete_cloudinary_image(p.image)
+        db.session.delete(p)
 
     db.session.commit()
 
     flash(f"{len(produits)} produit(s) supprimé(s) avec succès", "success")
     return redirect(url_for('produit'))
+
 
 
 
