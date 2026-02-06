@@ -15,6 +15,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from helper import generate_code_produit, generate_numero_facture
 from werkzeug.security import generate_password_hash
 from werkzeug.security import generate_password_hash
+import cloudinary.uploader
+from cloudinary.uploader import upload
 
 
 
@@ -231,7 +233,7 @@ def produit():
     
     if form.validate_on_submit():
         file = form.image.data
-        filename = None
+        image_url = None
         if file and file.filename:
             result = upload(
                 file,
@@ -262,19 +264,35 @@ def produit():
 
 
 
+
+
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
+@role_required("admin")
 def edit_produit(id):
     produit = Produit.query.get_or_404(id)
     form = ProduitForm()
 
     if form.validate_on_submit():
-        form.populate_obj(produit)
+        # champs texte / stock
+        produit.nom_produit = form.nom_produit.data
+        produit.description = form.description.data
+        produit.stock = form.stock.data
+
         file = form.image.data
-        if file:
-            filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            produit.image = filename
+
+        # 🔄 NOUVELLE IMAGE ?
+        if file and file.filename:
+            # supprimer l’ancienne image Cloudinary
+            delete_cloudinary_image(produit.image)
+
+            # upload nouvelle image
+            result = upload(
+                file,
+                folder="gestock/produits"
+            )
+            produit.image = result["secure_url"]
+
         db.session.commit()
         flash("Produit modifié avec succès", "success")
 
@@ -282,8 +300,22 @@ def edit_produit(id):
 
 
 
+
+def delete_cloudinary_image(image_url):
+    if not image_url:
+        return
+
+    try:
+        # https://res.cloudinary.com/.../upload/v123/gestock/produits/xxx.jpg
+        public_id = image_url.split("/upload/")[1].rsplit(".", 1)[0]
+        cloudinary.uploader.destroy(public_id)
+    except Exception as e:
+        print("Cloudinary delete error:", e)
+
+
 @app.route('/gestion_materiel/produit/delete', methods=['POST'])
 @login_required
+@role_required("admin")
 def delete_produits():
     ids = request.form.getlist('produit_ids')
 
@@ -304,14 +336,16 @@ def delete_produits():
         )
         return redirect(url_for('produit'))
 
-    # ✅ Suppression définitive des produits
+    # ✅ Suppression produit + image Cloudinary
     for produit in produits:
+        delete_cloudinary_image(produit.image)
         db.session.delete(produit)
 
     db.session.commit()
 
     flash(f"{len(produits)} produit(s) supprimé(s) avec succès", "success")
     return redirect(url_for('produit'))
+
 
 
 
