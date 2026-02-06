@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import os
 from werkzeug.utils import secure_filename
 import uuid
+from cloudinary.uploader import upload
 from decimal import Decimal
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
@@ -231,16 +232,19 @@ def produit():
     if form.validate_on_submit():
         file = form.image.data
         filename = None
-        if file:
-            filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        if file and file.filename:
+            result = upload(
+                file,
+                folder="gestock/produits"
+            )
+            image_url = result["secure_url"]
 
         nouveau_produit = Produit(
         nom_produit = form.nom_produit.data,
         description=form.description.data,
         code_produit=generate_code_produit(),
         stock=form.stock.data,
-        image = filename
+        image = image_url
         )
         db.session.add(nouveau_produit)
         db.session.commit()

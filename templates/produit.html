@@ -51,10 +51,9 @@
             </td>
             <td class="text-center">
               {% if produit.image %}
-              <img src="{{ url_for('static', filename='images/' ~ produit.image) }}"
-                  width="80%"
-                  height="100"
-                  class="rounded border">
+              <img src="{{ produit.image }}"
+                  style="max-height: 100px; object-fit: contain;"
+                  class="img-fluid rounded border">
             {% else %}
               <span class="text-muted">—</span>
             {% endif %}
