@@ -20,7 +20,7 @@ from werkzeug.security import generate_password_hash
 def create_admin():
     user = User(
         username="admin",
-        password=generate_password_hash("12345")
+        password_hash=generate_password_hash("12345")
     )
     db.session.add(user)
     db.session.commit()
