@@ -13,18 +13,27 @@ from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from helper import generate_code_produit, generate_numero_facture
 from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash
 
 
 
 @app.route("/create-admin")
 def create_admin():
+    # éviter doublon
+    user = User.query.filter_by(username="admin").first()
+    if user:
+        return "Admin already exists"
+
     user = User(
         username="admin",
-        password_hash=generate_password_hash("12345")
+        email="admin@gestock.com",
+        password_hash=generate_password_hash("admin123"),
+        role="admin"
     )
     db.session.add(user)
     db.session.commit()
     return "Admin created"
+
 
 
 
