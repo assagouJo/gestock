@@ -77,27 +77,35 @@ def role_required(*roles):
     return decorator
 
 
-@app.route('/', methods=['GET','POST'])
+@app.route('/', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    
+        if current_user.role == "admin":
+            return redirect(url_for("dashboard"))
+        else:
+            return redirect(url_for("entree_stock"))
+
     form = LoginForm(csrf_enabled=False)
 
     if form.validate_on_submit():
-        user = User.query.filter_by(username = form.username.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
 
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
 
             if user.must_change_password:
                 return redirect(url_for('force_change_password'))
-            
-            next_page = request.args.get('next')
-            flash("utilisateur connecté", "success")
-            return redirect(next_page or url_for('dashboard'))
-        
+
+            # 🔥 REDIRECTION SELON LE RÔLE
+            if user.role == "admin":
+                return redirect(url_for("dashboard"))
+            else:
+                return redirect(url_for("entree_stock"))
+
+        flash("Identifiants incorrects", "danger")
+
     return render_template('login.html', form=form)
+
 
 
 @app.route('/force-change-password', methods=['GET', 'POST'])
@@ -207,6 +215,7 @@ def delete_users():
 
 @app.route('/dashboard')
 @login_required
+@role_required("admin")
 def dashboard():
      # TOTAL VENTES
 
@@ -425,6 +434,7 @@ def nouvelle_vente():
 
 @app.route('/entree/stock', methods=['GET','POST'])
 @login_required
+@role_required("admin", "operateur")
 def entree_stock():
     produits = Produit.query.order_by(Produit.nom_produit).all()
 
