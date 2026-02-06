@@ -66,6 +66,7 @@
                 <nav class="col-3 col-md-2 p-1">
                             {% set active_pages = ['paiement', 'produit', 'client', 'dashboard', 'transaction', 'facture', 'stock', 'user'] %}
                         <ul class="nav flex-column gap-1">
+                            {% if current_user.role in ["admin","operateur"] %}
                             <li class="nav-item  px-1  {{ 'active bg-nav2' if is_active('gestion_materiel/client') else '' }}
                                 bg-nav-hover bg-nav border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-person-standing text-light fs-3"></i>
@@ -74,7 +75,9 @@
                             <li class="{{ 'active bg-nav2' if is_active('gestion_materiel/add_produit') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-bag-fill text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('produit')}}">Gestion Produits</a>
-                            </li>                            
+                            </li>
+                            {% endif %}
+                            {% if current_user.role == "admin" %}                      
                             <li class="{{ 'bg-nav2' if is_active('gestion_materiel/compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-building fs-3 text-light"></i>
                                 <a class="nav-link text-light" href="{{url_for('compagnie')}}">Ma Compagnie</a>
@@ -83,23 +86,31 @@
                                 <i class="bi bi-people fs-3 text-light"></i>
                                 <a class="nav-link text-light" href="{{url_for('user')}}">Gestion Utilisateurs</a>
                             </li>
+                            {% endif %}
+                            {% if current_user.role in ["admin","operateur"] %}
                             <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-arrow-left-square-fill text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('dashboard')}}">Retour</a>
                             </li>
+                            {% endif %}
                         </ul>
                     </nav>
                     {% else %}
                     <nav class="col-3 col-md-2 p-1">
                         <ul class="nav flex-column gap-1">
+                            {% if current_user.role == "admin" %}
                             <li class=" {{ 'bg-nav2' if is_active('dashboard') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-speedometer text-light fs-3"></i>
                                 <a class="nav-link active text-light" href="{{ url_for('dashboard') }}">Dashboard</a>
                             </li>
+                            {% endif %}
+                            {% if current_user.role in ["admin","operateur"] %}
                             <li class="{{ 'bg-nav2' if is_active('entree_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-plus text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('entree_stock')}}">Entree Stock</a>
                             </li>
+                            {% endif %}
+                            {% if current_user.role == "admin" %}
                             <li class="{{ 'bg-nav2' if is_active('liste_transactions_en_cours') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-check text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
@@ -109,10 +120,13 @@
                                 <i class="bi bi-cash-coin text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('rapport')}}">Rapports</a>
                             </li>
+                            {% endif %}
+                            {% if current_user.role in ["admin","operateur"] %}
                             <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-gear-wide-connected text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('client')}}">Parametre de Base</a>
                             </li>
+                            {% endif %}
                         </ul>
                     </nav>
                     {% endif %}

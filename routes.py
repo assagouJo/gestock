@@ -64,14 +64,17 @@ def utility_processor():
     return dict(is_active=is_active)
 
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if current_user.role != 'admin':
-            flash("Accès refusé", "danger")
-            return redirect(request.referrer)
-        return f(*args, **kwargs)
-    return decorated_function
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if not current_user.is_authenticated:
+                abort(403)
+            if current_user.role not in roles:
+                abort(403)
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
 
 @app.route('/', methods=['GET','POST'])
@@ -122,7 +125,6 @@ def force_change_password():
 
 
 @app.route('/gestion_materiel/user/reset-password', methods=['POST'])
-@admin_required
 @login_required
 def reset_user_password():
 
@@ -172,7 +174,6 @@ def creer_user():
 
 @app.route('/gestion_materiel/user/edit/<int:id>', methods=['POST'])
 @login_required
-@admin_required
 def edit_user(id):
     user = User.query.get_or_404(id)
     form = UserForm()
@@ -189,7 +190,6 @@ def edit_user(id):
 
 @app.route('/gestion_materiel/user/delete', methods=['POST'])
 @login_required
-@admin_required
 def delete_users():
     ids = request.form.getlist('user_ids')
 
