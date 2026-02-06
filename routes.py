@@ -287,11 +287,28 @@ def delete_produits():
         flash("Aucun produit sélectionné", "warning")
         return redirect(url_for('produit'))
 
-    Produit.query.filter(Produit.id.in_(ids)).delete(synchronize_session=False)
+    produits = Produit.query.filter(Produit.id.in_(ids)).all()
+
+    # 🔒 Vérifier que TOUS les produits ont un stock à 0
+    produits_bloques = [p.nom_produit for p in produits if p.stock > 0]
+
+    if produits_bloques:
+        flash(
+            "Impossible de supprimer ces produits car ils ont du stock : "
+            + ", ".join(produits_bloques),
+            "danger"
+        )
+        return redirect(url_for('produit'))
+
+    # ✅ Suppression définitive des produits
+    for produit in produits:
+        db.session.delete(produit)
+
     db.session.commit()
 
-    flash(f"{len(ids)} produit(s) supprimé(s)", "success")
+    flash(f"{len(produits)} produit(s) supprimé(s) avec succès", "success")
     return redirect(url_for('produit'))
+
 
 
 
@@ -453,6 +470,28 @@ def entree_stock():
 
     # 👇 GET : affichage de la page
     return render_template("ajout_stock.html", produits=produits)
+
+
+@app.route('/delete/stock', methods=['POST'])
+@login_required
+def delete_produit_in_stock():
+    ids = request.form.getlist('produit_stock_ids')
+
+    if not ids:
+        flash("Aucun produit sélectionné", "warning")
+        return redirect(url_for('entree_stock'))
+
+    # ✅ ON NE SUPPRIME PAS LE PRODUIT
+    # ✅ ON ANNULE LE STOCK
+    Produit.query.filter(Produit.id.in_(ids)).update(
+        {Produit.stock: 0},
+        synchronize_session=False
+    )
+
+    db.session.commit()
+
+    flash(f"Stock annulé pour {len(ids)} produit(s)", "success")
+    return redirect(url_for('entree_stock'))
 
 
 

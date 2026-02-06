@@ -16,11 +16,12 @@
 <hr>
 {% if produits %}
   <!-- <div class=""> -->
-      <form action="{{ url_for('delete_produits') }}" method="post">
+      <form action="{{ url_for('delete_produit_in_stock') }}" method="post">
     <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
          <table class="table table-bordered table-hover mt-3">
     <thead class="table-dark">
         <tr>
+          <th>#</th>
             <th>Produit</th>
             <th>Stock disponible</th>
             <th>Statut</th>
@@ -29,6 +30,11 @@
     <tbody>
         {% for p in produits %}
         <tr>
+            <td class="text-center align-middle">
+              <input class="form-check-input border-success produit-checkbox"
+              name="produit_stock_ids"
+              type="checkbox" value="{{p.id}}">
+            </td>
             <td>{{ p.nom_produit }}</td>
             <td>{{ p.stock }}</td>
             <td>
