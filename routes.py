@@ -339,9 +339,17 @@ def delete_clients():
     return redirect(url_for('client'))
 
 
+
+
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
 @login_required
 def nouvelle_vente():
+    engine = db.engine.name
+
+    if engine == "sqlite":
+        produits_agg = func.group_concat(Produit.nom_produit, ', ')
+    else:
+        produits_agg = func.string_agg(Produit.nom_produit, ', ')
 
     clients = Client.query.order_by(Client.nom_client).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
@@ -351,7 +359,7 @@ def nouvelle_vente():
         Vente.date_vente,
         Client.nom_client,
         Vente.total,
-        func.group_concat(Produit.nom_produit, ', ').label('produits')
+        produits_agg.label('produits')
     )
     .join(Client, Vente.client_id == Client.id)
     .join(LigneVente, LigneVente.vente_id == Vente.id)
