@@ -41,16 +41,60 @@ class Client(db.Model):
     
 
 class Produit(db.Model):
+  
   id = db.Column(db.Integer, primary_key=True)
   nom_produit = db.Column(db.String(128), nullable=False,index=True)
   code_produit = db.Column(db.String(256), nullable=False, unique=True)
   description = db.Column(db.String(256), nullable=False)
   image = db.Column(db.String(255), nullable=True)
-  stock = db.Column(db.Integer, default=0)
-
+  stocks = db.relationship("Stock", backref="produit", lazy=True)
 
   def __repr__(self):
       return f"<Produit {self.nom_produit}>"
+  
+  @property
+  def stock_total(self):
+      return sum(s.quantite for s in self.stocks)
+
+
+
+class Stock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    produit_id = db.Column(
+        db.Integer,
+        db.ForeignKey("produit.id"),
+        nullable=False
+    )
+    
+    numero_lot = db.Column(db.String(120), nullable=False)
+    quantite = db.Column(db.Integer, nullable=False, default=0)
+    seuil_alerte = db.Column(db.Integer, default=5)
+    date_creation = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
+
+    def ajouter(self, quantite):
+        if quantite <= 0:
+            raise ValueError("Quantité invalide")
+        self.quantite += quantite
+
+    def retirer(self, quantite):
+        if quantite <= 0:
+            raise ValueError("Quantité invalide")
+        if quantite > self.quantite:
+            raise ValueError("Stock insuffisant")
+        self.quantite -= quantite
+
+    def est_en_alerte(self):
+        return self.quantite <= self.seuil_alerte
+
+    def __repr__(self):
+        return f"<Stock produit_id={self.produit_id} lot={self.numero_lot} ({self.quantite})>"
+    
+    __table_args__ = (
+    db.UniqueConstraint("produit_id", "numero_lot", name="uix_produit_lot"),
+)
+
+
 
 
 class Vente(db.Model):

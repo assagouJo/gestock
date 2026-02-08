@@ -1,8 +1,8 @@
 from app import app, db, login_manager
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, LigneFacture, Paiement, Facture, Compagnie, Vente, LigneVente
-from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, EntreeStockForm, VenteForm
+from models import User, Client, Produit, LigneFacture, Paiement, Facture, Compagnie, Vente, LigneVente, Stock
+from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, VenteForm, StockForm
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -245,7 +245,6 @@ def produit():
         nom_produit = form.nom_produit.data,
         description=form.description.data,
         code_produit=generate_code_produit(),
-        stock=form.stock.data,
         image = image_url
         )
         db.session.add(nouveau_produit)
@@ -419,35 +418,144 @@ def delete_clients():
 
 
 
+@app.route("/stock", methods=["GET"])
+@login_required
+def etat_stock():
+    produits_all = Produit.query.order_by(Produit.nom_produit).all()
+
+    stocks = (
+        Stock.query
+        .join(Produit)
+        .order_by(Stock.numero_lot)
+        .all()
+    )
+
+    return render_template(
+        "ajout_stock.html",   # ta page unique
+        stocks=stocks,
+        produits_all=produits_all
+    )
+
+
+@app.route("/delete/lot", methods=["POST"])
+def delete_lot():
+    stock_ids = request.form.getlist("stock_ids[]")
+
+    if not stock_ids:
+        flash("Aucun produit sélectionné", "warning")
+        return redirect(url_for("etat_stock"))
+
+    # Supprimer TOUS les stocks liés aux produits
+    Stock.query.filter(
+        Stock.id.in_(stock_ids)
+    ).delete(synchronize_session=False)
+
+    db.session.commit()
+
+    flash("Stock supprimé avec succès 🗑️", "success")
+    return redirect(url_for("etat_stock"))
+
+
+@app.route("/stock/ajouter", methods=["GET", "POST"])
+@login_required
+def ajouter_stock():
+
+    # 🔒 Sécurité : si quelqu’un accède en GET
+    if request.method == "GET":
+        return redirect(url_for("etat_stock"))
+
+    # 📥 Récupération des données du formulaire
+    lots = request.form.getlist("numero_lot[]")
+    produits = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+
+    # 🧪 Debug (tu peux enlever après)
+    print("LOTS :", lots)
+    print("PRODUITS :", produits)
+    print("QUANTITES :", quantites)
+
+    # 🚨 Validation minimale
+    if not lots or not produits or not quantites:
+        flash("Aucune donnée reçue ❌", "danger")
+        return redirect(url_for("etat_stock"))
+
+    # 🔄 Traitement ligne par ligne
+    for lot, produit_id, quantite in zip(lots, produits, quantites):
+
+        # ⛔ Ignorer les lignes incomplètes
+        if not lot or not produit_id or not quantite:
+            continue
+
+        lot = lot.strip()
+
+        # ⛔ Ignorer les lots vides après trim
+        if lot == "":
+            continue
+
+        try:
+            produit_id = int(produit_id)
+            quantite = int(quantite)
+        except ValueError:
+            continue
+
+        # ⛔ Quantité invalide
+        if quantite <= 0:
+            continue
+
+        # 🔍 Chercher si le lot existe déjà pour ce produit
+        stock = Stock.query.filter_by(
+            produit_id=produit_id,
+            numero_lot=lot
+        ).first()
+
+        if stock:
+            # ➕ Ajouter à un lot existant
+            stock.ajouter(quantite)
+        else:
+            # ➕ Créer un nouveau lot
+            stock = Stock(
+                produit_id=produit_id,
+                numero_lot=lot,
+                quantite=quantite
+            )
+            db.session.add(stock)
+
+    # 💾 Sauvegarde
+    db.session.commit()
+
+    flash("Stock enregistré avec succès ✅", "success")
+    return redirect(url_for("etat_stock"))
+
+
+
+
+
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
 @login_required
 def nouvelle_vente():
-    engine = db.engine.name
+    # 🔹 Compatibilité SQLite / PostgreSQL
+    # engine = db.engine.name
+    # if engine == "sqlite":
+    #     produits_agg = func.group_concat(Produit.nom_produit, ', ')
+    # else:
+    #     produits_agg = func.string_agg(Produit.nom_produit, ', ')
 
-    if engine == "sqlite":
-        produits_agg = func.group_concat(Produit.nom_produit, ', ')
-    else:
-        produits_agg = func.string_agg(Produit.nom_produit, ', ')
-
+    # 🔹 Données affichage
     clients = Client.query.order_by(Client.nom_client).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
+
     ventes = (
-    db.session.query(
-        Vente.id,
-        Vente.date_vente,
-        Client.nom_client,
-        Vente.total,
-        produits_agg.label('produits')
+    Vente.query
+    .options(
+        db.joinedload(Vente.client),
+        db.joinedload(Vente.lignes).joinedload(LigneVente.produit)
     )
-    .join(Client, Vente.client_id == Client.id)
-    .join(LigneVente, LigneVente.vente_id == Vente.id)
-    .join(Produit, LigneVente.produit_id == Produit.id)
-    .group_by(Vente.id, Vente.date_vente, Client.nom_client, Vente.total)
     .order_by(Vente.id.desc())
     .all()
-)  # 👈 AJOUT
+)
 
+    # 🔹 ENREGISTREMENT VENTE
     if request.method == 'POST':
         client_id = request.form.get('client_id')
         produits_ids = request.form.getlist('produit_id[]')
@@ -458,93 +566,125 @@ def nouvelle_vente():
             flash("Données invalides", "danger")
             return redirect(url_for('nouvelle_vente'))
 
-        vente = Vente(client_id=int(client_id))
-        db.session.add(vente)
-        db.session.flush()
+        try:
+            vente = Vente(client_id=int(client_id))
+            db.session.add(vente)
+            db.session.flush()  # récupère vente.id
 
-        total_vente = 0
+            total_vente = 0
 
-        for pid, qte, pu in zip(produits_ids, quantites, prix_unitaires):
-            produit = Produit.query.get(int(pid))
-            qte = int(qte)
-            pu = float(pu)
+            for pid, qte, pu in zip(produits_ids, quantites, prix_unitaires):
+                produit = Produit.query.get_or_404(int(pid))
+                qte = int(qte)
+                pu = Decimal(pu)
 
-            if produit.stock < qte:
-                db.session.rollback()
-                flash(f"Stock insuffisant pour {produit.nom_produit}", "danger")
-                return redirect(url_for('nouvelle_vente'))
+                # 🔹 Récupération des stocks (FIFO + verrou)
+                stocks = (
+                    db.session.query(Stock)
+                    .filter_by(produit_id=produit.id)
+                    .with_for_update()
+                    .order_by(Stock.date_creation.asc())
+                    .all()
+                )
 
-            sous_total = qte * pu
-            total_vente += sous_total
-            produit.stock -= qte
+                stock_total = sum(s.quantite for s in stocks)
 
-            ligne = LigneVente(
-                vente_id=vente.id,
-                produit_id=produit.id,
-                quantite=qte,
-                prix_unitaire=pu,
-                sous_total=sous_total
-            )
-            db.session.add(ligne)
+                if stock_total < qte:
+                    raise ValueError(
+                        f"Stock insuffisant pour {produit.nom_produit}"
+                    )
 
-        vente.total = total_vente
-        db.session.commit()
+                # 🔹 Décrémentation FIFO
+                quantite_a_retirer = qte
+                for stock in stocks:
+                    if quantite_a_retirer <= 0:
+                        break
 
-        flash("Vente enregistrée avec succès", "success")
-        return redirect(url_for('nouvelle_vente'))
+                    if stock.quantite >= quantite_a_retirer:
+                        stock.retirer(quantite_a_retirer)
+                        quantite_a_retirer = 0
+                    else:
+                        quantite_a_retirer -= stock.quantite
+                        stock.retirer(stock.quantite)
 
+                sous_total = qte * pu
+                total_vente += sous_total
+
+                ligne = LigneVente(
+                    vente_id=vente.id,
+                    produit_id=produit.id,
+                    quantite=qte,
+                    prix_unitaire=pu,
+                    sous_total=sous_total
+                )
+                db.session.add(ligne)
+
+            vente.total = total_vente
+            db.session.commit()
+
+            flash("Vente enregistrée avec succès", "success")
+            return redirect(url_for('nouvelle_vente'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(str(e), "danger")
+            return redirect(url_for('nouvelle_vente'))
+
+    # 🔹 AFFICHAGE
     return render_template(
         'liste_vente.html',
         clients=clients,
         produits=produits,
-        ventes=ventes   # 👈 AJOUT
+        ventes=ventes
     )
 
 
-
-@app.route('/entree/stock', methods=['GET','POST'])
+@app.route('/vente/supprimer', methods=['POST'])
 @login_required
-@role_required("admin", "operateur")
-def entree_stock():
-    produits = Produit.query.order_by(Produit.nom_produit).all()
+def supprimer_ventes():
+    vente_ids = request.form.getlist('vente_ids')
 
-    if request.method == 'POST':
-        produits_ids = request.form.getlist('produit_id[]')
-        quantites = request.form.getlist('quantite[]')
+    if not vente_ids:
+        flash("Aucune vente sélectionnée", "warning")
+        return redirect(url_for('nouvelle_vente'))
 
-        for pid, qte in zip(produits_ids, quantites):
-            produit = Produit.query.get(int(pid))
-            if produit:
-                produit.stock += int(qte)
+    try:
+        for vente_id in vente_ids:
+            vente = Vente.query.get(int(vente_id))
+            if not vente:
+                continue
+
+            lignes = LigneVente.query.filter_by(vente_id=vente.id).all()
+
+            # 🔁 Restaurer le stock
+            for ligne in lignes:
+                stocks = (
+                    db.session.query(Stock)
+                    .filter_by(produit_id=ligne.produit_id)
+                    .with_for_update()
+                    .order_by(Stock.date_creation.desc())
+                    .all()
+                )
+
+                if not stocks:
+                    raise ValueError("Lot introuvable pour restauration du stock")
+
+                # On remet tout dans le dernier lot
+                stocks[0].ajouter(ligne.quantite)
+
+            # 🔥 Supprimer lignes + vente
+            LigneVente.query.filter_by(vente_id=vente.id).delete()
+            db.session.delete(vente)
 
         db.session.commit()
-        flash("Stock mis à jour avec succès", "success")
-        # return redirect(url_for('ajout_stock'))
+        flash("Vente(s) supprimée(s) avec succès", "success")
 
-    # 👇 GET : affichage de la page
-    return render_template("ajout_stock.html", produits=produits)
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la suppression : {str(e)}", "danger")
 
+    return redirect(url_for('nouvelle_vente'))
 
-@app.route('/delete/stock', methods=['POST'])
-@login_required
-def delete_produit_in_stock():
-    ids = request.form.getlist('produit_stock_ids')
-
-    if not ids:
-        flash("Aucun produit sélectionné", "warning")
-        return redirect(url_for('entree_stock'))
-
-    # ✅ ON NE SUPPRIME PAS LE PRODUIT
-    # ✅ ON ANNULE LE STOCK
-    Produit.query.filter(Produit.id.in_(ids)).update(
-        {Produit.stock: 0},
-        synchronize_session=False
-    )
-
-    db.session.commit()
-
-    flash(f"Stock annulé pour {len(ids)} produit(s)", "success")
-    return redirect(url_for('entree_stock'))
 
 
 

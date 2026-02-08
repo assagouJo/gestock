@@ -6,7 +6,7 @@
     
     <!-- CSS -->
      
-    <link rel="icon" type="image/svg+xml" href="/static/images/logo3.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="/static/images/logo imedical-1.png">
     <link rel="stylesheet" href="/static/style/styles.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
@@ -109,9 +109,9 @@
                             </li>
                             {% endif %}
                             {% if current_user.role in ["admin","operateur"] %}
-                            <li class="{{ 'bg-nav2' if is_active('entree_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                            <li class="{{ 'bg-nav2' if is_active('ajouter_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-plus text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('entree_stock')}}">Entree Stock</a>
+                                <a class="nav-link text-light" href="{{url_for('ajouter_stock')}}">Entree Stock</a>
                             </li>
                             {% endif %}
                             {% if current_user.role == "admin" %}

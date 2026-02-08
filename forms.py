@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, EmailField, IntegerField, TextAreaField, DecimalField
-from wtforms.validators import DataRequired, Email, Optional, EqualTo, NumberRange
+from wtforms.validators import DataRequired, Email, Optional, EqualTo, NumberRange, Length
 from flask_wtf.file import FileField, FileAllowed
 
 
@@ -80,21 +80,6 @@ class ProduitForm(FlaskForm):
     submit = SubmitField('Enregistrer')
 
 
-class EntreeStockForm(FlaskForm):
-
-    produit_id = SelectField(
-        "Produit",
-        coerce=int,
-        validators=[DataRequired()]
-    )
-
-    quantite = IntegerField(
-        "Quantité",
-        validators=[DataRequired(), NumberRange(min=1)]
-    )
-
-    submit = SubmitField("Valider")
-
 
 
 class VenteForm(FlaskForm):
@@ -160,3 +145,33 @@ class CompagnieForm(FlaskForm):
         "Logo de la compagnie",
         validators=[Optional()]
     )
+
+
+
+
+class StockForm(FlaskForm):
+    
+    produit_id = SelectField(
+        "Produit",
+        coerce=int,
+        validators=[DataRequired()]
+    )
+
+    numero_lot = StringField(
+        "Numéro de lot",
+        validators=[
+            DataRequired(),
+            Length(min=1, max=120)
+        ]
+    )
+
+    quantite = IntegerField(
+        "Quantité",
+        validators=[
+            DataRequired(),
+            NumberRange(min=0, message="La quantité ne peut pas être négative")
+        ],
+        default=0
+    )
+
+    submit = SubmitField("Enregistrer")
