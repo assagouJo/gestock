@@ -113,6 +113,7 @@ def login():
 
 @app.route('/force-change-password', methods=['GET', 'POST'])
 @login_required
+@role_required("admin")
 def force_change_password():
 
     # Sécurité : si déjà changé
@@ -137,6 +138,7 @@ def force_change_password():
 
 @app.route('/gestion_materiel/user/reset-password', methods=['POST'])
 @login_required
+@role_required("admin")
 def reset_user_password():
 
     if current_user.role != 'admin':
@@ -150,7 +152,6 @@ def reset_user_password():
     user.set_password(default_password)
     user.must_change_password = True
 
-
     db.session.commit()
 
     flash("Mot de passe réinitialisé avec succès", "success")
@@ -161,6 +162,7 @@ def reset_user_password():
 
 @app.route('/gestion_materiel/user', methods=['GET', 'POST'])
 @login_required
+@role_required("admin")
 def creer_user():    
     form = UserForm()
     user = User.query.order_by(User.username).all()
@@ -185,6 +187,7 @@ def creer_user():
 
 @app.route('/gestion_materiel/user/edit/<int:id>', methods=['POST'])
 @login_required
+@role_required("admin")
 def edit_user(id):
     user = User.query.get_or_404(id)
     form = UserForm()
@@ -201,6 +204,7 @@ def edit_user(id):
 
 @app.route('/gestion_materiel/user/delete', methods=['POST'])
 @login_required
+@role_required("admin")
 def delete_users():
     ids = request.form.getlist('user_ids')
 
@@ -221,12 +225,12 @@ def delete_users():
 @role_required("admin")
 def dashboard():
      # TOTAL VENTES
-
     return render_template("dashboard.html")
 
 
 @app.route('/gestion_materiel/produit', methods=['GET', 'POST'])
 @login_required
+@role_required(["admin","operateur"])
 def produit():
     form = ProduitForm(csrf_enabled=False)
     produits = Produit.query.order_by(Produit.nom_produit).all()
@@ -264,7 +268,7 @@ def produit():
 
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
-@role_required("admin")
+@role_required(["admin", "operateur"])
 def edit_produit(id):
     produit = Produit.query.get_or_404(id)
     form = ProduitForm()
@@ -313,7 +317,7 @@ from sqlalchemy import exists
 
 @app.route('/gestion_materiel/produit/delete', methods=['POST'])
 @login_required
-@role_required("admin")
+@role_required(["admin","operateur"])
 def delete_produits():
     ids = request.form.getlist('produit_ids')
 
@@ -359,6 +363,7 @@ def delete_produits():
 
 @app.route('/gestion_materiel/client', methods=['GET', 'POST'])
 @login_required
+@role_required(["admin","operateur"])
 def client():
   form = ClientForm(csrf_enabled=False)
   clients = Client.query.order_by(Client.nom_client).all()
@@ -381,6 +386,7 @@ def client():
 
 @app.route('/gestion_materiel/client/edit/<int:id>', methods=['POST'])
 @login_required
+@role_required(["admin", "operateur"])
 def edit_client(id):
     client = Client.query.get_or_404(id)
     form = ClientForm()
@@ -396,6 +402,7 @@ def edit_client(id):
 
 @app.route('/gestion_materiel/client/delete', methods=['POST'])
 @login_required
+@role_required(["admin", "operateur"])
 def delete_clients():
     ids = request.form.getlist('client_ids')
 
@@ -413,6 +420,7 @@ def delete_clients():
 
 @app.route("/stock", methods=["GET"])
 @login_required
+@role_required(["admin", "operateur"])
 def etat_stock():
     produits_all = Produit.query.order_by(Produit.nom_produit).all()
 
@@ -433,6 +441,7 @@ def etat_stock():
 
 @app.route("/delete/lot", methods=["POST"])
 @login_required
+@role_required(["admin","operateur"])
 def delete_lot():
     stock_ids = request.form.getlist("stock_ids[]")
 
@@ -465,6 +474,7 @@ def delete_lot():
 
 @app.route("/stock/ajouter", methods=["GET", "POST"])
 @login_required
+@role_required(["admin", "operateur"])
 def ajouter_stock():
 
     # 🔒 Sécurité : si quelqu’un accède en GET
@@ -533,6 +543,7 @@ from sqlalchemy.orm import joinedload
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
 @login_required
+@role_required("admin")
 def nouvelle_vente():
 
     # =========================
@@ -666,6 +677,7 @@ def nouvelle_vente():
 
 @app.route("/ventes/supprimer", methods=["POST"])
 @login_required
+@role_required("admin")
 def supprimer_ventes():
 
     vente_ids = request.form.getlist("vente_ids")
@@ -719,6 +731,7 @@ def supprimer_ventes():
 
 @app.route("/vente/<int:vente_id>/edit", methods=["GET"])
 @login_required
+@role_required("admin")
 def modifier_vente(vente_id):
     vente = (
         Vente.query
@@ -752,6 +765,7 @@ def modifier_vente(vente_id):
 
 @app.route("/paiement/<int:paiement_id>/reverser", methods=["POST"])
 @login_required
+@role_required("admin")
 def reverser_paiement(paiement_id):
 
     paiement = Paiement.query.get_or_404(paiement_id)
@@ -801,6 +815,7 @@ def reverser_paiement(paiement_id):
 
 @app.route("/vente/<int:vente_id>/paiement", methods=["GET"])
 @login_required
+@role_required("admin")
 def paiement_vente(vente_id):
 
     vente = (
@@ -818,6 +833,7 @@ def paiement_vente(vente_id):
 
 @app.route("/paiement/ajouter/<int:vente_id>", methods=["POST"])
 @login_required
+@role_required("admin")
 def ajouter_paiement(vente_id):
 
     vente = Vente.query.get_or_404(vente_id)
@@ -884,6 +900,7 @@ def ajouter_paiement(vente_id):
 
 @app.route("/facture/<int:vente_id>")
 @login_required
+@role_required("admin")
 def voir_facture(vente_id):
 
     facture = Facture.query.filter_by(vente_id=vente_id).first_or_404()
@@ -898,6 +915,7 @@ def voir_facture(vente_id):
 
 @app.route("/factures")
 @login_required
+@role_required("admin")
 def liste_factures():
 
     factures = (
@@ -915,6 +933,7 @@ def liste_factures():
 
 @app.route('/gestion_materiel/compagnie', methods=['GET', 'POST'])
 @login_required
+@role_required(["admin", "operateur"])
 def compagnie():
     form = CompagnieForm()
     compagnie = Compagnie.query.first()
@@ -957,6 +976,7 @@ def compagnie():
 
 @app.route('/rapport')
 @login_required
+@role_required("admin")
 def rapport():
     return render_template('rapport.html')
 
@@ -964,6 +984,7 @@ def rapport():
 
 @app.route('/gestion_materiel/user')
 @login_required
+@role_required("admin")
 def user():
     return render_template('user.html')
 
