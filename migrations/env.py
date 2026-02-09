@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.getcwd())
+
 import logging
 from logging.config import fileConfig
 
