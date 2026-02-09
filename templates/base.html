@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- CSS -->
+     
+    <link rel="icon" type="image/png" sizes="128x128" href="/static/images/logo_imedical-1.png">
+    <link rel="stylesheet" href="/static/style/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="{{url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block head %}{% endblock %}
+    {% block styles %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100 bg-gradient-success">   
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}     
+    <header class="container-fluid py-2">
+        <div class="row align-items-between">
+            <div class="col-2 gap-2 d-flex align-items-center">
+                    <i class="bi bi-columns-gap text-light fs-3"></i>
+                <span class="fs-5 px-1 fw-semibold text-success">
+                    Gestock
+                </span>
+            </div>
+    
+        <!-- USER AUTH -->
+            <div class="col-10 d-flex gap-4 justify-content-end align-items-center">
+                {% if current_user.is_authenticated %}
+                    <div class="d-flex justify-content-end align-items-center ">
+                        <span class="fs-5 d-flex justify-content-end mx-2 align-items-center">
+                            <i class="bi bi-person-circle fs-5 mx-2"></i>
+                            {{ current_user.username }} 
+                        </span>
+                        <span class="fs-6 fw-semibold text-success">connecté(e)</span>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-success">
+                            Déconnexion
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+        <!-- CONTENU PRINCIPAL -->
+    <main class="container-fluid flex-fill">
+            <!-- NAV VERTICAL -->
+            <div class="row">
+                {% if current_user.is_authenticated %}
+                {% if request.path.startswith('/gestion_materiel') %}
+                <nav class="col-3 col-md-2 p-1">
+                            {% set active_pages = ['paiement', 'produit', 'client', 'dashboard', 'transaction', 'facture', 'stock', 'user'] %}
+                        <ul class="nav flex-column gap-1">
+                            {% if current_user.role in ["admin","operateur"] %}
+                            <li class="nav-item  px-1  {{ 'active bg-nav2' if is_active('gestion_materiel/client') else '' }}
+                                bg-nav-hover bg-nav border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-person-standing text-light fs-3"></i>
+                                <a class="nav-link active text-light" href="{{ url_for('client') }}">Gestion Clients</a>
+                            </li>
+                            <li class="{{ 'active bg-nav2' if is_active('gestion_materiel/add_produit') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-bag-fill text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('produit')}}">Gestion Produits</a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.role == "admin" %}                      
+                            <li class="{{ 'bg-nav2' if is_active('gestion_materiel/compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-building fs-3 text-light"></i>
+                                <a class="nav-link text-light" href="{{url_for('compagnie')}}">Ma Compagnie</a>
+                            </li>
+                            <li class="{{ 'bg-nav2' if is_active('gestion_materiel/user') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-people fs-3 text-light"></i>
+                                <a class="nav-link text-light" href="{{url_for('user')}}">Gestion Utilisateurs</a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.role in ["admin","operateur"] %}
+                            <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-arrow-left-square-fill text-light fs-3"></i>
+                                {% if current_user.role == "admin" %}
+                                <a class="nav-link text-light"  href="{{url_for('dashboard')}}">Retour</a>
+                                {% else %}
+                                <a class="nav-link text-light"  href="{{url_for('entree_stock')}}">Retour</a>
+                                {% endif %}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% else %}
+                    <nav class="col-3 col-md-2 p-1">
+                        <ul class="nav flex-column gap-1">
+                            {% if current_user.role == "admin" %}
+                            <li class=" {{ 'bg-nav2' if is_active('dashboard') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-speedometer text-light fs-3"></i>
+                                <a class="nav-link active text-light" href="{{ url_for('dashboard') }}">Dashboard</a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.role in ["admin","operateur"] %}
+                            <li class="{{ 'bg-nav2' if is_active('ajouter_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi-cart-plus text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('ajouter_stock')}}">Entree Stock</a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.role == "admin" %}
+                            <li class="{{ 'bg-nav2' if is_active('liste_transactions_en_cours') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi-cart-check text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
+                            </li>
+
+                            <li class="{{ 'bg-nav2' if is_active('rapport') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-cash-coin text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('rapport')}}">Rapports</a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.role in ["admin","operateur"] %}
+                            <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-gear-wide-connected text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('client')}}">Parametre de Base</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                 {% endif %}
+                 <!-- CONTENU DES PAGES -->
+                  <section class="{% if current_user.is_authenticated %}col-9 col-md-10{% else %}col-12{% endif %}">
+                     {% block content %}{% endblock %}
+                  </section>
+             </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-success text-light text-center py-3 mt-auto">
+        <p class="mb-0">© 2026 - GESTSTOCK - Keeping safe the flow of your goods </p>
+    </footer>
+
+    
+    <script>
+        setTimeout(() => {
+            const flashes = document.querySelectorAll(".flash");
+            flashes.forEach(flash => {
+                flash.style.transition = "opacity 0.5s ease";
+                flash.style.opacity = "0";
+                setTimeout(() => flash.remove(), 500);
+            });
+        }, 5000); // 5 secondes
+    </script>
+{% block script %}{% endblock %}
+</body>
+</html>

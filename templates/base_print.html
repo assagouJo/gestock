@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo3.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="{{url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
+    
+    {% block head %}{% endblock %}
+    {% block styles %}{% endblock %}
+
+    <style>
+      /* Masquer éléments non désirés à l’impression */
+      @media print {
+        nav, footer, .flash-container, .no-print {
+          display: none !important;
+        }
+      }
+
+      @media print {
+  .badge {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}
+    </style>
+
+</head>
+<body class="d-flex flex-column min-vh-100">   
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <script>
+    setTimeout(() => {
+        const flashes = document.querySelectorAll(".flash");
+        flashes.forEach(flash => {
+        flash.style.transition = "opacity 0.5s ease";
+        flash.style.opacity = "0";
+        setTimeout(() => flash.remove(), 500);
+        });
+    }, 5000); // 5 secondes
+</script>
+</body>
+</html>

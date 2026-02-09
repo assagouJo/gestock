@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Gestion Clients | gestock{% endblock %}
+
+{% block styles %}
+    
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col">
+        <a class="btn btn-outline-success" data-bs-toggle="modal" 
+        data-bs-target="#addclientmodal">Ajouter Client</a>        
+    </div>
+</div>
+<hr>
+{% if clients %}
+  <!-- <div class=""> -->
+      <form action="{{ url_for('delete_clients') }}" method="post">
+        {{ form.hidden_tag() }}
+    
+        <table class="table caption-top table-striped px-1">
+          <caption class="fs-3 fw-semibold">
+            Liste des clients
+        </caption>
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          <th scope="col">Nom</th>
+          <th scope="col">Telephone</th>
+          <th scope="col">Adresse_email</th>
+          <th scope="col">Ville</th>
+          <th scope="col">Numero_rcc</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in clients %}
+        <tr class="client-row"
+            data-id="{{ client.id }}"
+            data-nom="{{ client.nom_client }}"
+            data-telephone="{{ client.telephone }}"
+            data-adresse="{{ client.adresse_email }}"
+            data-ville="{{ client.ville }}"
+            data-rcc="{{ client.numero_rcc }}"
+            style="cursor:pointer">
+          <td>
+            <input class="form-check-input border-success client-checkbox" 
+            name="client_ids"
+            type="checkbox" value="{{client.id}}">
+          </td>
+          <td>{{client.nom_client.upper()}}</td>
+          <td>{{client.telephone}}</td>
+          <td>{{client.adresse_email}}</td>
+          <td>{{client.ville}}</td>
+          <td>{{client.numero_rcc}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-outline-danger" 
+      onclick="return confirm('Voulez-vous supprimer ce ou ces clients ?')">Suprimer Client
+    </button>
+    </form>
+  <!-- </div> -->
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+        Aucun client enregistré pour le moment.
+    </div>
+{% endif %}
+<!-- Ajouter Client Modal -->
+<div class="modal fade" id="addclientmodal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h5 class="modal-title text-success fw-bold" id="modalTitle">
+          Ajouter un client
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <!-- BODY -->
+      <div class="modal-body">
+        <form method="post"
+              id = "clientForm"
+              action="{{ url_for('client') }}"
+              class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
+
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.nom_client.label(class="form-label") }}
+            {{ form.nom_client(class="form-control") }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.telephone.label(class="form-label") }}
+            {{ form.telephone(class="form-control") }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.adresse_email.label(class="form-label") }}
+            {{ form.adresse_email(class="form-control") }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.ville.label(class="form-label") }}
+            {{ form.ville(class="form-control") }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.numero_rcc.label(class="form-label") }}
+            {{ form.numero_rcc(class="form-control") }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+              Annuler
+            </button>
+            {{ form.submit(class="btn btn-success") }}
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const modalEl = document.getElementById("addclientmodal");
+  const modal = new bootstrap.Modal(modalEl);
+  const form = document.getElementById("clientForm");
+  const title = document.getElementById("modalTitle");
+
+  // 👉 MODE MODIFICATION (double clic)
+  document.querySelectorAll(".client-row").forEach(row => {
+    row.addEventListener("dblclick", function () {
+
+      title.textContent = "Modifier le client";
+      form.action = `/gestion_materiel/client/edit/${this.dataset.id}`;
+
+      form.nom_client.value = this.dataset.nom;
+      form.telephone.value = this.dataset.telephone;
+      form.adresse_email.value = this.dataset.adresse;
+      form.ville.value = this.dataset.ville;
+      form.numero_rcc.value = this.dataset.rcc;
+
+      modal.show();
+    });
+  });
+
+  // 👉 MODE AJOUT (bouton Ajouter Client)
+  modalEl.addEventListener("hidden.bs.modal", function () {
+    title.textContent = "Ajouter un client";
+    form.action = "{{ url_for('client') }}";
+    form.reset();
+  });
+
+    /* ===============================
+   BOUTON SUPPRESSION CHECKBOX
+  ================================ */
+  const btn = document.querySelector(".btn-outline-danger");
+  const checkboxes = document.querySelectorAll(".client-checkbox");
+
+  // bouton désactivé au départ
+  if (btn) btn.disabled = true;
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      btn.disabled = !document.querySelector(".client-checkbox:checked");
+    });
+  });
+
+});
+</script>
+{% endblock %}

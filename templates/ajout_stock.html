@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}État du Stock | gestock{% endblock %}
+
+{% block content %}
+<div class="py-3">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center">
+    <h4>État du Stock</h4>
+    <button class="btn btn-outline-success"
+            data-bs-toggle="modal"
+            data-bs-target="#addAchatModal">
+      ➕ Entrée Stock
+    </button>
+  </div>
+
+  <hr>
+
+  <!-- TABLE STOCK -->
+  {% if stocks %}
+<form action="{{ url_for('delete_lot') }}" method="post">
+  <div class="table-responsive" style="max-height: 350px;">
+    <table class="table table-bordered table-hover mt-3">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Numéro de lot</th>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for s in stocks %}
+        <tr>
+          <td class="text-center align-middle">
+            <input type="checkbox"
+                   name="stock_ids[]"
+                   value="{{ s.id }}">
+          </td>
+
+          <!-- NUMERO DE LOT -->
+          <td>{{ s.numero_lot }}</td>
+
+          <!-- PRODUIT -->
+          <td>{{ s.produit.nom_produit }}</td>
+
+          <!-- QUANTITE PAR LOT -->
+          <td class="fw-bold">{{ s.quantite }}</td>
+
+          <!-- STATUT PAR LOT -->
+          <td>
+            {% if s.quantite == 0 %}
+              <span class="badge bg-danger">Rupture</span>
+            {% elif s.quantite < s.seuil_alerte %}
+              <span class="badge bg-warning text-dark">Faible</span>
+            {% else %}
+              <span class="badge bg-success">Disponible</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <button type="submit"
+          class="btn btn-outline-danger mt-2"
+          onclick="return confirm('Supprimer les lots sélectionnés ?')">
+    🗑 Supprimer lots
+  </button>
+</form>
+{% else %}
+  <div class="alert alert-warning text-center mt-3">
+    Aucun produit en stock pour le moment.
+  </div>
+{% endif %}
+<!-- ================= MODAL ENTREE STOCK ================= -->
+<div class="modal fade" id="addAchatModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Nouvelle Entrée de Stock</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form method="post" action="{{ url_for('ajouter_stock') }}">
+
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Numéro de lot</th>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody id="lignesStock">
+              <tr class="ligne-stock">
+                <td>
+                  <input type="text"
+                         name="numero_lot[]"
+                         class="form-control"
+                         required>
+                </td>
+
+                <td>
+                  <select name="produit_id[]"
+                          class="form-select"
+                          required>
+                    {% for p in produits_all %}
+                      <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+
+                <td>
+                  <input type="number"
+                         name="quantite[]"
+                         class="form-control"
+                         min="1"
+                         required>
+                </td>
+
+                <td>
+                  <button type="button"
+                          class="btn btn-danger btn-sm supprimer">
+                    ✖
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button type="button"
+                  id="ajouterLigne"
+                  class="btn btn-outline-secondary mb-3">
+            ➕ Ajouter une ligne
+          </button>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-primary">
+              Enregistrer
+            </button>
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tbody = document.getElementById("lignesStock");
+  const btnAjouter = document.getElementById("ajouterLigne");
+
+  btnAjouter.addEventListener("click", () => {
+    const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
+    ligne.querySelectorAll("input").forEach(i => i.value = "");
+    ligne.querySelector("select").selectedIndex = 0;
+    tbody.appendChild(ligne);
+  });
+
+  tbody.addEventListener("click", e => {
+    if (e.target.classList.contains("supprimer")) {
+      if (tbody.children.length > 1) {
+        e.target.closest("tr").remove();
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

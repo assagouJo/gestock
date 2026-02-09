@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}User | gestock{% endblock %}
+
+{% block styles %}
+    
+{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col">
+        <a class="btn btn-outline-success me-3" data-bs-toggle="modal" 
+        data-bs-target="#addusermodal">Nouveau Utilisateur</a>        
+        <!-- <button class="btn btn-danger">Reinitialiser Mot de Passe</button>         -->
+    </div>
+</div>
+<hr>
+{% if user %}
+  <!-- <div class=""> -->
+      <form action="{{ url_for('delete_users') }}" method="post">
+        {{ form.hidden_tag() }}
+    
+        <table class="table caption-top table-striped w-50 px-1">
+          <caption class="fs-3 fw-semibold">
+            Liste des Utilisateurs
+        </caption>
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          <th scope="col">Id</th>
+          <th scope="col">Nom Utilisateur</th>
+          <th scope="col">Email</th>
+          <th scope="col">Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in user %}
+        <tr class="user-row"
+            data-id="{{ user.id }}"
+            data-username="{{ user.username }}"
+            data-email="{{ user.email }}"
+            style="cursor:pointer">
+          <td>
+            <input class="form-check-input border-success produit-checkbox" 
+            name="user_ids"
+            type="checkbox" value="{{user.id}}">
+          </td>
+          <td>{{ loop.index }}</td>
+          <td>{{user.username.capitalize()}}</td>
+          <td>{{user.email}}</td>
+          <td>{{user.role}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-outline-danger" 
+      onclick="return confirm('Voulez-vous supprimer ce ou ces utilisateurs ?')">Suprimer User
+    </button>
+    <button type="button"
+        class="btn btn-warning ms-2"
+        onclick="submitResetPassword()">
+        Réinitialiser mot de passe
+    </button>
+    </form>
+  <!-- </div> -->
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+        Aucun User enregistré pour le moment.
+    </div>
+{% endif %}
+
+<!-- Modal -->
+
+<div class="modal fade" id="addusermodal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h5 class="modal-title text-success fw-bold" id="modalTitle">
+          Creer Utilisateur
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <!-- BODY -->
+      <div class="modal-body">
+        <form method="post"
+              id = "produitForm"
+              action="{{ url_for('creer_user') }}"
+              class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
+
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+          {{ form.username.label(class="form-label") }}
+          {{ form.username(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.email.label(class="form-label") }}
+          {{ form.email(class="form-control") }}
+        </div>
+
+        <div class="mb-3" id="password_input">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.role.label(class="form-label") }}
+          {{ form.role(class="form-select") }}
+        </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+              Annuler
+            </button>
+            {{ form.submit(class="btn btn-success") }}            
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const modalEl = document.getElementById("addusermodal");
+  const modal = new bootstrap.Modal(modalEl);
+  const form = document.getElementById("produitForm");
+  const title = document.getElementById("modalTitle");
+
+  // 👉 MODE MODIFICATION (double clic)
+  document.querySelectorAll(".user-row").forEach(row => {
+    row.addEventListener("dblclick", function () {
+
+      title.textContent = "Modifier l'utilisateur";
+      document.querySelector("#password_input").style.display = "none";
+      form.action = `/gestion_materiel/user/edit/${this.dataset.id}`;
+
+      form.username.value = this.dataset.username;
+      form.email.value = this.dataset.email;
+      modal.show();
+    });
+  });
+
+  // 👉 MODE AJOUT (bouton Ajouter Client)
+  modalEl.addEventListener("hidden.bs.modal", function () {
+    title.textContent = "Creer un utilisateur";
+    form.action = "{{ url_for('creer_user') }}";
+    form.reset();
+  });
+
+    /* ===============================
+   BOUTON SUPPRESSION CHECKBOX
+  ================================ */
+  const btn = document.querySelector(".btn-outline-danger");
+  const checkboxes = document.querySelectorAll(".produit-checkbox");
+
+  // bouton désactivé au départ
+  if (btn) btn.disabled = true;
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      btn.disabled = !document.querySelector(".produit-checkbox:checked");
+    });
+  });
+
+});
+
+function submitResetPassword() {
+    const checked = document.querySelectorAll('.form-check-input:checked');
+
+    if (checked.length === 0) {
+        alert("Veuillez sélectionner un utilisateur");
+        return;
+    }
+
+    if (checked.length > 1) {
+        alert("Veuillez sélectionner un seul utilisateur");
+        return;
+    }
+
+    if (!confirm("Réinitialiser le mot de passe de cet utilisateur ?")) {
+        return;
+    }
+
+    // créer un form dynamique pour reset
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "{{ url_for('reset_user_password') }}";
+
+    // CSRF token
+    const csrf = document.createElement("input");
+    csrf.type = "hidden";
+    csrf.name = "csrf_token";
+    csrf.value = "{{ form.csrf_token._value() }}";
+
+    // user_id
+    const userId = document.createElement("input");
+    userId.type = "hidden";
+    userId.name = "user_id";
+    userId.value = checked[0].value;
+
+    form.appendChild(csrf);
+    form.appendChild(userId);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}
