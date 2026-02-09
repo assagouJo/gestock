@@ -21,10 +21,8 @@
             <td>{{ p.nom_produit }}</td>
             <td>{{ p.stock }}</td>
             <td>
-                {% if p.stock == 0 %}
-                    <span class="badge bg-danger">Rupture</span>
-                {% elif p.stock < 5 %}
-                    <span class="badge bg-warning text-dark">Faible</span>
+                {% if p.stock < 5 %}
+                    <span class="badge bg-danger">Faible</span>
                 {% else %}
                     <span class="badge bg-success">Disponible</span>
                 {% endif %}

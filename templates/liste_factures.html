@@ -21,36 +21,31 @@
           <th class="text-center">Actions</th>
         </tr>
       </thead>
-
       <tbody>
         {% for f in factures %}
         <tr>
           <td>{{ f.numero }}</td>
-          <td>{{ f.date.strftime("%d/%m/%Y") }}</td>
-          <td>{{ f.client.nom_client }}</td>
-          <td>{{ f.total | money }}</td>
-          <td>{{ f.total_paye | money }}</td>
-
-          <td class="text-center">
-            <a href="{{ url_for('facture', facture_id=f.id) }}"
-               class="btn btn-sm btn-outline-primary mb-1">
-              Voir
-            </a>
-
-            {% if f.statut != "ANNULEE" %}
-            <form method="POST"
-                  action="{{ url_for('annuler_facture', facture_id=f.id) }}"
-                  onsubmit="return confirm('Voulez-vous vraiment annuler cette facture ? Tous les montants seront reversés.');"
-                  class="d-inline">
-              <button type="submit" class="btn btn-sm btn-outline-danger">
-                Annuler
-              </button>
-            </form>
+          <td>{{ f.date_facture.strftime("%d/%m/%Y") }}</td>
+          <td>{{ f.vente.client.nom_client }}</td>
+          <td>{{ f.total }}</td>
+          <td>{{ f.montant_paye }}</td>
+          <td>{{ f.reste_a_payer }}</td>
+          <td>
+            {% if f.statut == "paye" %}
+              <span class="badge bg-success">Payée</span>
+            {% elif f.statut == "partiel" %}
+              <span class="badge bg-warning text-dark">Partielle</span>
             {% else %}
-              <span class="badge bg-danger">Annulée</span>
+              <span class="badge bg-danger">Impayée</span>
             {% endif %}
           </td>
-        </tr>
+          <td>
+            <a href="{{ url_for('voir_facture', vente_id=f.vente_id) }}"
+              class="btn btn-sm btn-primary">
+              Voir
+            </a>
+          </td>
+          </tr>
         {% else %}
         <tr>
           <td colspan="9" class="text-center">

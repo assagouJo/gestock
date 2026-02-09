@@ -1,8 +1,9 @@
 from app import app, db, login_manager
+from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, LigneFacture, Paiement, Facture, Compagnie, Vente, LigneVente, Stock
-from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, VenteForm, StockForm
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture
+from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -14,28 +15,27 @@ from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from helper import generate_code_produit, generate_numero_facture
 from werkzeug.security import generate_password_hash
-from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
 
 
 
-@app.route("/create-admin")
-def create_admin():
-    # éviter doublon
-    user = User.query.filter_by(username="admin").first()
-    if user:
-        return "Admin already exists"
+# @app.route("/create-admin")
+# def create_admin():
+#     # éviter doublon
+#     user = User.query.filter_by(username="admin").first()
+#     if user:
+#         return "Admin already exists"
 
-    user = User(
-        username="admin",
-        email="admin@gestock.com",
-        password_hash=generate_password_hash("admin123"),
-        role="admin"
-    )
-    db.session.add(user)
-    db.session.commit()
-    return "Admin created"
+#     user = User(
+#         username="admin",
+#         email="admin@gestock.com",
+#         password_hash=generate_password_hash("admin123"),
+#         role="admin"
+#     )
+#     db.session.add(user)
+#     db.session.commit()
+#     return "Admin created"
 
 
 
@@ -262,9 +262,6 @@ def produit():
     
 
 
-
-
-
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
 @role_required("admin")
@@ -360,10 +357,6 @@ def delete_produits():
     return redirect(url_for('produit'))
 
 
-
-
-
-
 @app.route('/gestion_materiel/client', methods=['GET', 'POST'])
 @login_required
 def client():
@@ -426,9 +419,10 @@ def etat_stock():
     stocks = (
         Stock.query
         .join(Produit)
+        .filter(Stock.quantite > 0) 
         .order_by(Stock.numero_lot)
         .all()
-    )
+    )    
 
     return render_template(
         "ajout_stock.html",   # ta page unique
@@ -438,6 +432,7 @@ def etat_stock():
 
 
 @app.route("/delete/lot", methods=["POST"])
+@login_required
 def delete_lot():
     stock_ids = request.form.getlist("stock_ids[]")
 
@@ -445,15 +440,27 @@ def delete_lot():
         flash("Aucun produit sélectionné", "warning")
         return redirect(url_for("etat_stock"))
 
-    # Supprimer TOUS les stocks liés aux produits
-    Stock.query.filter(
-        Stock.id.in_(stock_ids)
-    ).delete(synchronize_session=False)
+    stocks = Stock.query.filter(Stock.id.in_(stock_ids)).all()
+
+    stocks_bloques = []
+
+    for stock in stocks:
+        if stock.lignes:   # 🔥 relation backref
+            stocks_bloques.append(stock.numero_lot)
+        else:
+            db.session.delete(stock)
+
+    if stocks_bloques:
+        flash(
+            f"Suppression partielle ❌ — Lots liés à des ventes : {', '.join(stocks_bloques)}",
+            "danger"
+        )
+    else:
+        flash("Stocks supprimés avec succès 🗑️", "success")
 
     db.session.commit()
-
-    flash("Stock supprimé avec succès 🗑️", "success")
     return redirect(url_for("etat_stock"))
+
 
 
 @app.route("/stock/ajouter", methods=["GET", "POST"])
@@ -468,11 +475,6 @@ def ajouter_stock():
     lots = request.form.getlist("numero_lot[]")
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
-
-    # 🧪 Debug (tu peux enlever après)
-    print("LOTS :", lots)
-    print("PRODUITS :", produits)
-    print("QUANTITES :", quantites)
 
     # 🚨 Validation minimale
     if not lots or not produits or not quantites:
@@ -526,103 +528,125 @@ def ajouter_stock():
     flash("Stock enregistré avec succès ✅", "success")
     return redirect(url_for("etat_stock"))
 
-
-
-
+from sqlalchemy.orm import joinedload
 
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
 @login_required
 def nouvelle_vente():
-    # 🔹 Compatibilité SQLite / PostgreSQL
-    # engine = db.engine.name
-    # if engine == "sqlite":
-    #     produits_agg = func.group_concat(Produit.nom_produit, ', ')
-    # else:
-    #     produits_agg = func.string_agg(Produit.nom_produit, ', ')
 
-    # 🔹 Données affichage
+    # =========================
+    # 🔹 DONNÉES POUR AFFICHAGE
+    # =========================
     clients = Client.query.order_by(Client.nom_client).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
 
     ventes = (
-    Vente.query
-    .options(
-        db.joinedload(Vente.client),
-        db.joinedload(Vente.lignes).joinedload(LigneVente.produit)
+        Vente.query
+        .options(
+            joinedload(Vente.client),
+            joinedload(Vente.lignes)
+                .joinedload(LigneVente.stock)
+                .joinedload(Stock.produit)
+        )
+        .order_by(Vente.id.desc())
+        .all()
     )
-    .order_by(Vente.id.desc())
-    .all()
-)
 
+    # =========================
     # 🔹 ENREGISTREMENT VENTE
+    # =========================
     if request.method == 'POST':
+
         client_id = request.form.get('client_id')
-        produits_ids = request.form.getlist('produit_id[]')
+        stock_ids = request.form.getlist('stock_id[]')
         quantites = request.form.getlist('quantite[]')
         prix_unitaires = request.form.getlist('prix_unitaire[]')
 
-        if not client_id or not produits_ids:
+        if not client_id or not stock_ids:
             flash("Données invalides", "danger")
             return redirect(url_for('nouvelle_vente'))
 
         try:
-            vente = Vente(client_id=int(client_id))
+            # =========================
+            # 🔹 1️⃣ CRÉATION VENTE (INIT)
+            # =========================
+            vente = Vente(
+                client_id=int(client_id),
+                date_vente=datetime.now(timezone.utc),
+                total=Decimal("0.00"),
+                montant_paye=Decimal("0.00"),
+                reste_a_payer=Decimal("0.00"),
+                statut_paiement="impaye"
+            )
+
             db.session.add(vente)
-            db.session.flush()  # récupère vente.id
+            db.session.flush()  # 🔥 permet d’avoir vente.id
 
-            total_vente = 0
+            total_vente = Decimal("0.00")
 
-            for pid, qte, pu in zip(produits_ids, quantites, prix_unitaires):
-                produit = Produit.query.get_or_404(int(pid))
+            # =========================
+            # 🔹 2️⃣ LIGNES DE VENTE
+            # =========================
+            for stock_id, qte, pu in zip(stock_ids, quantites, prix_unitaires):
+
+                stock = (
+                    db.session.query(Stock)
+                    .filter_by(id=int(stock_id))
+                    .with_for_update()
+                    .first()
+                )
+
+                if not stock:
+                    raise ValueError("Lot invalide")
+
                 qte = int(qte)
                 pu = Decimal(pu)
 
-                # 🔹 Récupération des stocks (FIFO + verrou)
-                stocks = (
-                    db.session.query(Stock)
-                    .filter_by(produit_id=produit.id)
-                    .with_for_update()
-                    .order_by(Stock.date_creation.asc())
-                    .all()
-                )
+                if qte <= 0:
+                    raise ValueError("Quantité invalide")
 
-                stock_total = sum(s.quantite for s in stocks)
-
-                if stock_total < qte:
+                if qte > stock.quantite:
                     raise ValueError(
-                        f"Stock insuffisant pour {produit.nom_produit}"
+                        f"Stock insuffisant pour le lot {stock.numero_lot}"
                     )
 
-                # 🔹 Décrémentation FIFO
-                quantite_a_retirer = qte
-                for stock in stocks:
-                    if quantite_a_retirer <= 0:
-                        break
-
-                    if stock.quantite >= quantite_a_retirer:
-                        stock.retirer(quantite_a_retirer)
-                        quantite_a_retirer = 0
-                    else:
-                        quantite_a_retirer -= stock.quantite
-                        stock.retirer(stock.quantite)
+                # 🔹 Décrémentation stock
+                stock.retirer(qte)
 
                 sous_total = qte * pu
                 total_vente += sous_total
 
                 ligne = LigneVente(
                     vente_id=vente.id,
-                    produit_id=produit.id,
+                    stock_id=stock.id,
                     quantite=qte,
-                    prix_unitaire=pu,
-                    sous_total=sous_total
+                    prix_unitaire=pu
                 )
+
                 db.session.add(ligne)
 
+            # =========================
+            # 🔹 3️⃣ FINALISATION VENTE
+            # =========================
             vente.total = total_vente
+            vente.reste_a_payer = total_vente
+
+            facture = Facture(
+                vente_id=vente.id,
+                numero="FAC-"+ generate_numero_facture(vente.id),
+                date_facture=datetime.now(timezone.utc),
+                total=vente.total,
+                montant_paye=vente.montant_paye,
+                reste_a_payer=vente.reste_a_payer,
+                statut=vente.statut_paiement
+            )
+
+            db.session.add(facture)
+
             db.session.commit()
 
-            flash("Vente enregistrée avec succès", "success")
+            flash("Vente enregistrée avec succès ✅", "success")
             return redirect(url_for('nouvelle_vente'))
 
         except Exception as e:
@@ -630,7 +654,9 @@ def nouvelle_vente():
             flash(str(e), "danger")
             return redirect(url_for('nouvelle_vente'))
 
-    # 🔹 AFFICHAGE
+    # =========================
+    # 🔹 AFFICHAGE PAGE
+    # =========================
     return render_template(
         'liste_vente.html',
         clients=clients,
@@ -638,94 +664,253 @@ def nouvelle_vente():
         ventes=ventes
     )
 
-
-@app.route('/vente/supprimer', methods=['POST'])
+@app.route("/ventes/supprimer", methods=["POST"])
 @login_required
 def supprimer_ventes():
-    vente_ids = request.form.getlist('vente_ids')
+
+    vente_ids = request.form.getlist("vente_ids")
 
     if not vente_ids:
         flash("Aucune vente sélectionnée", "warning")
-        return redirect(url_for('nouvelle_vente'))
+        return redirect(url_for("nouvelle_vente"))
+
+    ventes_refusees = []
+    ventes_supprimees = 0
 
     try:
-        for vente_id in vente_ids:
-            vente = Vente.query.get(int(vente_id))
-            if not vente:
+        ventes = Vente.query.filter(Vente.id.in_(vente_ids)).all()
+
+        for vente in ventes:
+
+            # 🔒 INTERDICTION ABSOLUE
+            if vente.montant_paye > 0 or vente.statut_paiement != "impaye":
+                ventes_refusees.append(str(vente.id))
                 continue
 
-            lignes = LigneVente.query.filter_by(vente_id=vente.id).all()
+            # 🔁 Réintégrer le stock (vente jamais payée)
+            for ligne in vente.lignes:
+                if ligne.stock:
+                    ligne.stock.ajouter(ligne.quantite)
 
-            # 🔁 Restaurer le stock
-            for ligne in lignes:
-                stocks = (
-                    db.session.query(Stock)
-                    .filter_by(produit_id=ligne.produit_id)
-                    .with_for_update()
-                    .order_by(Stock.date_creation.desc())
-                    .all()
-                )
-
-                if not stocks:
-                    raise ValueError("Lot introuvable pour restauration du stock")
-
-                # On remet tout dans le dernier lot
-                stocks[0].ajouter(ligne.quantite)
-
-            # 🔥 Supprimer lignes + vente
-            LigneVente.query.filter_by(vente_id=vente.id).delete()
             db.session.delete(vente)
+            ventes_supprimees += 1
 
         db.session.commit()
-        flash("Vente(s) supprimée(s) avec succès", "success")
+
+        if ventes_refusees:
+            flash(
+                "Suppression refusée ❌ pour les ventes avec paiement : "
+                + ", ".join(ventes_refusees),
+                "danger"
+            )
+
+        if ventes_supprimees:
+            flash(
+                f"{ventes_supprimees} vente(s) supprimée(s) avec succès",
+                "success"
+            )
 
     except Exception as e:
         db.session.rollback()
-        flash(f"Erreur lors de la suppression : {str(e)}", "danger")
+        flash(str(e), "danger")
 
-    return redirect(url_for('nouvelle_vente'))
-
-
+    return redirect(url_for("nouvelle_vente"))
 
 
-@app.route('/facture/generer/<int:vente_id>')
+@app.route("/vente/<int:vente_id>/edit", methods=["GET"])
 @login_required
-def generer_facture(vente_id):
+def modifier_vente(vente_id):
+    vente = (
+        Vente.query
+        .options(
+            db.joinedload(Vente.lignes)
+              .joinedload(LigneVente.stock)
+              .joinedload(Stock.produit),
+            db.joinedload(Vente.client)
+        )
+        .get_or_404(vente_id)
+    )
+
+    if vente.montant_paye > 0:
+        flash(
+            "Cette vente a déjà reçu un paiement et ne peut plus être modifiée.",
+            "danger"
+        )
+        return redirect(url_for("nouvelle_vente"))
+    
+
+    clients = Client.query.order_by(Client.nom_client).all()
+    produits = Produit.query.order_by(Produit.nom_produit).all()
+
+    return render_template(
+        "modifier_vente.html",
+        vente=vente,
+        clients=clients,
+        produits=produits
+    )
+
+
+@app.route("/paiement/<int:paiement_id>/reverser", methods=["POST"])
+@login_required
+def reverser_paiement(paiement_id):
+
+    paiement = Paiement.query.get_or_404(paiement_id)
+    vente = paiement.vente
+
+    # 🔒 Déjà annulé
+    if paiement.annule:
+        flash("Ce paiement est déjà annulé", "warning")
+        return redirect(url_for("paiement_vente", vente_id=vente.id))
+
+    try:
+        montant_inverse = -paiement.montant
+
+        # 1️⃣ Paiement inverse
+        paiement_inverse = Paiement(
+            vente=vente,
+            montant=montant_inverse,
+            mode="reversion",
+            date_paiement=datetime.now(timezone.utc)
+        )
+
+        # 2️⃣ Marquer l’ancien paiement annulé
+        paiement.annule = True
+
+        # 3️⃣ Mettre à jour la vente
+        vente.montant_paye += montant_inverse
+        vente.reste_a_payer = vente.total - vente.montant_paye
+
+        if vente.montant_paye <= 0:
+            vente.statut_paiement = "impaye"
+            vente.montant_paye = Decimal("0.00")
+        elif vente.reste_a_payer > 0:
+            vente.statut_paiement = "partiel"
+        else:
+            vente.statut_paiement = "paye"
+
+        db.session.add(paiement_inverse)
+        db.session.commit()
+
+        flash("Paiement reversé avec succès 🔄", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+
+    return redirect(url_for("paiement_vente", vente_id=vente.id))
+
+@app.route("/vente/<int:vente_id>/paiement", methods=["GET"])
+@login_required
+def paiement_vente(vente_id):
+
+    vente = (
+        Vente.query
+        .options(joinedload(Vente.paiements))
+        .get_or_404(vente_id)
+    )
+
+    return render_template(
+        "paiement.html",
+        vente=vente
+    )
+
+
+
+@app.route("/paiement/ajouter/<int:vente_id>", methods=["POST"])
+@login_required
+def ajouter_paiement(vente_id):
 
     vente = Vente.query.get_or_404(vente_id)
 
-    # 🔒 éviter doublon
-    if vente.facture:
-        return redirect(url_for('voir_facture', facture_id=vente.facture.id))
+    # 🔒 Sécurité : vente déjà soldée
+    if vente.statut_paiement == "paye":
+        flash("Cette vente est déjà totalement payée", "warning")
+        return redirect(url_for("paiement_vente", vente_id=vente.id))
 
-    numero = generate_numero_facture(vente_id)
+    try:
+        # 📥 Données formulaire
+        montant = Decimal(request.form.get("montant"))
+        mode = request.form.get("mode")
 
-    facture = Facture(
-        numero=numero,
-        type_facture="FACTURE",
-        vente_id=vente.id,
-        client_id=vente.client_id,
-        total=vente.total,
-        statut="VALIDEE"
+        # 🚨 Validations
+        if montant <= 0:
+            raise ValueError("Montant invalide")
+
+        if montant > vente.reste_a_payer:
+            raise ValueError("Le montant dépasse le reste à payer")
+
+        # =========================
+        # 🧾 1️⃣ CRÉATION DU PAIEMENT
+        # =========================
+        paiement = Paiement(
+            vente_id=vente.id,
+            montant=montant,
+            mode=mode,
+            date_paiement=datetime.now(timezone.utc)
+        )
+
+        db.session.add(paiement)
+
+        # =========================
+        # 🔁 2️⃣ MISE À JOUR DE LA VENTE
+        # =========================
+        vente.montant_paye += montant
+        vente.reste_a_payer = vente.total - vente.montant_paye
+
+        if vente.reste_a_payer == 0:
+            vente.statut_paiement = "paye"
+        else:
+            vente.statut_paiement = "partiel"
+
+        # =========================
+        # 🧾 3️⃣ SYNCHRONISATION FACTURE
+        # =========================
+        facture = vente.facture
+        if facture:
+            facture.montant_paye = vente.montant_paye
+            facture.reste_a_payer = vente.reste_a_payer
+            facture.statut = vente.statut_paiement
+
+        db.session.commit()
+
+        flash("Paiement enregistré avec succès 💰", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+
+    return redirect(url_for("paiement_vente", vente_id=vente.id))
+
+
+@app.route("/facture/<int:vente_id>")
+@login_required
+def voir_facture(vente_id):
+
+    facture = Facture.query.filter_by(vente_id=vente_id).first_or_404()
+    compagnie = Compagnie.query.all()
+
+    return render_template(
+        "facture.html",
+        facture=facture,
+        compagnie=compagnie
     )
 
-    db.session.add(facture)
-    db.session.commit()
 
-    return redirect(url_for('voir_facture'))
+@app.route("/factures")
+@login_required
+def liste_factures():
 
+    factures = (
+        Facture.query
+        .join(Vente)
+        .order_by(Facture.date_facture.desc())
+        .all()
+    )
 
-
-
-
-@app.route('/facture/<int:facture_id>', methods=['GET', 'POST'])
-def voir_facture(facture_id):
-    compagnie = Compagnie.query.first()
-    facture = Facture.query.get_or_404(facture_id)
-    facture.statut
-    db.session.commit()
-
-    return render_template('facture.html', facture=facture, compagnie=compagnie)
+    return render_template(
+        "liste_factures.html",
+        factures=factures
+    )
 
 
 @app.route('/gestion_materiel/compagnie', methods=['GET', 'POST'])
@@ -775,12 +960,6 @@ def compagnie():
 def rapport():
     return render_template('rapport.html')
 
-
-
-# @app.route("/stock")
-# def voir_stock():
-#     produits = Produit.query.order_by(Produit.nom_produit).all()
-#     return render_template("stock.html", produits=produits)
 
 
 @app.route('/gestion_materiel/user')

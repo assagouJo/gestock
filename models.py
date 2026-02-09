@@ -57,7 +57,6 @@ class Produit(db.Model):
       return sum(s.quantite for s in self.stocks)
 
 
-
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -95,110 +94,125 @@ class Stock(db.Model):
 )
 
 
-
-
 class Vente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
     date_vente = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
-    total = db.Column(db.Numeric(10, 2), default=0)
+    total = db.Column(db.Numeric(10, 2), nullable=False)
 
-    client = db.relationship('Client', backref='ventes')
-    lignes = db.relationship('LigneVente', backref='vente', lazy=True)
+    # 🔽 AJOUTS PAIEMENT
+    montant_paye = db.Column(db.Numeric(10, 2), default=0)
+    reste_a_payer = db.Column(db.Numeric(10, 2), nullable=False)
 
-
-class LigneVente(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    vente_id = db.Column(db.Integer, db.ForeignKey('vente.id'), nullable=False)
-    produit_id = db.Column(db.Integer, db.ForeignKey('produit.id'), nullable=False)
-    quantite = db.Column(db.Integer, nullable=False)
-    prix_unitaire = db.Column(db.Numeric(10, 2), nullable=False)
-    sous_total = db.Column(db.Numeric(10, 2), nullable=False)
-
-    produit = db.relationship('Produit')
-
-
-
-class Paiement(db.Model):
-    __tablename__ = "paiement"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    facture_id = db.Column(
-        db.Integer,
-        db.ForeignKey("facture.id"),
-        nullable=False
+    statut_paiement = db.Column(
+        db.String(20),
+        default="impaye"   # impaye | partiel | paye
     )
 
+    client = db.relationship('Client', backref='ventes')
 
-    montant = db.Column(db.Numeric(10, 2), nullable=False)
-    date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-    mode_paiement = db.Column(db.String(30))
-
-
-
-class Facture(db.Model):
-    __tablename__ = "facture"
-
-    id = db.Column(db.Integer, primary_key=True)
-    numero = db.Column(db.String(30), unique=True, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-
-    type_facture = db.Column(db.String(15), nullable=False)
-
-    vente_id = db.Column(db.Integer, db.ForeignKey("vente.id"), nullable=False)
-    vente = db.relationship("Vente", backref=db.backref("facture", uselist=False))
-
-    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=True)
-    client = db.relationship("Client")
-
-    total = db.Column(db.Numeric(10, 2), default=0)
-    total_paye = db.Column(db.Numeric(10, 2), default=0)
-    statut = db.Column(db.String(20), default="BROUILLON")
-
-    # ✅ RELATION MANQUANTE
     lignes = db.relationship(
-        "LigneFacture",
-        back_populates="facture",
+        'LigneVente',
+        backref='vente',
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
+    paiements = db.relationship(
+        'Paiement',
+        backref='vente',
         cascade="all, delete-orphan"
     )
 
 
 
-
-
-
-class LigneFacture(db.Model):
-    __tablename__ = "ligne_facture"
-
+class LigneVente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    facture_id = db.Column(
+    vente_id = db.Column(
         db.Integer,
-        db.ForeignKey("facture.id"),
+        db.ForeignKey("vente.id", name="fk_ligne_vente_vente_id", ondelete="CASCADE" ),
         nullable=False
     )
 
-    facture = db.relationship(
-        "Facture",
-        back_populates="lignes"
-    )
-
-    produit_id = db.Column(
+    stock_id = db.Column(
         db.Integer,
-        db.ForeignKey("produit.id"),
+        db.ForeignKey("stock.id", name="fk_ligne_vente_stock_id"),
         nullable=False
     )
-    produit = db.relationship("Produit")
 
     quantite = db.Column(db.Integer, nullable=False)
     prix_unitaire = db.Column(db.Numeric(10, 2), nullable=False)
 
+    stock = db.relationship(
+        "Stock",
+        backref=db.backref("lignes", lazy=True)
+    )
+
+    def __repr__(self):
+        return (
+            f"<LigneVente vente={self.vente_id} "
+            f"produit={self.stock.produit.nom_produit} "
+            f"lot={self.stock.numero_lot} "
+            f"qte={self.quantite}>"
+        )
+    
     @property
     def sous_total(self):
-        return self.quantite * self.prix_unitaire
+        return self.quantite * self.prix_unitaire  
+      
+
+class Paiement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    vente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vente.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    montant = db.Column(db.Numeric(10, 2), nullable=False)
+
+    mode = db.Column(
+        db.String(20)
+    )  # cash | mobile_money | carte | virement
+
+    annule = db.Column(db.Boolean, default=False)
+
+    date_paiement = db.Column(db.DateTime(), default = datetime.now(timezone.utc))
+
+    def est_reversible(self):
+        return not self.annule
 
 
+class Facture(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    vente_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vente.id"),
+        nullable=False,
+        unique=True
+    )
+
+    numero = db.Column(db.String(50), nullable=False, unique=True)
+
+    date_facture = db.Column(
+        db.DateTime(),
+        default=datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    total = db.Column(db.Numeric(10, 2), nullable=False)
+    montant_paye = db.Column(db.Numeric(10, 2), nullable=False)
+    reste_a_payer = db.Column(db.Numeric(10, 2), nullable=False)
+
+    statut = db.Column(
+        db.String(20),
+        nullable=False
+    )  # impaye | partiel | paye
+
+    vente = db.relationship("Vente", backref=db.backref("facture", uselist=False))
 
 
 

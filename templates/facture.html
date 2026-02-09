@@ -26,11 +26,11 @@
     <!-- ================= INFOS FACTURE ================= -->
     <div class="row mb-4">
       <div class="col-8">
-        <h5> PROFORMA à : </h5>
-        <p class="mb-1"><strong>{{ facture.client.nom_client }}</strong></p>
+        <h5> FACTURE à : </h5>
+        <p class="mb-1"><strong>{{ facture.vente.client.nom_client }}</strong></p>
         <p class="mb-0">
-          {{ facture.client.telephone }}<br>
-          {{ facture.client.adresse_email }}
+          {{ facture.vente.client.email }}<br>
+          {{ facture.vente.client.adresse }}
         </p>
       </div>
     
@@ -42,7 +42,7 @@
           </tr>
           <tr>
             <th class="text-start">Date :</th>
-            <td class="text-end fs-6" style="font-size: 0.8rem !important;">{{ facture.date.strftime('%d/%m/%Y') }}</td>
+            <td class="text-end fs-6" style="font-size: 0.8rem !important;">{{ facture.date_facture.strftime('%d/%m/%Y') }}</td>
           </tr>
           <tr>
             <th class="text-start">Statut :</th>
@@ -63,14 +63,12 @@
           </tr>
         </thead>
         <tbody>
-          {% for detail in facture.vente.lignes %}
+          {% for ligne in facture.vente.lignes %}
           <tr>
-            <td>{{ detail.produit.nom_produit }}</td>
-            <td class="text-center">{{ detail.quantite }}</td>
-            <td class="text-end">{{ detail.prix_unitaire  }}</td>
-            <td class="text-end">
-              {{ (detail.quantite * detail.prix_unitaire)  }}
-            </td>
+            <td>{{ ligne.stock.produit.nom_produit }}</td>
+            <td>{{ ligne.quantite }}</td>
+            <td>{{ ligne.prix_unitaire }}</td>
+            <td>{{ ligne.quantite * ligne.prix_unitaire }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -96,6 +94,13 @@
             </td>
           </tr>
         </table>
+          {% if facture.statut == "paye" %}
+              <span class="badge bg-success">FACTURE SOLDÉE</span>
+          {% elif facture.statut == "partiel" %}
+              <span class="badge bg-warning text-dark">PAIEMENT PARTIEL</span>
+          {% else %}
+              <span class="badge bg-danger">FACTURE IMPAYÉE</span>
+          {% endif %}
       </div>
     </div>
     
@@ -129,7 +134,7 @@
       <button class="btn btn-outline-secondary" onclick="window.print()">
         🖨️ Imprimer
       </button>
-      <a href="{{ url_for('nouvelle_vente') }}" class="btn btn-outline-primary">
+      <a href="{{ url_for('liste_factures') }}" class="btn btn-outline-primary">
         ⬅ Retour
       </a>
     </div>
