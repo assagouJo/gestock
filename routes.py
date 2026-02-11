@@ -6,12 +6,13 @@ from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, P
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
+
 import os
 from werkzeug.utils import secure_filename
 import uuid
 from cloudinary.uploader import upload
 from decimal import Decimal
-from sqlalchemy import func
+from sqlalchemy import func, exists
 from sqlalchemy.exc import SQLAlchemyError
 from helper import generate_code_produit, generate_numero_facture
 from werkzeug.security import generate_password_hash
@@ -305,7 +306,7 @@ def delete_cloudinary_image(image_url):
         print("Cloudinary delete error:", e)
 
 
-from sqlalchemy import exists
+
 
 @app.route('/gestion_materiel/produit/delete', methods=['POST'])
 @login_required
