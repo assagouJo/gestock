@@ -321,7 +321,7 @@ def delete_produits():
 
     for p in produits:
         # 🔒 Stock non nul
-        if p.stocks > 0:
+        if p.stock_total > 0:
             produits_bloques.append(f"{p.nom_produit} (stock non nul)")
             continue
 
@@ -392,17 +392,42 @@ def edit_client(id):
 @app.route('/gestion_materiel/client/delete', methods=['POST'])
 @login_required
 def delete_clients():
+
     ids = request.form.getlist('client_ids')
 
     if not ids:
         flash("Aucun client sélectionné", "warning")
         return redirect(url_for('client'))
 
-    Client.query.filter(Client.id.in_(ids)).delete(synchronize_session=False)
+    clients = Client.query.filter(Client.id.in_(ids)).all()
+
+    clients_bloques = []
+    clients_supprimes = 0
+
+    for c in clients:
+
+        # 🔒 Vérifier s’il a des ventes
+        if c.ventes:
+            clients_bloques.append(c.nom_client)
+            continue
+
+        db.session.delete(c)
+        clients_supprimes += 1
+
     db.session.commit()
 
-    flash(f"{len(ids)} client(s) supprimé(s)", "success")
+    if clients_bloques:
+        flash(
+            "Impossible de supprimer (clients liés à des ventes) : " +
+            ", ".join(clients_bloques),
+            "danger"
+        )
+
+    if clients_supprimes:
+        flash(f"{clients_supprimes} client(s) supprimé(s)", "success")
+
     return redirect(url_for('client'))
+
 
 
 
