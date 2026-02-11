@@ -27,9 +27,9 @@
           <td>{{ f.numero }}</td>
           <td>{{ f.date_facture.strftime("%d/%m/%Y") }}</td>
           <td>{{ f.vente.client.nom_client }}</td>
-          <td>{{ f.total }}</td>
-          <td>{{ f.montant_paye }}</td>
-          <td>{{ f.reste_a_payer }}</td>
+          <td>{{ f.total | money}}</td>
+          <td>{{ f.montant_paye | money}}</td>
+          <td>{{ f.reste_a_payer | money}}</td>
           <td>
             {% if f.statut == "paye" %}
               <span class="badge bg-success">Payée</span>

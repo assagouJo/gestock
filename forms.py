@@ -143,7 +143,13 @@ class CompagnieForm(FlaskForm):
 
     logo = FileField(
         "Logo de la compagnie",
-        validators=[Optional()]
+        validators=[
+           FileAllowed(
+              
+                    ['jpg', 'jpeg', 'png', 'webp'],
+                    'Images uniquement (jpg, jpeg, png, webp)'
+                )
+            ]
     )
 
 
@@ -175,3 +181,13 @@ class StockForm(FlaskForm):
     )
 
     submit = SubmitField("Enregistrer")
+
+
+
+class ProformaForm(FlaskForm):
+    client_id = SelectField(
+        "Client",
+        coerce=int,
+        validators=[DataRequired()]
+    )
+    submit = SubmitField("Créer la proforma")

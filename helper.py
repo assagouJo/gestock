@@ -12,7 +12,7 @@ def generate_numero_facture(id):
 
 def generate_code_produit():
         annee = datetime.now().year
-        return f"{uuid.uuid4().hex[:6].upper()}-{annee}-"
+        return f"{uuid.uuid4().hex[:6].upper()}-{annee}"
 
 
 def generer_code_barre(code_produit):

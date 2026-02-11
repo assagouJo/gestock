@@ -9,23 +9,23 @@
 
 <div class="row mb-3">
     <div class="col-md-4">
-        <p>Total :
+        <p class="fw-semibold">Total :
             <span class="fw-bold text-primary">
-                {{ vente.total }} FCFA
+                {{ vente.total | money}} FCFA
             </span>
         </p>
     </div>
     <div class="col-md-4">
-        <p>Déjà payé :
+        <p class="fw-semibold">Déjà payé :
             <span class="fw-bold text-success">
-                {{ vente.montant_paye }} FCFA
+                {{ vente.montant_paye | money}} FCFA
             </span>
         </p>
     </div>
     <div class="col-md-4">
-        <p>Reste à payer :
+        <p class="fw-semibold">Reste à payer :
             <span class="fw-bold text-danger">
-                {{ vente.reste_a_payer }} FCFA
+                {{ vente.reste_a_payer | money}} FCFA
             </span>
         </p>
     </div>
@@ -109,10 +109,10 @@
     <tbody>
     {% for p in vente.paiements %}
         <tr>
-            <td>{{ p.date_paiement.strftime("%d/%m/%Y %H:%M") }}</td>
+            <td>{{ p.date_paiement.strftime("%d/%m/%Y | %H:%M") }}</td>
 
             <td class="{% if p.montant < 0 %}text-danger{% else %}text-success{% endif %}">
-                {{ p.montant }} FCFA
+                {{ p.montant | money}} FCFA
             </td>
 
             <td>{{ p.mode }}</td>

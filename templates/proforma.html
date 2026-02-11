@@ -1,0 +1,64 @@
+{% extends "base_print.html" %}
+{% block title %}Proforma {{ proforma.numero }}{% endblock %}
+
+{% block styles %}
+    
+{% endblock %}
+{% block content %}
+<div class="row p-2 d-flex justify-content-center align-items-center my-4">
+<div class="col-10">
+    <div class="col-12 text-end">
+        <img src="{{ compagnie.logo }}" height="80">
+    </div>
+    
+    <h2>FACTURE PROFORMA</h2>
+    <p><strong>Numéro :</strong> {{ proforma.numero }}</p>
+    <p><strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') }}</p>
+
+    <!-- Client -->
+    <h4>Client</h4>
+    <p>
+        {{ proforma.client.nom_client }}<br>
+        {{ proforma.client.telephone }}<br>
+        {{ proforma.client.ville }}
+    </p>
+    
+    <!-- Produits -->
+    <table border="1" width="100%" cellspacing="0" cellpadding="5">
+        <tr>
+            <th>Produit</th>
+            <th>Qté</th>
+            <th>PU</th>
+            <th>Sous-total</th>
+        </tr>
+        
+        {% for ligne in proforma.lignes %}
+        <tr>
+            <td>{{ ligne.produit.nom_produit }}</td>
+            <td>{{ ligne.quantite }}</td>
+            <td>{{ ligne.prix_unitaire | money }}</td>
+            <td>{{ ligne.sous_total | money }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+<h3>Total : {{ proforma.total | money }} FCFA</h3>
+
+<p style="color:gray;">
+    Ceci est une facture proforma, elle ne constitue pas une facture définitive.
+</p>
+<div class="text-center mt-4 no-print">
+    <!-- <button class="btn btn-outline-secondary" onclick="window.print()">
+    🖨️ Imprimer
+    </button> -->
+    <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}"
+   class="btn btn-danger">
+   📄 Télécharger PDF
+    </a>
+    <a href="{{ url_for('etat_stock') }}" class="btn btn-outline-primary">
+    ⬅ Retour
+    </a>
+</div>
+</div>
+</div>
+{% endblock %}

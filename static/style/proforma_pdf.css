@@ -1,0 +1,91 @@
+@page {
+    size: A4;
+    margin: 20mm;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+.header {
+    width: 100%;
+    display: table;
+    margin-bottom: 20px;
+}
+
+.left {
+    display: table-cell;
+    width: 50%;
+    vertical-align: middle;
+}
+
+.right {
+    display: table-cell;
+    width: 50%;
+    text-align: right;
+    vertical-align: middle;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 6px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+
+.footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: gray;
+    margin-top: 30px;   /* visible à l'écran */
+}
+
+.produit{
+    padding: 2px;
+    margin: 2px;
+}
+
+/* 🔥 Spécial PDF */
+@media print {
+    .footer-note {
+        position: fixed;
+        /* bottom: 10mm; */
+        left: 0;
+        right: 0;
+    }
+}
+
+
+.images-container {
+    text-align: left;   /* ou center si tu veux centrer */
+}
+
+.produit-item {
+    display: inline-block;
+    text-align: center;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    vertical-align: top;
+}
+
+.produit-nom {
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.produit-img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+}
+

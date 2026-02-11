@@ -23,14 +23,12 @@
           <th>Date</th>
           <th>Client</th>
           <th>Produits</th>
-          <th>Lots</th>
           <th>Prix</th>
           <th>Qté</th>
           <th>Sous-total</th>
-          <th>Total</th>
           <th>Statut</th>
           <th>Action</th>
-          <th>Facture</th>
+          <th>Voir</th>
         </tr>
       </thead>
 
@@ -63,18 +61,10 @@
               {% endif %}
             {% endfor %}
           </td>
-
-          <!-- LOTS -->
-          <td class="cell-divided">
-            {% for ligne in vente.lignes %}
-              <div>{{ ligne.stock.numero_lot if ligne.stock else "—" }}</div>
-            {% endfor %}
-          </td>
-
           <!-- PRIX -->
           <td class="cell-divided">
             {% for ligne in vente.lignes %}
-              <div>{{ ligne.prix_unitaire }}</div>
+              <div>{{ (ligne.prix_unitaire) | money}}</div>
             {% endfor %}
           </td>
 
@@ -88,15 +78,9 @@
           <!-- SOUS-TOTAL -->
           <td class="cell-divided">
             {% for ligne in vente.lignes %}
-              <div>{{ ligne.quantite * ligne.prix_unitaire }}</div>
+              <div>{{ (ligne.quantite * ligne.prix_unitaire) | money}}</div>
             {% endfor %}
           </td>
-
-          <!-- TOTAL -->
-          <td class="fw-bold text-success">
-            {{ vente.total }}
-          </td>
-
           <!-- STATUT -->
           <td>
             {% if vente.statut_paiement == "paye" %}

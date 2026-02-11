@@ -6,7 +6,7 @@
     
     <!-- CSS -->
      
-    <link rel="icon" type="image/png" sizes="128x128" href="/static/images/logo_imedical-1.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="/static/images/logo_imedical-1.png">
     <link rel="stylesheet" href="/static/style/styles.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
@@ -67,22 +67,22 @@
                             {% set active_pages = ['paiement', 'produit', 'client', 'dashboard', 'transaction', 'facture', 'stock', 'user'] %}
                         <ul class="nav flex-column gap-1">
                             {% if current_user.role in ["admin","operateur"] %}
-                            <li class="nav-item  px-1  {{ 'active bg-nav2' if is_active('gestion_materiel/client') else '' }}
+                            <li class="nav-item  px-1  {{ 'active bg-nav2' if is_active('client') else '' }}
                                 bg-nav-hover bg-nav border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-person-standing text-light fs-3"></i>
                                 <a class="nav-link active text-light" href="{{ url_for('client') }}">Gestion Clients</a>
                             </li>
-                            <li class="{{ 'active bg-nav2' if is_active('gestion_materiel/add_produit') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                            <li class="{{ 'active bg-nav2' if is_active('produit') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-bag-fill text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('produit')}}">Gestion Produits</a>
                             </li>
                             {% endif %}
                             {% if current_user.role == "admin" %}                      
-                            <li class="{{ 'bg-nav2' if is_active('gestion_materiel/compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                            <li class="{{ 'bg-nav2' if is_active('compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-building fs-3 text-light"></i>
                                 <a class="nav-link text-light" href="{{url_for('compagnie')}}">Ma Compagnie</a>
                             </li>
-                            <li class="{{ 'bg-nav2' if is_active('gestion_materiel/user') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                            <li class="{{ 'bg-nav2' if is_active('user') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi bi-people fs-3 text-light"></i>
                                 <a class="nav-link text-light" href="{{url_for('user')}}">Gestion Utilisateurs</a>
                             </li>
@@ -109,13 +109,13 @@
                             </li>
                             {% endif %}
                             {% if current_user.role in ["admin","operateur"] %}
-                            <li class="{{ 'bg-nav2' if is_active('ajouter_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                            <li class=" {{ 'bg-nav2' if is_active('etat_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-plus text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('ajouter_stock')}}">Entree Stock</a>
+                                <a class="nav-link text-light" href="{{url_for('etat_stock')}}">Entree Stock</a>
                             </li>
                             {% endif %}
                             {% if current_user.role == "admin" %}
-                            <li class="{{ 'bg-nav2' if is_active('liste_transactions_en_cours') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                            <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-check text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
                             </li>

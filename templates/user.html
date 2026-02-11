@@ -14,11 +14,12 @@
     </div>
 </div>
 <hr>
+<p>Endpoint actuel : {{ request.endpoint }}</p>
 {% if user %}
   <!-- <div class=""> -->
       <form action="{{ url_for('delete_users') }}" method="post">
         {{ form.hidden_tag() }}
-    
+        
         <table class="table caption-top table-striped w-50 px-1">
           <caption class="fs-3 fw-semibold">
             Liste des Utilisateurs

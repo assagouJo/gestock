@@ -6,134 +6,134 @@
 {% endblock %}
 {% block content %}
 <div class="py-2">
-<div class="row">
-    <div class="col">
-        <a class="btn btn-outline-success" data-bs-toggle="modal" 
-        data-bs-target="#addproduitmodal">Ajouter Produit</a>        
+    <div class="row">
+        <div class="col">
+            <a class="btn btn-outline-success" data-bs-toggle="modal" 
+            data-bs-target="#addproduitmodal">Ajouter Produit</a>        
+        </div>
     </div>
-</div>
-<hr>
-{% if produits %}
-  <!-- <div class=""> -->
-      <form action="{{ url_for('delete_produits') }}" method="post">
-        {{ form.hidden_tag() }}
-    <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
-          <table class="table w-100 caption-top table-bordered px-1 align-middle
-                table-responsive my-2">
-            <caption class="fs-3 fw-semibold">
-              Liste des Produits
-          </caption>
-        <thead class="table-dark sticky-top">
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Code Produit</th>
-            <th scope="col">Image Produit</th>
-            <th scope="col">Nom Produit</th>
-            <th scope="col">Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for produit in produits %}
-          <tr class="produit-row"
-              data-id="{{ produit.id }}"
-              data-nom="{{ produit.nom_produit }}"
-              data-description="{{ produit.description }}"
-              data-stock="{{ produit.stock }}"
-              style="cursor:pointer">
-            <td class="text-center align-middle">
-              <input class="form-check-input border-success produit-checkbox"
-              name="produit_ids"
-              type="checkbox" value="{{produit.id}}">
-            </td>
-            <td>
-              <span class="align-middle">{{produit.code_produit}}</span>
-            </td>
-            <td class="text-center">
-              {% if produit.image %}
-              <img src="{{ produit.image }}"
-                  style="max-height: 100px; object-fit: contain;"
-                  class="img-fluid rounded border">
-            {% else %}
-              <span class="text-muted">—</span>
-            {% endif %}
-          </td>
-            <td class="align-middle">
-              <span>{{produit.nom_produit.capitalize()}}</span>
-            </td>
-            <td class="align-start">
-              <span>{{produit.description.capitalize()}}</span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <button type="submit" class="btn btn-outline-danger" 
-      onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">Suprimer Produit
-    </button>
-    </form>
-  <!-- </div> -->
-</div>
-{% else %}
-<div class="alert alert-warning text-center">
-        Aucun Produit enregistré pour le moment.
-    </div>
-{% endif %}
-
-<!-- Ajouter produit modal -->
-
-<div class="modal fade" id="addproduitmodal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-
-      <!-- HEADER -->
-      <div class="modal-header">
-        <h5 class="modal-title text-success fw-bold" id="modalTitle">
-          Ajouter un produit
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <!-- BODY -->
-      <div class="modal-body">
-        <form method="post"
-              id = "produitForm"
-              action="{{ url_for('produit') }}"
-              enctype="multipart/form-data"
-              class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
-
+  <hr>
+  {% if produits %}
+    <!-- <div class=""> -->
+        <form action="{{ url_for('delete_produits') }}" method="post">
           {{ form.hidden_tag() }}
-          <div class="mb-3">
-            {{ form.image.label(class="form-label") }}
-            {{ form.image(class="form-control") }}
-          </div>
-          <div class="mb-3">
-              {{ form.description.label(class="form-label") }}
-              {{ form.description(class="form-control", rows="3") }}
-            </div>
-          <div class="mb-3">
-            {{ form.nom_produit.label(class="form-label") }}
-            {{ form.nom_produit(class="form-control") }}
-          </div>
-          <div class="mb-3">
-            {{ form.stock.label(class="form-label") }}
-            {{ form.stock(class="form-control") }}
-          </div>
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-              Annuler
-            </button>
-            {{ form.submit(class="btn btn-success") }}
-          </div>
+      <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+            <table class="table w-100 caption-top table-bordered px-1 align-middle
+                  table-responsive my-2">
+              <caption class="fs-3 fw-semibold">
+                Liste des Produits
+            </caption>
+          <thead class="table-dark sticky-top">
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Code Produit</th>
+              <th scope="col">Image Produit</th>
+              <th scope="col">Nom Produit</th>
+              <th scope="col">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for produit in produits %}
+            <tr class="produit-row"
+                data-id="{{ produit.id }}"
+                data-nom="{{ produit.nom_produit }}"
+                data-description="{{ produit.description }}"
+                data-stock="{{ produit.stock }}"
+                style="cursor:pointer">
+              <td class="text-center align-middle">
+                <input class="form-check-input border-success produit-checkbox"
+                name="produit_ids"
+                type="checkbox" value="{{produit.id}}">
+              </td>
+              <td>
+                <span class="align-middle">{{produit.code_produit}}</span>
+              </td>
+              <td class="text-center">
+                {% if produit.image %}
+                <img src="{{ produit.image }}"
+                    style="max-height: 100px; object-fit: contain;"
+                    class="img-fluid rounded border">
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+              <td class="align-middle">
+                <span>{{produit.nom_produit.capitalize()}}</span>
+              </td>
+              <td class="align-start">
+                <span>{{produit.description.capitalize()}}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" class="btn btn-outline-danger" 
+        onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">Suprimer Produit
+      </button>
+      </form>
+    <!-- </div> -->
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center">
+          Aucun Produit enregistré pour le moment.
+      </div>
+  {% endif %}
 
-        </form>
+  <!-- Ajouter produit modal -->
+
+  <div class="modal fade" id="addproduitmodal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+
+        <!-- HEADER -->
+        <div class="modal-header">
+          <h5 class="modal-title text-success fw-bold" id="modalTitle">
+            Ajouter un produit
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <!-- BODY -->
+        <div class="modal-body">
+          <form method="post"
+                id = "produitForm"
+                action="{{ url_for('produit') }}"
+                enctype="multipart/form-data"
+                class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
+
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+              {{ form.image.label(class="form-label") }}
+              {{ form.image(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-control", rows="3") }}
+              </div>
+            <div class="mb-3">
+              {{ form.nom_produit.label(class="form-label") }}
+              {{ form.nom_produit(class="form-control") }}
+            </div>
+            <div class="mb-3">
+              {{ form.stock.label(class="form-label") }}
+              {{ form.stock(class="form-control") }}
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal">
+                Annuler
+              </button>
+              {{ form.submit(class="btn btn-success") }}
+            </div>
+
+          </form>
+
+        </div>
 
       </div>
-
     </div>
   </div>
-</div>
 </div>
 
 <script>

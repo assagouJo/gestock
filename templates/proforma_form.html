@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Rapport | gestock{% endblock %}
+
+{% block styles %}
+    
+{% endblock %}
+{% block content %}
+    <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        <label class="form-label">Client</label>
+        {{ form.client_id(class="form-select") }}
+    </div>
+    <table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+        </tr>
+    </thead>
+    <tbody id="lignes">
+        <tr>
+            <td>
+                <select name="produit_id[]" class="form-select">
+                    {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="quantite[]" class="form-control" min="1" required>
+            </td>
+            <td>
+                <input type="number" name="prix[]" class="form-control" min="0" step="0.01" required>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<button type="button" class="btn btn-secondary" onclick="ajouterLigne()">
+    + Ajouter un produit
+</button>
+
+<br><br>
+<div class="col-12 text-end">
+    {{ form.submit(class="btn btn-primary") }}
+
+</div>
+</form>
+
+<script>
+function ajouterLigne() {
+    const lignes = document.getElementById("lignes");
+
+    lignes.insertAdjacentHTML("beforeend", `
+        <tr>
+            <td>
+                <select name="produit_id[]" class="form-select">
+                    {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="quantite[]" class="form-control" min="1">
+            </td>
+            <td>
+                <input type="number" name="prix[]" class="form-control" min="0" step="0.01">
+            </td>
+        </tr>
+    `);
+}
+</script>
+{% endblock %}

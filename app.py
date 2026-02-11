@@ -27,5 +27,5 @@ login_manager.login_view = "login"
 
 import routes, models
 
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#     db.create_all()

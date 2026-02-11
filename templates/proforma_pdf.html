@@ -1,0 +1,74 @@
+{% extends "base_print.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
+{% endblock %}
+{% block content %}
+<div class="header">
+    <div class="left">
+        <img src="{{ compagnie.logo }}" height="70">
+    </div>
+    <div class="right">
+        hello
+    </div>
+</div>
+<div class="text-center">
+    <h2><strong>FACTURE PROFORMA</strong></h2>
+</div>
+
+<h3><strong>Numéro :</strong> {{ proforma.numero }}</h3>
+<h3><strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') }}</h3>
+
+<h2>DOIT: <strong>{{ proforma.client.nom_client }}</strong></h2>
+<h3>
+    tel: {{ proforma.client.telephone }} </br>
+    Ville: {{ proforma.client.ville }}
+</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Produit</th>
+            <th>Qté</th>
+            <th>PU</th>
+            <th>Sous-total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ligne in proforma.lignes %}
+        <tr>
+            <td>{{ ligne.produit.nom_produit }}<br>
+                {{ ligne.produit.description }}
+            </td>
+            <td>{{ ligne.quantite }}</td>
+            <td>{{ ligne.prix_unitaire | money }}</td>
+            <td>{{ ligne.sous_total | money }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="3" style="text-align: left; font-weight: bold;">
+                Montant Total
+            </td>
+            <td style="font-weight: bold;">
+                {{ proforma.total | money }}
+            </td>
+        </tr>
+    </tbody>
+</table>
+     <div class="images-container">
+        {% for ligne in proforma.lignes %}
+            {% if ligne.produit.image %}
+                <div class="produit-item">
+                    <div class="produit-nom">
+                        {{ ligne.produit.nom_produit }}
+                    </div>
+                    <img src="{{ ligne.produit.image }}" class="produit-img">
+                </div>
+                {%else%}
+                ""
+            {% endif %}
+        {% endfor %}
+    </div>
+    <h2 class="footer-note" style="color:gray; ">
+    Ceci est une facture proforma, elle ne constitue pas une facture définitive.
+    </h2>
+{% endblock %}

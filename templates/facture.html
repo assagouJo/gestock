@@ -8,16 +8,13 @@
 <div class="row p-2 d-flex justify-content-center align-items-center my-4">
 <div class="col-10">
     <div class="row mb-4 d-flex justify-content-between align-items-center">
-      <div class="col-6">
+      <div class="col-12 text-end">
         {% if compagnie and compagnie.logo %}
-          <img src="{{ url_for('static', filename='images/' ~ compagnie.logo) }}"
-               alt="Logo"
-               style="max-height: 80px; width: 80px;">
+          <img src="{{ compagnie.logo }}"
+         alt="Logo"
+         style="max-height: 100px; object-fit: contain;"
+                class="img-fluid rounded">
         {% endif %}
-      </div>
-    
-      <div class="col-6 text-end">
-        <h6 class="mb-0 "><span class="me-1 ">COMPAGNIE :</span> {{ compagnie.nom if compagnie else '' }}</h6>
       </div>
     </div>
     
@@ -25,16 +22,18 @@
     
     <!-- ================= INFOS FACTURE ================= -->
     <div class="row mb-4">
-      <div class="col-8">
+      <div class="col-6">
         <h5> FACTURE à : </h5>
         <p class="mb-1"><strong>{{ facture.vente.client.nom_client }}</strong></p>
-        <p class="mb-0">
-          {{ facture.vente.client.email }}<br>
-          {{ facture.vente.client.adresse }}
-        </p>
+        <span>
+              {{ facture.vente.client.adresse_email if compagnie else '' }}<br>
+          </span>
+          <span>
+              {{ facture.vente.client.telephone if compagnie else '' }}<br>
+          </span>
       </div>
     
-      <div class="col-4">
+      <div class="col-6">
         <table class="table table-sm table-bordered border-black">
           <tr>
             <th class="text-start">F_N° :</th>
@@ -46,6 +45,15 @@
           </tr>
           <tr>
             <th class="text-start">Statut :</th>
+            <td class="text-end">
+              {% if facture.statut == "paye" %}
+                <span class="badge bg-success">Facture Soldee</span>
+            {% elif facture.statut == "partiel" %}
+                <span class="badge bg-warning text-dark">Paiement Partielle</span>
+            {% else %}
+                <span class="badge bg-danger">Facture Impayee</span>
+            {% endif %}
+            </td>
           </tr>
         </table>
       </div>
@@ -67,8 +75,8 @@
           <tr>
             <td>{{ ligne.stock.produit.nom_produit }}</td>
             <td>{{ ligne.quantite }}</td>
-            <td>{{ ligne.prix_unitaire }}</td>
-            <td>{{ ligne.quantite * ligne.prix_unitaire }}</td>
+            <td>{{ ligne.prix_unitaire | money }}</td>
+            <td>{{ (ligne.quantite * ligne.prix_unitaire) | money }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -81,26 +89,19 @@
         <table class="table table-sm border-black">
           <tr>
             <th>Total</th>
-            <td class="text-end">{{ facture.total  }}</td>
+            <td class="text-end">{{ facture.total | money }}</td>
           </tr>
           <tr>
             <th>Payé</th>
-            <td class="text-end">{{ facture.total_paye  }}</td>
+            <td class="text-end">{{ facture.vente.montant_paye | money  }}</td>
           </tr>
           <tr class="table-light">
             <th>Reste à payer</th>
             <td class="text-end fw-bold">
-              {{ facture.reste_a_payer  }}
+              {{ facture.reste_a_payer | money }}
             </td>
           </tr>
-        </table>
-          {% if facture.statut == "paye" %}
-              <span class="badge bg-success">FACTURE SOLDÉE</span>
-          {% elif facture.statut == "partiel" %}
-              <span class="badge bg-warning text-dark">PAIEMENT PARTIEL</span>
-          {% else %}
-              <span class="badge bg-danger">FACTURE IMPAYÉE</span>
-          {% endif %}
+        </table>          
       </div>
     </div>
     
@@ -112,16 +113,13 @@
             <span>
                 📞 {{ compagnie.telephone if compagnie else '' }}
             </span>
-            <span>
-                {{ compagnie.email if compagnie else '' }}
-            </span>
           </small>
           <small class="col-3 d-flex flex-column">
               <span>
-                  {{ compagnie.adresse if compagnie else '' }}<br>
+                  {{ compagnie.email if compagnie else '' }}<br>
               </span>
               <span>
-                  {{ compagnie.ville if compagnie else '' }}<br>
+                  {{ compagnie.adresse if compagnie else '' }}<br>
               </span>
         </small>
         <small class="col-6 text-end">

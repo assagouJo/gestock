@@ -216,6 +216,71 @@ class Facture(db.Model):
 
 
 
+class Proforma(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    numero = db.Column(db.String(50), unique=True, nullable=False)
+
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey("client.id"),
+        nullable=False
+    )
+
+    date = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    total = db.Column(db.Float, default=0)
+
+    statut = db.Column(
+        db.String(20),
+        default="PROFORMA"
+    )
+
+    client = db.relationship(
+        "Client",
+        backref=db.backref("proformas", lazy=True)
+    )
+
+    lignes = db.relationship(
+        "LigneProforma",
+        backref="proforma",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+
+    def __repr__(self):
+        return f"<Proforma {self.numero}>"
+
+
+class LigneProforma(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    proforma_id = db.Column(
+        db.Integer,
+        db.ForeignKey("proforma.id"),
+        nullable=False
+    )
+
+    produit_id = db.Column(
+        db.Integer,
+        db.ForeignKey("produit.id"),
+        nullable=False
+    )
+
+    quantite = db.Column(db.Integer, nullable=False)
+    prix_unitaire = db.Column(db.Float, nullable=False)
+    sous_total = db.Column(db.Float, nullable=False)
+
+    produit = db.relationship("Produit")
+
+    def __repr__(self):
+        return f"<LigneProforma {self.produit.nom_produit}>"
+
+
+
 class Compagnie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(150), nullable=False)

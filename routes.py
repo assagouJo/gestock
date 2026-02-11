@@ -2,8 +2,8 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture
-from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma
+from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -20,31 +20,28 @@ from cloudinary.uploader import upload
 
 
 
-@app.route("/create-admin")
-def create_admin():
-    # éviter doublon
-    user = User.query.filter_by(username="admin").first()
-    if user:
-        return "Admin already exists"
+# @app.route("/create-admin")
+# def create_admin():
+#     # éviter doublon
+#     user = User.query.filter_by(username="admin").first()
+#     if user:
+#         return "Admin already exists"
 
-    user = User(
-        username="admin",
-        email="admin@gestock.com",
-        password_hash=generate_password_hash("admin123"),
-        role="admin"
-    )
-    db.session.add(user)
-    db.session.commit()
-    return "Admin created"
-
-
+#     user = User(
+#         username="admin",
+#         email="admin@gestock.com",
+#         password_hash=generate_password_hash("admin123"),
+#         role="admin"
+#     )
+#     db.session.add(user)
+#     db.session.commit()
+#     return "Admin created"
 
 
 @app.template_filter('money')
-def money(value):
-    if value is None:
-        return "0"
-    return "{:,.2f}".format(value).replace(",", " ").replace(".", ",")
+def montant_format(valeur):
+    return f"{valeur:,.2f}".replace(",", " ").replace(".", ",")
+
 
 
 @app.after_request
@@ -62,8 +59,8 @@ def load_user(user_id):
 
 @app.context_processor
 def utility_processor():
-    def is_active(endpoint):
-        return request.endpoint == endpoint
+    def is_active(prefix):
+        return request.endpoint and prefix in request.endpoint
     return dict(is_active=is_active)
 
 
@@ -72,9 +69,11 @@ def role_required(*roles):
         @wraps(f)
         def wrapped(*args, **kwargs):
             if not current_user.is_authenticated:
-                abort(403)
+                flash("Veuillez vous connecter.", "warning")
+                return redirect(url_for("login"))
             if current_user.role not in roles:
-                abort(403)
+                flash("Vous n'avez pas la permission d'effectuer cette action.","danger")
+                return redirect(request.referrer)
             return f(*args, **kwargs)
         return wrapped
     return decorator
@@ -146,7 +145,7 @@ def reset_user_password():
     user_id = request.form.get('user_id')
     user = User.query.get_or_404(user_id)
 
-    default_password = "password@123"  
+    default_password = "123456"  
     user.set_password(default_password)
     user.must_change_password = True
 
@@ -428,6 +427,7 @@ def etat_stock():
 
 @app.route("/delete/lot", methods=["POST"])
 @login_required
+@role_required("admin")
 def delete_lot():
     stock_ids = request.form.getlist("stock_ids[]")
 
@@ -882,7 +882,9 @@ def ajouter_paiement(vente_id):
 def voir_facture(vente_id):
 
     facture = Facture.query.filter_by(vente_id=vente_id).first_or_404()
-    compagnie = Compagnie.query.all()
+    compagnie = Compagnie.query.first()
+    
+    print("LOGO =", compagnie.telephone)
 
     return render_template(
         "facture.html",
@@ -908,6 +910,105 @@ def liste_factures():
     )
 
 
+@app.route("/proforma/nouvelle", methods=["GET", "POST"])
+@login_required
+def nouvelle_proforma():
+
+    form = ProformaForm()
+
+    # 🔹 Clients depuis la base
+    clients = Client.query.order_by(Client.nom_client).all()
+    form.client_id.choices = [(c.id, c.nom_client) for c in clients]
+
+    # 🔹 Produits depuis la base
+    produits = Produit.query.order_by(Produit.nom_produit).all()
+
+    if form.validate_on_submit():
+
+        proforma = Proforma(
+            numero="PF-"+generate_code_produit(),
+            client_id=form.client_id.data
+        )
+
+        db.session.add(proforma)
+        db.session.flush()  # pour récupérer proforma.id
+
+        total = 0
+
+        produits_ids = request.form.getlist("produit_id[]")
+        quantites = request.form.getlist("quantite[]")
+        prix = request.form.getlist("prix[]")
+
+        for pid, qte, pu in zip(produits_ids, quantites, prix):
+            qte = int(qte)
+            pu = float(pu)
+            sous_total = qte * pu
+            total += sous_total
+
+            ligne = LigneProforma(
+                proforma_id=proforma.id,
+                produit_id=pid,
+                quantite=qte,
+                prix_unitaire=pu,
+                sous_total=sous_total
+            )
+            db.session.add(ligne)
+
+        proforma.total = total
+        db.session.commit()
+
+        flash("Proforma créée avec succès", "success")
+        return redirect(url_for("voir_proforma", proforma_id=proforma.id))
+
+    return render_template(
+        "proforma_form.html",
+        form=form,
+        produits=produits
+    )
+
+
+@app.route("/proforma/<int:proforma_id>")
+@login_required
+def voir_proforma(proforma_id):
+
+    proforma = Proforma.query.get_or_404(proforma_id)
+    compagnie = Compagnie.query.first()  # pour logo / infos
+
+    return render_template(
+        "proforma.html",
+        proforma=proforma,
+        compagnie=compagnie
+    )
+
+
+from flask import make_response
+from weasyprint import HTML
+
+@app.route("/proforma/<int:proforma_id>/pdf")
+@login_required
+def proforma_pdf(proforma_id):
+
+    proforma = Proforma.query.get_or_404(proforma_id)
+    compagnie = Compagnie.query.first()
+
+    html = render_template(
+        "proforma_pdf.html",
+        proforma=proforma,
+        compagnie=compagnie
+    )
+
+    pdf = HTML(string=html, base_url=request.root_url).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers[
+        "Content-Disposition"
+    ] = f"attachment; filename=proforma_{proforma.numero}.pdf"
+
+    return response
+
+
+
 @app.route('/gestion_materiel/compagnie', methods=['GET', 'POST'])
 @login_required
 def compagnie():
@@ -921,11 +1022,11 @@ def compagnie():
         form.populate_obj(compagnie)
 
         if form.logo.data:
-            filename = secure_filename(form.logo.data.filename)
-            form.logo.data.save(
-                os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            upload = cloudinary.uploader.upload(
+                form.logo.data,
+                folder="logos"
             )
-            compagnie.logo = filename
+            compagnie.logo = upload["secure_url"]
 
         db.session.add(compagnie)
         db.session.commit()
