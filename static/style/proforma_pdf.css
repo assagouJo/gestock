@@ -6,6 +6,15 @@
 body {
     font-family: Arial, sans-serif;
     font-size: 12px;
+    padding-bottom: 30mm;   /* 🔥 espace pour le footer */
+}
+
+.entete{
+    text-align: center;
+}
+
+.footer-prof{
+    text-align: left;
 }
 
 .header {
@@ -38,16 +47,24 @@ th, td {
     padding: 6px;
 }
 
+td {
+    background-color: white !important;
+}
+
 th {
-    background-color: #f2f2f2;
+    background-color: #f2f2f2 !important;
 }
 
 
+
 .footer-note {
-    text-align: center;
-    font-size: 11px;
+    position: fixed;
+    bottom: 10mm;   /* distance du bas */
+    left: 20mm;     /* aligné avec marge */
+    right: 20mm;
+    text-align: left;
+    font-size: 16px;
     color: gray;
-    margin-top: 30px;   /* visible à l'écran */
 }
 
 .produit{
@@ -57,11 +74,11 @@ th {
 
 /* 🔥 Spécial PDF */
 @media print {
-    .footer-note {
-        position: fixed;
-        /* bottom: 10mm; */
-        left: 0;
-        right: 0;
+    th {
+        background-color: #f2f2f2 !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 }
 
@@ -72,20 +89,63 @@ th {
 
 .produit-item {
     display: inline-block;
-    text-align: center;
+    text-align: left;
     margin-right: 10px;
     margin-bottom: 10px;
     vertical-align: top;
 }
 
 .produit-nom {
-    font-size: 10px;
-    margin-bottom: 4px;
+    font-size: 16px;
+    margin-bottom: 1px;
 }
 
 .produit-img {
-    width: 180px;
-    height: 180px;
+    width: 250px;
+    height: 150px;
     object-fit: contain;
 }
 
+.btn {
+    display: inline-block;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+/* Bouton rouge (Télécharger PDF) */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
+
+/* Bouton outline bleu (Retour) */
+.btn-outline {
+    background-color: transparent;
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+}
+
+.btn-outline:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+
+thead th {
+    background-color: #f2f2f2 !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}

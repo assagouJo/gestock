@@ -11,7 +11,7 @@
         hello
     </div>
 </div>
-<div class="text-center">
+<div class="entete">
     <h2><strong>FACTURE PROFORMA</strong></h2>
 </div>
 
@@ -58,9 +58,9 @@
         {% for ligne in proforma.lignes %}
             {% if ligne.produit.image %}
                 <div class="produit-item">
-                    <div class="produit-nom">
+                    <P class="produit-nom">
                         {{ ligne.produit.nom_produit }}
-                    </div>
+                    </P>
                     <img src="{{ ligne.produit.image }}" class="produit-img">
                 </div>
                 {%else%}
@@ -68,7 +68,9 @@
             {% endif %}
         {% endfor %}
     </div>
-    <h2 class="footer-note" style="color:gray; ">
-    Ceci est une facture proforma, elle ne constitue pas une facture définitive.
-    </h2>
+    <div class="footer-prof">
+        <h3 class="footer-note" style="color:gray; ">
+            Ceci est une facture proforma, elle ne constitue pas une facture définitive.
+        </h3>
+    </div>
 {% endblock %}

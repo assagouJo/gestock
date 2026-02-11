@@ -2,7 +2,7 @@
 {% block title %}Proforma {{ proforma.numero }}{% endblock %}
 
 {% block styles %}
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
 {% endblock %}
 {% block content %}
 <div class="row p-2 d-flex justify-content-center align-items-center my-4">
@@ -51,13 +51,16 @@
     <!-- <button class="btn btn-outline-secondary" onclick="window.print()">
     🖨️ Imprimer
     </button> -->
-    <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}"
+   <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}"
    class="btn btn-danger">
    📄 Télécharger PDF
-    </a>
-    <a href="{{ url_for('etat_stock') }}" class="btn btn-outline-primary">
-    ⬅ Retour
-    </a>
+</a>
+
+<a href="{{ url_for('etat_stock') }}"
+   class="btn btn-outline">
+   ⬅ Retour
+</a>
+
 </div>
 </div>
 </div>
