@@ -321,7 +321,7 @@ def delete_produits():
 
     for p in produits:
         # 🔒 Stock non nul
-        if p.stock > 0:
+        if p.stocks > 0:
             produits_bloques.append(f"{p.nom_produit} (stock non nul)")
             continue
 
