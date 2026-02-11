@@ -1,6 +1,6 @@
 from app import app, db, login_manager
 from datetime import datetime, timezone
-from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort
+from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response
 from flask_login import current_user, login_user, logout_user, login_required
 from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
@@ -17,6 +17,7 @@ from helper import generate_code_produit, generate_numero_facture
 from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
+from weasyprint import HTML
 
 
 
@@ -455,6 +456,7 @@ def delete_lot():
 
     db.session.commit()
     return redirect(url_for("etat_stock"))
+
 
 
 
@@ -981,8 +983,6 @@ def voir_proforma(proforma_id):
     )
 
 
-from flask import make_response
-from weasyprint import HTML
 
 @app.route("/proforma/<int:proforma_id>/pdf")
 @login_required
