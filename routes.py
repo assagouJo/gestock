@@ -311,6 +311,7 @@ def delete_cloudinary_image(image_url):
 @app.route('/gestion_materiel/produit/delete', methods=['POST'])
 @login_required
 def delete_produits():
+
     ids = request.form.getlist('produit_ids')
 
     if not ids:
@@ -318,39 +319,54 @@ def delete_produits():
         return redirect(url_for('produit'))
 
     produits = Produit.query.filter(Produit.id.in_(ids)).all()
+
     produits_bloques = []
+    produits_supprimes = 0
 
     for p in produits:
-        # 🔒 Stock non nul
+
+        # 🔒 1️⃣ Stock non nul
         if p.stock_total > 0:
             produits_bloques.append(f"{p.nom_produit} (stock non nul)")
             continue
 
-        # 🔒 Produit déjà utilisé dans une vente
-        vente_existante = db.session.query(
-            exists().where(LigneVente.produit_id == p.id)
-        ).scalar()
+        # 🔒 2️⃣ Produit déjà vendu (via Stock → LigneVente)
+        vente_existante = (
+            LigneVente.query
+            .join(Stock)
+            .filter(Stock.produit_id == p.id)
+            .first()
+        )
 
         if vente_existante:
             produits_bloques.append(f"{p.nom_produit} (déjà vendu)")
+            continue
 
-    # ⛔ BLOQUER AVANT DELETE
+        # ✅ Suppression autorisée
+        if p.image:
+            delete_cloudinary_image(p.image)
+
+        db.session.delete(p)
+        produits_supprimes += 1
+
+    db.session.commit()
+
+    # ⛔ Message blocage
     if produits_bloques:
         flash(
             "Impossible de supprimer : " + ", ".join(produits_bloques),
             "danger"
         )
-        return redirect(url_for('produit'))
 
-    # ✅ Suppression sécurisée (produits jamais vendus)
-    for p in produits:
-        delete_cloudinary_image(p.image)
-        db.session.delete(p)
+    # ✅ Message succès
+    if produits_supprimes:
+        flash(
+            f"{produits_supprimes} produit(s) supprimé(s) avec succès",
+            "success"
+        )
 
-    db.session.commit()
-
-    flash(f"{len(produits)} produit(s) supprimé(s) avec succès", "success")
     return redirect(url_for('produit'))
+
 
 
 @app.route('/gestion_materiel/client', methods=['GET', 'POST'])
