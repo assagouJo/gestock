@@ -31,6 +31,7 @@
         <tr>
           <th>#</th>
           <th>Numéro de lot</th>
+          <th>Magasin</th>
           <th>Produit</th>
           <th>Quantité</th>
           <th>Statut</th>
@@ -48,6 +49,9 @@
 
           <!-- NUMERO DE LOT -->
           <td>{{ s.numero_lot }}</td>
+          
+          <!-- NAGASIN -->
+          <td>{{ s.magasin.nom }}</td>
 
           <!-- PRODUIT -->
           <td>{{ s.produit.nom_produit }}</td>
@@ -99,6 +103,7 @@
             <thead>
               <tr>
                 <th>Numéro de lot</th>
+                <th>Magasin</th>
                 <th>Produit</th>
                 <th>Quantité</th>
                 <th></th>
@@ -113,17 +118,24 @@
                          class="form-control"
                          required>
                 </td>
-
+                <td>
+                <select name="magasin_id[]" class="form-control">
+                  <option value="">---magasin---</option>
+                  {% for magasin in magasins %}
+                      <option value="{{ magasin.id }}">{{ magasin.nom }}</option>
+                  {% endfor %}
+                </select>
+                </td>
                 <td>
                   <select name="produit_id[]"
                           class="form-select"
                           required>
+                          <option value="">--choisi un produit--</option>
                     {% for p in produits_all %}
                       <option value="{{ p.id }}">{{ p.nom_produit }}</option>
                     {% endfor %}
                   </select>
-                </td>
-
+                </td>                
                 <td>
                   <input type="number"
                          name="quantite[]"

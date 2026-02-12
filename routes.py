@@ -2,11 +2,10 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
-
 import os
 from werkzeug.utils import secure_filename
 import uuid
@@ -22,22 +21,6 @@ from weasyprint import HTML
 
 
 
-# @app.route("/create-admin")
-# def create_admin():
-#     # éviter doublon
-#     user = User.query.filter_by(username="admin").first()
-#     if user:
-#         return "Admin already exists"
-
-#     user = User(
-#         username="admin",
-#         email="admin@gestock.com",
-#         password_hash=generate_password_hash("admin123"),
-#         role="admin"
-#     )
-#     db.session.add(user)
-#     db.session.commit()
-#     return "Admin created"
 
 
 @app.template_filter('money')
@@ -452,6 +435,7 @@ def delete_clients():
 @login_required
 def etat_stock():
     produits_all = Produit.query.order_by(Produit.nom_produit).all()
+    magasins = Magasin.query.order_by(Magasin.nom).all()
 
     stocks = (
         Stock.query
@@ -464,7 +448,8 @@ def etat_stock():
     return render_template(
         "ajout_stock.html",   # ta page unique
         stocks=stocks,
-        produits_all=produits_all
+        produits_all=produits_all,
+        magasins=magasins
     )
 
 
@@ -506,66 +491,62 @@ def delete_lot():
 @login_required
 def ajouter_stock():
 
-    # 🔒 Sécurité : si quelqu’un accède en GET
     if request.method == "GET":
         return redirect(url_for("etat_stock"))
 
-    # 📥 Récupération des données du formulaire
+    # 📥 Récupération des données
     lots = request.form.getlist("numero_lot[]")
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
+    magasins = request.form.getlist("magasin_id[]")  # ✅ AJOUT
 
     # 🚨 Validation minimale
-    if not lots or not produits or not quantites:
+    if not lots or not produits or not quantites or not magasins:
         flash("Aucune donnée reçue ❌", "danger")
         return redirect(url_for("etat_stock"))
 
-    # 🔄 Traitement ligne par ligne
-    for lot, produit_id, quantite in zip(lots, produits, quantites):
+    for lot, produit_id, quantite, magasin_id in zip(lots, produits, quantites, magasins):
 
-        # ⛔ Ignorer les lignes incomplètes
-        if not lot or not produit_id or not quantite:
+        if not lot or not produit_id or not quantite or not magasin_id:
             continue
 
         lot = lot.strip()
-
-        # ⛔ Ignorer les lots vides après trim
         if lot == "":
             continue
 
         try:
             produit_id = int(produit_id)
             quantite = int(quantite)
+            magasin_id = int(magasin_id)
         except ValueError:
             continue
 
-        # ⛔ Quantité invalide
         if quantite <= 0:
             continue
 
-        # 🔍 Chercher si le lot existe déjà pour ce produit
+        # 🔍 Vérification complète
         stock = Stock.query.filter_by(
             produit_id=produit_id,
-            numero_lot=lot
+            numero_lot=lot,
+            magasin_id=magasin_id   # ✅ IMPORTANT
         ).first()
 
         if stock:
-            # ➕ Ajouter à un lot existant
-            stock.ajouter(quantite)
+            stock.quantite += quantite
         else:
-            # ➕ Créer un nouveau lot
             stock = Stock(
                 produit_id=produit_id,
                 numero_lot=lot,
-                quantite=quantite
+                quantite=quantite,
+                magasin_id=magasin_id
             )
             db.session.add(stock)
 
-    # 💾 Sauvegarde
     db.session.commit()
 
     flash("Stock enregistré avec succès ✅", "success")
     return redirect(url_for("etat_stock"))
+
 
 from sqlalchemy.orm import joinedload
 

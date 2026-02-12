@@ -71,6 +71,9 @@ class Stock(db.Model):
     seuil_alerte = db.Column(db.Integer, default=5)
     date_creation = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
 
+    magasin_id = db.Column(db.Integer, db.ForeignKey("magasin.id"), nullable=False)
+
+
     def ajouter(self, quantite):
         if quantite <= 0:
             raise ValueError("Quantité invalide")
@@ -92,6 +95,13 @@ class Stock(db.Model):
     __table_args__ = (
     db.UniqueConstraint("produit_id", "numero_lot", name="uix_produit_lot"),
 )
+    
+
+class Magasin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(120), unique=True, nullable=False)
+    stocks = db.relationship("Stock", backref="magasin", lazy=True)
+
 
 
 class Vente(db.Model):
