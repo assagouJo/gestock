@@ -20,7 +20,18 @@ from cloudinary.uploader import upload
 from weasyprint import HTML
 
 
+def creer_magasins_defaut():
+    magasins_defaut = ["Imedical", "Lavilla", "Gonzague"]
 
+    for nom in magasins_defaut:
+        existe = Magasin.query.filter_by(nom=nom).first()
+        if not existe:
+            db.session.add(Magasin(nom=nom))
+
+    db.session.commit()
+
+with app.app_context():
+    creer_magasins_defaut()
 
 
 @app.template_filter('money')
