@@ -187,6 +187,8 @@ class Paiement(db.Model):
         db.String(20)
     )  # cash | mobile_money | carte | virement
 
+    reference_paiement = db.Column(db.String(150), nullable=True) 
+
     annule = db.Column(db.Boolean, default=False)
 
     date_paiement = db.Column(db.DateTime(), default = datetime.now(timezone.utc))

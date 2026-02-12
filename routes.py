@@ -20,18 +20,7 @@ from cloudinary.uploader import upload
 from weasyprint import HTML
 
 
-def creer_magasins_defaut():
-    magasins_defaut = ["Imedical", "Lavilla", "Gonzague"]
 
-    for nom in magasins_defaut:
-        existe = Magasin.query.filter_by(nom=nom).first()
-        if not existe:
-            db.session.add(Magasin(nom=nom))
-
-    db.session.commit()
-
-with app.app_context():
-    creer_magasins_defaut()
 
 
 @app.template_filter('money')
@@ -464,6 +453,21 @@ def etat_stock():
     )
 
 
+@app.route("/stock/edit/<int:id>", methods=["POST"])
+def edit_stock(id):
+    stock = Stock.query.get_or_404(id)
+
+    stock.numero_lot = request.form["numero_lot[]"]
+    stock.magasin_id = request.form["magasin_id[]"]
+    stock.produit_id = request.form["produit_id[]"]
+    stock.quantite = request.form["quantite[]"]
+
+    db.session.commit()
+
+    flash("Stock modifié avec succès", "success")
+    return redirect(url_for("etat_stock"))
+
+
 @app.route("/delete/lot", methods=["POST"])
 @login_required
 @role_required("admin")
@@ -862,6 +866,7 @@ def ajouter_paiement(vente_id):
         # 📥 Données formulaire
         montant = Decimal(request.form.get("montant"))
         mode = request.form.get("mode")
+        reference = request.form.get("reference_paiement")
 
         # 🚨 Validations
         if montant <= 0:
@@ -869,6 +874,11 @@ def ajouter_paiement(vente_id):
 
         if montant > vente.reste_a_payer:
             raise ValueError("Le montant dépasse le reste à payer")
+        
+        # 🚨 Validation référence si nécessaire
+        if mode in ["cheque", "virement"] and not reference:
+            raise ValueError("Veuillez entrer le numéro de référence")
+
 
         # =========================
         # 🧾 1️⃣ CRÉATION DU PAIEMENT
@@ -877,6 +887,7 @@ def ajouter_paiement(vente_id):
             vente_id=vente.id,
             montant=montant,
             mode=mode,
+            reference_paiement=reference if mode in ["cheque", "virement"] else None,
             date_paiement=datetime.now(timezone.utc)
         )
 
@@ -920,7 +931,6 @@ def voir_facture(vente_id):
     facture = Facture.query.filter_by(vente_id=vente_id).first_or_404()
     compagnie = Compagnie.query.first()
     
-    print("LOGO =", compagnie.telephone)
 
     return render_template(
         "facture.html",

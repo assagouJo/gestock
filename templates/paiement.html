@@ -61,7 +61,7 @@
     <h5 class="fw-bold mb-3">➕ Ajouter un paiement</h5>
 
     <div class="row">
-        <div class="col-md-4 mb-2">
+        <div class="col-md-4 mb-2 ">
             <label class="form-label fw-bold">Montant</label>
             <input type="number"
                    step="0.01"
@@ -71,17 +71,26 @@
                    required>
         </div>
 
-        <div class="col-md-4 mb-2">
+        <div class="col-md-4 mb-2 ">
             <label class="form-label fw-bold">Mode de paiement</label>
-            <select name="mode" class="form-select">
+            <select name="mode" id="mode" class="form-select">
                 <option value="cash">Cash</option>
                 <option value="mobile_money">Mobile Money</option>
-                <option value="carte">Carte</option>
+                <option value="cheque">Cheque</option>
                 <option value="virement">Virement</option>
-            </select>
+            </select>           
         </div>
-
-        <div class="col-md-4 d-flex align-items-end">
+        <div class="col-md-4 mb-2 " id="referenceField" style="display: none;">
+            <label class="form-label fw-bold">Numero de Transaction</label>
+               <input type="text"
+                   name="reference_paiement"
+                   id="referenceInput"
+                   class="form-control"
+                   placeholder="Numéro de chèque ou de virement">
+           </div>
+    </div>
+    <div class="row ">
+        <div class="col-md-4 mb-2">
             <button class="btn btn-success w-100">
                 💰 Valider le paiement
             </button>
@@ -115,7 +124,11 @@
                 {{ p.montant | money}} FCFA
             </td>
 
-            <td>{{ p.mode }}</td>
+            <td>{{ p.mode}}
+                {% if p.reference_paiement %}
+                    - №{{ p.reference_paiement }}
+                {% endif %}
+            </td>
 
             <td>
                 {% if p.annule %}
@@ -160,5 +173,24 @@
          ⬅ Retour aux ventes
      </a>
  </div>
+
+ <script>
+    const modeSelect = document.getElementById("mode");
+    const referenceField = document.getElementById("referenceField");
+    const referenceInput = document.getElementById("referenceInput");
+
+    modeSelect.addEventListener("change", function() {
+
+        if (this.value === "cheque" || this.value === "virement") {
+            referenceField.style.display = "block";
+            referenceInput.required = true;
+        } else {
+            referenceField.style.display = "none";
+            referenceInput.required = false;
+            referenceInput.value = "";
+        }
+
+    });
+</script>
 
 {% endblock %}
