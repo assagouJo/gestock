@@ -513,16 +513,18 @@ def ajouter_stock():
     lots = request.form.getlist("numero_lot[]")
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
-    magasins = request.form.getlist("magasin_id[]")  # ✅ AJOUT
+    magasins = request.form.getlist("magasin_id[]")
+    nouveaux_magasins = request.form.getlist("nouveau_magasin[]")  # ✅ AJOUT
 
-    # 🚨 Validation minimale
-    if not lots or not produits or not quantites or not magasins:
+    if not lots or not produits or not quantites:
         flash("Aucune donnée reçue ❌", "danger")
         return redirect(url_for("etat_stock"))
 
-    for lot, produit_id, quantite, magasin_id in zip(lots, produits, quantites, magasins):
+    for lot, produit_id, quantite, magasin_id, nouveau_nom in zip(
+        lots, produits, quantites, magasins, nouveaux_magasins
+    ):
 
-        if not lot or not produit_id or not quantite or not magasin_id:
+        if not lot or not produit_id or not quantite:
             continue
 
         lot = lot.strip()
@@ -532,18 +534,38 @@ def ajouter_stock():
         try:
             produit_id = int(produit_id)
             quantite = int(quantite)
-            magasin_id = int(magasin_id)
         except ValueError:
             continue
 
         if quantite <= 0:
             continue
 
-        # 🔍 Vérification complète
+        # 🎯 Gestion du magasin
+        nouveau_nom = nouveau_nom.strip() if nouveau_nom else ""
+
+        if nouveau_nom:
+            # Vérifie si le magasin existe déjà
+            magasin = Magasin.query.filter(
+                Magasin.nom.ilike(nouveau_nom)
+            ).first()
+
+            if not magasin:
+                magasin = Magasin(nom=nouveau_nom)
+                db.session.add(magasin)
+                db.session.flush()  # récupère l'id sans commit
+
+            magasin_id = magasin.id
+        else:
+            try:
+                magasin_id = int(magasin_id)
+            except (ValueError, TypeError):
+                continue
+
+        # 🔍 Vérification stock existant
         stock = Stock.query.filter_by(
             produit_id=produit_id,
             numero_lot=lot,
-            magasin_id=magasin_id   # ✅ IMPORTANT
+            magasin_id=magasin_id
         ).first()
 
         if stock:
@@ -561,6 +583,7 @@ def ajouter_stock():
 
     flash("Stock enregistré avec succès ✅", "success")
     return redirect(url_for("etat_stock"))
+
 
 
 from sqlalchemy.orm import joinedload
