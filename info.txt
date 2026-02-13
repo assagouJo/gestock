@@ -25,5 +25,12 @@ Si tu ajoutes une colonne NOT NULL, il faut une valeur par défaut :
 -- age = db.Column(db.Integer, nullable=False, server_default="0")
 
 
+#troubleshoot erreur migration alimbic - render psql
+ 
+ allez en cmd:
+ psql DATABASE_URL
+ SELECT * FROM alembic_version;
+flask db stamp head
+flask db upgrade
 
 
