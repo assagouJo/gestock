@@ -22,6 +22,8 @@
           <th width="30"></th>
           <th>Date</th>
           <th>Client</th>
+          <th>Vendeur</th>
+          <th>Compagnie</th>
           <th>Produits</th>
           <th>Prix</th>
           <th>Qté</th>
@@ -38,17 +40,26 @@
             data-id="{{ vente.id }}"
             style="cursor:pointer">
 
-          <!-- CHECKBOX -->
           <td class="text-center">
             <input type="checkbox" name="vente_ids" value="{{ vente.id }}">
           </td>
 
-          <!-- DATE -->
           <td>{{ vente.date_vente.strftime('%d/%m/%Y') }}</td>
 
-          <!-- CLIENT -->
           <td class="fw-bold text-primary">
             {{ vente.client.nom_client }}
+          </td>
+
+          <!-- 🔥 VENDEUR -->
+          <td class="fw-bold text-dark">
+            {{ vente.vendeur.nom }}
+          </td>
+
+          <!-- 🔥 COMPAGNIE -->
+          <td>
+            <span class="badge bg-info text-dark">
+              {{ vente.compagnie.nom }}
+            </span>
           </td>
 
           <!-- PRODUITS -->
@@ -61,14 +72,15 @@
               {% endif %}
             {% endfor %}
           </td>
+
           <!-- PRIX -->
           <td class="cell-divided">
             {% for ligne in vente.lignes %}
-              <div>{{ (ligne.prix_unitaire) | money}}</div>
+              <div>{{ ligne.prix_unitaire | money }}</div>
             {% endfor %}
           </td>
 
-          <!-- QUANTITÉ -->
+          <!-- QTÉ -->
           <td class="cell-divided">
             {% for ligne in vente.lignes %}
               <div>{{ ligne.quantite }}</div>
@@ -78,9 +90,10 @@
           <!-- SOUS-TOTAL -->
           <td class="cell-divided">
             {% for ligne in vente.lignes %}
-              <div>{{ (ligne.quantite * ligne.prix_unitaire) | money}}</div>
+              <div>{{ (ligne.quantite * ligne.prix_unitaire) | money }}</div>
             {% endfor %}
           </td>
+
           <!-- STATUT -->
           <td>
             {% if vente.statut_paiement == "paye" %}
@@ -92,19 +105,20 @@
             {% endif %}
           </td>
 
-          <!-- ACTION -->
           <td>
             <a href="{{ url_for('paiement_vente', vente_id=vente.id) }}"
                class="btn btn-sm btn-primary">
               💰 Paiement
             </a>
-          </td>          
-            <td>
-              <a href="{{ url_for('voir_facture', vente_id=vente.id) }}"
-                class="btn btn-sm btn-outline-secondary">
-                🧾 Facture
-              </a>
-            </td>
+          </td>
+
+          <td>
+            <a href="{{ url_for('voir_facture', vente_id=vente.id) }}"
+               class="btn btn-sm btn-outline-secondary">
+              🧾 Facture
+            </a>
+          </td>
+
         </tr>
       {% endfor %}
       </tbody>
@@ -142,8 +156,18 @@
       <div class="modal-body">
         <form method="post" action="{{ url_for('nouvelle_vente') }}">
 
-          <!-- CLIENT -->
+          <!-- 🔥 CLIENT + VENDEUR + COMPAGNIE -->
           <div class="row mb-3">
+
+             <div class="col-md-3">
+              <label class="form-label fw-bold">Date</label>
+              <input type="datetime-local"
+                    name="date_vente"
+                    class="form-control"
+                    value="{{ now.strftime('%Y-%m-%d') }}"
+                    required>
+            </div>
+
             <div class="col-md-4">
               <label class="form-label fw-bold">Client</label>
               <select name="client_id" class="form-select" required>
@@ -152,9 +176,30 @@
                 {% endfor %}
               </select>
             </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Vendeur</label>
+              <select name="vendeur_id" class="form-select" required>
+                <option value="">-- Vendeur --</option>
+                {% for v in vendeurs %}
+                  <option value="{{ v.id }}">{{ v.nom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Compagnie</label>
+              <select name="compagnie_id" class="form-select" required>
+                <option value="">-- Compagnie --</option>
+                {% for c in compagnies %}
+                  <option value="{{ c.id }}">{{ c.nom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
           </div>
 
-          <!-- LIGNES -->
+          <!-- LIGNES PRODUITS -->
           <table class="table table-sm table-bordered">
             <thead class="table-light">
               <tr>
@@ -169,7 +214,6 @@
             <tbody id="lignesVente">
               <tr class="ligne-vente">
 
-                <!-- PRODUIT -->
                 <td>
                   <select class="form-select produit-select" required>
                     <option value="">-- Produit --</option>
@@ -179,7 +223,6 @@
                   </select>
                 </td>
 
-                <!-- LOT -->
                 <td>
                   <select name="stock_id[]" class="form-select stock-select" required>
                     <option value="">-- Lot --</option>
@@ -193,19 +236,16 @@
                   </select>
                 </td>
 
-                <!-- QTE -->
                 <td>
                   <input type="number" name="quantite[]"
                          class="form-control" min="1" required>
                 </td>
 
-                <!-- PRIX -->
                 <td>
                   <input type="number" name="prix_unitaire[]"
                          class="form-control" min="0" step="0.01" required>
                 </td>
 
-                <!-- ACTION -->
                 <td class="text-center">
                   <button type="button"
                           class="btn btn-danger btn-sm supprimer">✖</button>
@@ -239,9 +279,7 @@
   </div>
 </div>
 
-<!-- ================================================= -->
-<!-- 🧠 JS -->
-<!-- ================================================= -->
+<!-- JS inchangé -->
 <script>
 function ouvrirEdition(row) {
   const id = row.dataset.id;

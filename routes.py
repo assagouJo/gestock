@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -18,7 +18,6 @@ from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
 from weasyprint import HTML
-
 
 
 
@@ -600,11 +599,15 @@ def nouvelle_vente():
     # =========================
     clients = Client.query.order_by(Client.nom_client).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
+    vendeurs = Vendeur.query.order_by(Vendeur.nom).all()
+    compagnies = VendeurCompagnie.query.order_by(VendeurCompagnie.nom).all()
 
     ventes = (
         Vente.query
         .options(
             joinedload(Vente.client),
+            joinedload(Vente.vendeur),
+            joinedload(Vente.compagnie),
             joinedload(Vente.lignes)
                 .joinedload(LigneVente.stock)
                 .joinedload(Stock.produit)
@@ -619,21 +622,38 @@ def nouvelle_vente():
     if request.method == 'POST':
 
         client_id = request.form.get('client_id')
+        vendeur_id = request.form.get('vendeur_id')
+        compagnie_id = request.form.get('compagnie_id')
+        date_vente_str = request.form.get("date_vente")
+
         stock_ids = request.form.getlist('stock_id[]')
         quantites = request.form.getlist('quantite[]')
         prix_unitaires = request.form.getlist('prix_unitaire[]')
 
-        if not client_id or not stock_ids:
+        # 🔎 Validation de base
+        if not client_id or not vendeur_id or not compagnie_id or not stock_ids:
             flash("Données invalides", "danger")
             return redirect(url_for('nouvelle_vente'))
 
         try:
+
+            vendeur = Vendeur.query.get(int(vendeur_id))
+            compagnie = VendeurCompagnie.query.get(int(compagnie_id))
+
+            if not vendeur:
+                raise ValueError("Vendeur invalide")
+
+            if not compagnie:
+                raise ValueError("Compagnie invalide")
+
             # =========================
-            # 🔹 1️⃣ CRÉATION VENTE (INIT)
+            # 🔹 1️⃣ CRÉATION VENTE
             # =========================
             vente = Vente(
                 client_id=int(client_id),
-                date_vente=datetime.now(timezone.utc),
+                vendeur_id=vendeur.id,
+                compagnie_id=compagnie.id,
+                date_vente=datetime.fromisoformat(date_vente_str),
                 total=Decimal("0.00"),
                 montant_paye=Decimal("0.00"),
                 reste_a_payer=Decimal("0.00"),
@@ -641,7 +661,7 @@ def nouvelle_vente():
             )
 
             db.session.add(vente)
-            db.session.flush()  # 🔥 permet d’avoir vente.id
+            db.session.flush()  # 🔥 obtenir vente.id
 
             total_vente = Decimal("0.00")
 
@@ -687,14 +707,14 @@ def nouvelle_vente():
                 db.session.add(ligne)
 
             # =========================
-            # 🔹 3️⃣ FINALISATION VENTE
+            # 🔹 3️⃣ FINALISATION
             # =========================
             vente.total = total_vente
             vente.reste_a_payer = total_vente
 
             facture = Facture(
                 vente_id=vente.id,
-                numero="FAC-"+ generate_numero_facture(vente.id),
+                numero="FAC-" + generate_numero_facture(vente.id),
                 date_facture=datetime.now(timezone.utc),
                 total=vente.total,
                 montant_paye=vente.montant_paye,
@@ -721,8 +741,12 @@ def nouvelle_vente():
         'liste_vente.html',
         clients=clients,
         produits=produits,
-        ventes=ventes
+        vendeurs=vendeurs,
+        compagnies=compagnies,
+        ventes=ventes,
+        now=datetime.now()
     )
+
 
 @app.route("/ventes/supprimer", methods=["POST"])
 @login_required
@@ -808,6 +832,80 @@ def modifier_vente(vente_id):
         clients=clients,
         produits=produits
     )
+
+
+@app.route("/vendeur/ajouter", methods=["POST"])
+@login_required
+def ajouter_vendeur():
+
+    nom = request.form.get("nom")
+    telephone = request.form.get("telephone")
+
+    if not nom or not telephone:
+        flash("Tous les champs sont obligatoires", "danger")
+        return redirect(url_for("liste_vendeurs"))
+
+    vendeur_existant = Vendeur.query.filter_by(nom=nom.strip()).first()
+    if vendeur_existant:
+        flash("Ce vendeur existe déjà", "warning")
+        return redirect(url_for("liste_vendeurs"))
+
+    try:
+        vendeur = Vendeur(
+            nom=nom.strip(),
+            telephone=telephone.strip()
+        )
+
+        db.session.add(vendeur)
+        db.session.commit()
+
+        flash("Vendeur ajouté avec succès ✅", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+
+    return redirect(url_for("liste_vendeurs"))
+
+
+
+@app.route("/gestion_materiel/vendeurs")
+@login_required
+def liste_vendeurs():
+
+    vendeurs = (
+        Vendeur.query
+        .order_by(Vendeur.nom.asc())
+        .all()
+    )
+
+    return render_template(
+        "liste_vendeurs.html",
+        vendeurs=vendeurs
+    )
+
+
+@app.route("/vendeur/supprimer/<int:vendeur_id>", methods=["POST"])
+@login_required
+def supprimer_vendeur(vendeur_id):
+
+    vendeur = Vendeur.query.get_or_404(vendeur_id)
+
+    # 🔒 Empêcher suppression si ventes existantes
+    if vendeur.ventes:
+        flash("Impossible de supprimer : vendeur lié à des ventes", "danger")
+        return redirect(url_for("liste_vendeurs"))
+
+    try:
+        db.session.delete(vendeur)
+        db.session.commit()
+        flash("Vendeur supprimé avec succès", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+
+    return redirect(url_for("liste_vendeurs"))
+
 
 
 @app.route("/paiement/<int:paiement_id>/reverser", methods=["POST"])

@@ -119,6 +119,28 @@ class Vente(db.Model):
         default="impaye"   # impaye | partiel | paye
     )
 
+    vendeur_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur.id", name='fk_vente_vendeur'),
+        nullable=True,
+        index=True
+    )
+
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur_compagnie.id", name='fk_vente_compagnie'),
+        nullable=True,
+        index=True
+    )
+
+    facture = db.relationship(
+    "Facture",
+    back_populates="vente",
+    uselist=False,
+    cascade="all, delete-orphan"
+    )
+
+
     client = db.relationship('Client', backref='ventes')
 
     lignes = db.relationship(
@@ -133,6 +155,32 @@ class Vente(db.Model):
         backref='vente',
         cascade="all, delete-orphan"
     )
+
+
+class VendeurCompagnie(db.Model):
+    __tablename__ = "vendeur_compagnie"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), unique=True, nullable=False)
+
+    ventes = db.relationship("Vente", backref="compagnie", lazy=True)
+
+    def __repr__(self):
+        return f"<Compagnie {self.nom}>"
+
+
+
+class Vendeur(db.Model):
+    __tablename__ = "vendeur"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    telephone = db.Column(db.String(20), nullable=False)
+    ventes = db.relationship("Vente", backref="vendeur", lazy=True)
+
+    def __repr__(self):
+        return f"<Vendeur {self.nom}>"
+
 
 
 
@@ -202,7 +250,7 @@ class Facture(db.Model):
 
     vente_id = db.Column(
         db.Integer,
-        db.ForeignKey("vente.id"),
+        db.ForeignKey("vente.id", name="fk_facture_vente", ondelete="CASCADE"),
         nullable=False,
         unique=True
     )
@@ -211,7 +259,7 @@ class Facture(db.Model):
 
     date_facture = db.Column(
         db.DateTime(),
-        default=datetime.now(timezone.utc),
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 
@@ -219,13 +267,12 @@ class Facture(db.Model):
     montant_paye = db.Column(db.Numeric(10, 2), nullable=False)
     reste_a_payer = db.Column(db.Numeric(10, 2), nullable=False)
 
-    statut = db.Column(
-        db.String(20),
-        nullable=False
-    )  # impaye | partiel | paye
+    statut = db.Column(db.String(20), nullable=False)
 
-    vente = db.relationship("Vente", backref=db.backref("facture", uselist=False))
-
+    vente = db.relationship(
+        "Vente",
+        back_populates="facture"
+    )
 
 
 class Proforma(db.Model):

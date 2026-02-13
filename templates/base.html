@@ -76,6 +76,10 @@
                                 <i class="bi bi-bag-fill text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('produit')}}">Gestion Produits</a>
                             </li>
+                            <li class="{{ 'active bg-nav2' if is_active('liste_vendeurs') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-bag-fill text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('liste_vendeurs')}}">Gestion Vendeurs</a>
+                            </li>
                             {% endif %}
                             {% if current_user.role == "admin" %}                      
                             <li class="{{ 'bg-nav2' if is_active('compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
