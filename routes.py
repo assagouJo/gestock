@@ -454,7 +454,9 @@ def etat_stock():
 
 
 @app.route("/stock/edit/<int:id>", methods=["POST"])
-def edit_stock(id):
+@login_required
+@role_required("admin")
+def edit_stock(id):    
     stock = Stock.query.get_or_404(id)
 
     stock.numero_lot = request.form["numero_lot[]"]
