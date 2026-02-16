@@ -258,14 +258,12 @@ document.addEventListener("DOMContentLoaded", function () {
       title.textContent = "Modifier le stock";
       form.action = `/stock/edit/${this.dataset.id}`;
 
-      form.numero_lot.value = this.dataset.lot;
-      form.magasin_id.value = this.dataset.magasin;
-      form.produit_id.value = this.dataset.produit;
-      form.quantite.value = this.dataset.quantite;
-      form.type_conditionnement.value = this.dataset.conditionnement
+      form.querySelector('[name="numero_lot[]"]').value = this.dataset.lot;
+      form.querySelector('[name="magasin_id[]"]').value = this.dataset.magasin;
+      form.querySelector('[name="produit_id[]"]').value = this.dataset.produit;
+      form.querySelector('[name="quantite[]"]').value = this.dataset.quantite;
+      form.querySelector('[name="type_conditionnement[]"]').value = this.dataset.conditionnement;
 
-      console.log(this.dataset);
-      console.log(this.dataset.conditionnement);
 
       btnAjouter.style.display = "none";
 

@@ -458,11 +458,11 @@ def etat_stock():
 def edit_stock(id):    
     stock = Stock.query.get_or_404(id)
 
-    stock.numero_lot = request.form["numero_lot[]"]
-    stock.magasin_id = request.form["magasin_id[]"]
-    stock.produit_id = request.form["produit_id[]"]
-    stock.quantite = request.form["quantite[]"]
-    stock.type_conditionnement = request.form["type_conditionnement[]"]
+    stock.numero_lot = request.form.getlist("numero_lot[]")[0]
+    stock.magasin_id = request.form.getlist("magasin_id[]")[0]
+    stock.produit_id = request.form.getlist("produit_id[]")[0]
+    stock.quantite = request.form.getlist("quantite[]")[0]
+    stock.type_conditionnement = request.form.getlist("type_conditionnement[]")[0]
 
     db.session.commit()
 
