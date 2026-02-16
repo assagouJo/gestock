@@ -21,7 +21,7 @@ def upgrade():
     with op.batch_alter_table('stock', schema=None) as batch_op:
         batch_op.alter_column('type_conditionnement',
                existing_type=sa.VARCHAR(length=6),
-               nullable=False)
+               nullable=True)
 
     # ### end Alembic commands ###
 
