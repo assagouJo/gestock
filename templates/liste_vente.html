@@ -204,6 +204,7 @@
             <thead class="table-light">
               <tr>
                 <th>Produit</th>
+                <th>Conditionnement</th>
                 <th>Lot</th>
                 <th width="120">Qté</th>
                 <th width="150">Prix</th>
@@ -212,47 +213,63 @@
             </thead>
 
             <tbody id="lignesVente">
-              <tr class="ligne-vente">
+            <tr class="ligne-vente">
 
-                <td>
-                  <select class="form-select produit-select" required>
-                    <option value="">-- Produit --</option>
-                    {% for p in produits %}
-                      <option value="{{ p.id }}">{{ p.nom_produit }}</option>
-                    {% endfor %}
-                  </select>
-                </td>
+              <!-- 🔹 PRODUIT -->
+              <td>
+                <select class="form-select produit-select" required>
+                  <option value="">-- Produit --</option>
+                  {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                  {% endfor %}
+                </select>
+              </td>
 
-                <td>
-                  <select name="stock_id[]" class="form-select stock-select" required>
-                    <option value="">-- Lot --</option>
-                    {% for p in produits %}
-                      {% for s in p.stocks %}
-                        <option value="{{ s.id }}" data-produit="{{ p.id }}">
-                          {{ s.numero_lot }} ({{ s.quantite }})
-                        </option>
-                      {% endfor %}
-                    {% endfor %}
-                  </select>
-                </td>
+              <!-- 🔹 CONDITIONNEMENT -->
+              <td>
+                <select class="form-select conditionnement-select" required>
+                  <option value="">-- Conditionnement --</option>
+                  {% for s in stocks %}
+                    <option value="{{ s.type_conditionnement.value }}"
+                            data-produit="{{ s.produit_id }}">
+                      {{ s.type_conditionnement.value|capitalize }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </td>
 
-                <td>
-                  <input type="number" name="quantite[]"
-                         class="form-control" min="1" required>
-                </td>
+              <!-- 🔹 LOT (SEUL stock_id envoyé) -->
+              <td>
+                <select name="stock_id[]" class="form-select stock-select" required>
+                  <option value="">-- Lot --</option>
+                  {% for s in stocks %}
+                    <option value="{{ s.id }}"
+                            data-produit="{{ s.produit_id }}"
+                            data-conditionnement="{{ s.type_conditionnement.value }}">
+                      {{ s.numero_lot }} ({{ s.quantite }})
+                    </option>
+                  {% endfor %}
+                </select>
+              </td>
 
-                <td>
-                  <input type="number" name="prix_unitaire[]"
-                         class="form-control" min="0" step="0.01" required>
-                </td>
+              <td>
+                <input type="number" name="quantite[]"
+                      class="form-control" min="1" required>
+              </td>
 
-                <td class="text-center">
-                  <button type="button"
-                          class="btn btn-danger btn-sm supprimer">✖</button>
-                </td>
+              <td>
+                <input type="number" name="prix_unitaire[]"
+                      class="form-control" min="0" step="0.01" required>
+              </td>
 
-              </tr>
+              <td class="text-center">
+                <button type="button"
+                        class="btn btn-danger btn-sm supprimer">✖</button>
+              </td>
+
+            </tr>
             </tbody>
+
           </table>
 
           <button type="button"
@@ -293,32 +310,74 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("lignesVente");
   const btnAjouter = document.getElementById("ajouterLigneVente");
 
+  // 🔹 Ajouter nouvelle ligne
   btnAjouter.addEventListener("click", () => {
     const ligne = tbody.querySelector(".ligne-vente").cloneNode(true);
     ligne.querySelectorAll("input").forEach(i => i.value = "");
-    ligne.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+    ligne.querySelectorAll("select").forEach(s => {
+      s.selectedIndex = 0;
+      s.querySelectorAll("option").forEach(opt => opt.style.display = "block");
+    });
     tbody.appendChild(ligne);
   });
 
+  // 🔹 Supprimer ligne
   tbody.addEventListener("click", e => {
     if (e.target.classList.contains("supprimer") && tbody.children.length > 1) {
       e.target.closest("tr").remove();
     }
   });
 
+  // 🔹 Logique Produit → Conditionnement → Lot
   document.addEventListener("change", e => {
-    if (e.target.classList.contains("produit-select")) {
-      const produitId = e.target.value;
-      const ligne = e.target.closest("tr");
-      const stockSelect = ligne.querySelector(".stock-select");
 
-      stockSelect.value = "";
-      stockSelect.querySelectorAll("option").forEach(opt => {
+    const row = e.target.closest("tr");
+    if (!row) return;
+
+    const produitSelect = row.querySelector(".produit-select");
+    const conditionSelect = row.querySelector(".conditionnement-select");
+    const lotSelect = row.querySelector(".stock-select");
+
+    // 🔹 1️⃣ Filtrer conditionnement selon produit
+    if (e.target.classList.contains("produit-select")) {
+
+      const produitId = produitSelect.value;
+
+      conditionSelect.value = "";
+      lotSelect.value = "";
+
+      conditionSelect.querySelectorAll("option").forEach(opt => {
         if (!opt.dataset.produit) return;
         opt.style.display =
           opt.dataset.produit === produitId ? "block" : "none";
       });
+
+      lotSelect.querySelectorAll("option").forEach(opt => {
+        if (!opt.dataset.produit) return;
+        opt.style.display = "none";
+      });
     }
+
+    // 🔹 2️⃣ Filtrer lot selon produit + conditionnement
+    if (e.target.classList.contains("conditionnement-select")) {
+
+      const produitId = produitSelect.value;
+      const condition = conditionSelect.value;
+
+      lotSelect.value = "";
+
+      lotSelect.querySelectorAll("option").forEach(opt => {
+
+        if (!opt.dataset.produit) return;
+
+        const matchProduit = opt.dataset.produit === produitId;
+        const matchCondition = opt.dataset.conditionnement === condition;
+
+        opt.style.display =
+          matchProduit && matchCondition ? "block" : "none";
+      });
+    }
+
   });
 
 });

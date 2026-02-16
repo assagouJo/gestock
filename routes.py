@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -462,6 +462,7 @@ def edit_stock(id):
     stock.magasin_id = request.form["magasin_id[]"]
     stock.produit_id = request.form["produit_id[]"]
     stock.quantite = request.form["quantite[]"]
+    stock.type_conditionnement = request.form["type_conditionnement[]"]
 
     db.session.commit()
 
@@ -515,17 +516,18 @@ def ajouter_stock():
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     magasins = request.form.getlist("magasin_id[]")
-    nouveaux_magasins = request.form.getlist("nouveau_magasin[]")  # ✅ AJOUT
+    nouveaux_magasins = request.form.getlist("nouveau_magasin[]")
+    types = request.form.getlist("type_conditionnement[]")  # ✅ AJOUT
 
     if not lots or not produits or not quantites:
         flash("Aucune donnée reçue ❌", "danger")
         return redirect(url_for("etat_stock"))
 
-    for lot, produit_id, quantite, magasin_id, nouveau_nom in zip(
-        lots, produits, quantites, magasins, nouveaux_magasins
+    for lot, produit_id, quantite, magasin_id, nouveau_nom, type_cond in zip(
+        lots, produits, quantites, magasins, nouveaux_magasins, types
     ):
 
-        if not lot or not produit_id or not quantite:
+        if not lot or not produit_id or not quantite or not type_cond:
             continue
 
         lot = lot.strip()
@@ -545,7 +547,6 @@ def ajouter_stock():
         nouveau_nom = nouveau_nom.strip() if nouveau_nom else ""
 
         if nouveau_nom:
-            # Vérifie si le magasin existe déjà
             magasin = Magasin.query.filter(
                 Magasin.nom.ilike(nouveau_nom)
             ).first()
@@ -553,7 +554,7 @@ def ajouter_stock():
             if not magasin:
                 magasin = Magasin(nom=nouveau_nom)
                 db.session.add(magasin)
-                db.session.flush()  # récupère l'id sans commit
+                db.session.flush()
 
             magasin_id = magasin.id
         else:
@@ -562,11 +563,18 @@ def ajouter_stock():
             except (ValueError, TypeError):
                 continue
 
+        # 🎯 Conversion string → Enum
+        try:
+            type_conditionnement = TypeConditionnement(type_cond)
+        except ValueError:
+            continue
+
         # 🔍 Vérification stock existant
         stock = Stock.query.filter_by(
             produit_id=produit_id,
             numero_lot=lot,
-            magasin_id=magasin_id
+            magasin_id=magasin_id,
+            type_conditionnement=type_conditionnement
         ).first()
 
         if stock:
@@ -576,7 +584,8 @@ def ajouter_stock():
                 produit_id=produit_id,
                 numero_lot=lot,
                 quantite=quantite,
-                magasin_id=magasin_id
+                magasin_id=magasin_id,
+                type_conditionnement=type_conditionnement
             )
             db.session.add(stock)
 
@@ -584,6 +593,7 @@ def ajouter_stock():
 
     flash("Stock enregistré avec succès ✅", "success")
     return redirect(url_for("etat_stock"))
+
 
 
 
@@ -601,6 +611,13 @@ def nouvelle_vente():
     produits = Produit.query.order_by(Produit.nom_produit).all()
     vendeurs = Vendeur.query.order_by(Vendeur.nom).all()
     compagnies = VendeurCompagnie.query.order_by(VendeurCompagnie.nom).all()
+
+    stocks = (
+        Stock.query
+        .options(joinedload(Stock.produit))
+        .order_by(Stock.id.desc())
+        .all()
+    )
 
     ventes = (
         Vente.query
@@ -744,6 +761,7 @@ def nouvelle_vente():
         vendeurs=vendeurs,
         compagnies=compagnies,
         ventes=ventes,
+        stocks=stocks,
         now=datetime.now()
     )
 

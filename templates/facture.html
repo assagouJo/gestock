@@ -2,141 +2,128 @@
 {% block title %}Facture | gestock{% endblock %}
 
 {% block styles %}
-    
+<link rel="stylesheet" href="/static/style/facture.css">
 {% endblock %}
+
 {% block content %}
-<div class="row p-2 d-flex justify-content-center align-items-center my-4">
-<div class="col-10">
-    <div class="row mb-4 d-flex justify-content-between align-items-center">
-      <div class="col-12 text-end">
+<div class="invoice-wrapper">
+
+    <!-- ================= LOGO ================= -->
+    <div class="header">
         {% if compagnie and compagnie.logo %}
-          <img src="{{ compagnie.logo }}"
-         alt="Logo"
-         style="max-height: 100px; object-fit: contain;"
-                class="img-fluid rounded">
+        <img src="{{ compagnie.logo }}" alt="Logo" class="logo">
         {% endif %}
-      </div>
     </div>
-    
-    <hr class="border border-black">
-    
+
+    <hr>
+
     <!-- ================= INFOS FACTURE ================= -->
-    <div class="row mb-4">
-      <div class="col-6">
-        <h5> FACTURE à : </h5>
-        <p class="mb-1"><strong>{{ facture.vente.client.nom_client }}</strong></p>
-        <span>
-              {{ facture.vente.client.adresse_email if compagnie else '' }}<br>
-          </span>
-          <span>
-              {{ facture.vente.client.telephone if compagnie else '' }}<br>
-          </span>
-      </div>
-    
-      <div class="col-6">
-        <table class="table table-sm table-bordered border-black">
-          <tr>
-            <th class="text-start">F_N° :</th>
-            <td class="text-end fs-6" style="font-size: 0.8rem !important;">{{ facture.numero }}</td>
-          </tr>
-          <tr>
-            <th class="text-start">Date :</th>
-            <td class="text-end fs-6" style="font-size: 0.8rem !important;">{{ facture.date_facture.strftime('%d/%m/%Y') }}</td>
-          </tr>
-          <tr>
-            <th class="text-start">Statut :</th>
-            <td class="text-end">
-              {% if facture.statut == "paye" %}
-                <span class="badge bg-success">Facture Soldee</span>
-            {% elif facture.statut == "partiel" %}
-                <span class="badge bg-warning text-dark">Paiement Partielle</span>
-            {% else %}
-                <span class="badge bg-danger">Facture Impayee</span>
-            {% endif %}
-            </td>
-          </tr>
-        </table>
-      </div>
+    <div class="info-section">
+
+        <!-- CLIENT -->
+        <div class="client-info">
+            <h3>FACTURE À :</h3>
+            <p><strong>{{ facture.vente.client.nom_client }}</strong></p>
+            <p>{{ facture.vente.client.adresse_email if compagnie else '' }}</p>
+            <p>{{ facture.vente.client.telephone if compagnie else '' }}</p>
+        </div>
+
+        <!-- DETAILS FACTURE -->
+        <div class="facture-info">
+            <table>
+                <tr>
+                    <th>F_N° :</th>
+                    <td>{{ facture.numero }}</td>
+                </tr>
+                <tr>
+                    <th>Date :</th>
+                    <td>{{ facture.date_facture.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                <tr>
+                    <th>Statut :</th>
+                    <td>
+                        {% if facture.statut == "paye" %}
+                            <span class="badge success">Facture Soldée</span>
+                        {% elif facture.statut == "partiel" %}
+                            <span class="badge warning">Paiement Partiel</span>
+                        {% else %}
+                            <span class="badge danger">Facture Impayée</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
     </div>
-    
+
     <!-- ================= LIGNES ================= -->
-    <div class="table-responsive mb-4">
-      <table class="table table-bordered  border-black">
-        <thead class="">
-          <tr>
-            <th>Désignation</th>
-            <th class="text-center">Qté</th>
-            <th class="text-end">Prix unitaire</th>
-            <th class="text-end">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ligne in facture.vente.lignes %}
-          <tr>
-            <td>{{ ligne.stock.produit.nom_produit }}</td>
-            <td>{{ ligne.quantite }}</td>
-            <td>{{ ligne.prix_unitaire | money }}</td>
-            <td>{{ (ligne.quantite * ligne.prix_unitaire) | money }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="table-section">
+        <table class="main-table">
+            <thead>
+                <tr>
+                    <th>Désignation</th>
+                    <th>Conditionnement</th>
+                    <th class="center">Qté</th>
+                    <th class="right">Prix unitaire</th>
+                    <th class="right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in facture.vente.lignes %}
+                <tr>
+                    <td>{{ ligne.stock.produit.nom_produit }}</td>
+                    <td>{{ ligne.stock.type_conditionnement.value|capitalize }}</td>
+                    <td class="right">{{ ligne.quantite }}</td>
+                    <td class="right">{{ ligne.prix_unitaire | money }}</td>
+                    <td class="right">{{ (ligne.quantite * ligne.prix_unitaire) | money }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    
+
     <!-- ================= TOTAUX ================= -->
-    <div class="row justify-content-end">
-      <div class="col-6">
-        <table class="table table-sm border-black">
-          <tr>
-            <th>Total</th>
-            <td class="text-end">{{ facture.total | money }}</td>
-          </tr>
-          <tr>
-            <th>Payé</th>
-            <td class="text-end">{{ facture.vente.montant_paye | money  }}</td>
-          </tr>
-          <tr class="table-light">
-            <th>Reste à payer</th>
-            <td class="text-end fw-bold">
-              {{ facture.reste_a_payer | money }}
-            </td>
-          </tr>
-        </table>          
-      </div>
+    <div class="total-section">
+        <table>
+            <tr>
+                <th>Total</th>
+                <td class="right">{{ facture.total | money }}</td>
+            </tr>
+            <tr>
+                <th>Payé</th>
+                <td class="right">{{ facture.vente.montant_paye | money }}</td>
+            </tr>
+            <tr class="highlight">
+                <th>Reste à payer</th>
+                <td class="right bold">{{ facture.reste_a_payer | money }}</td>
+            </tr>
+        </table>
     </div>
-    
+
+    <hr>
+
     <!-- ================= FOOTER ================= -->
-    <hr class="border border-black">
-    <div class="row small">
-        <small class="col-3 d-flex flex-column">
-            <span>RCCM : {{ compagnie.numero_rcc if compagnie else '' }}</span>
-            <span>
-                📞 {{ compagnie.telephone if compagnie else '' }}
-            </span>
-          </small>
-          <small class="col-3 d-flex flex-column">
-              <span>
-                  {{ compagnie.email if compagnie else '' }}<br>
-              </span>
-              <span>
-                  {{ compagnie.adresse if compagnie else '' }}<br>
-              </span>
-        </small>
-        <small class="col-6 text-end">
-          Merci pour votre confiance 🙏
-        </small>
+    <div class="footer">
+        <div class="footer-left">
+            <p>RCCM : {{ compagnie.numero_rcc if compagnie else '' }}</p>
+            <p>📞 {{ compagnie.telephone if compagnie else '' }}</p>
+        </div>
+
+        <div class="footer-center">
+            <p>{{ compagnie.email if compagnie else '' }}</p>
+            <p>{{ compagnie.adresse if compagnie else '' }}</p>
+        </div>
+
+        <div class="footer-right">
+            Merci pour votre confiance 🙏
+        </div>
     </div>
-    
+
     <!-- ================= ACTIONS ================= -->
-    <div class="text-center mt-4 no-print">
-      <button class="btn btn-outline-secondary" onclick="window.print()">
-        🖨️ Imprimer
-      </button>
-      <a href="{{ url_for('liste_factures') }}" class="btn btn-outline-primary">
-        ⬅ Retour
-      </a>
+    <div class="actions no-print">
+        <button onclick="window.print()">🖨️ Imprimer</button>
+        <a href="{{ url_for('liste_factures') }}">⬅ Retour</a>
     </div>
-</div>
-  <!-- ================= EN-TÊTE ================= -->
+
 </div>
 {% endblock %}

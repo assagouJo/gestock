@@ -31,6 +31,7 @@
             <th>Numéro de lot</th>
             <th>Magasin</th>
             <th>Produit</th>
+            <th>Conditionnement</th>
             <th>Quantité</th>
             <th>Statut</th>
           </tr>
@@ -44,6 +45,7 @@
               data-magasin="{{ s.magasin.id }}"
               data-produit="{{ s.produit.id }}"
               data-quantite="{{ s.quantite }}"
+              data-conditionnement="{{ s.type_conditionnement.value}}"
               style="cursor:pointer">
 
             <td class="text-center align-middle">
@@ -55,6 +57,7 @@
             <td>{{ s.numero_lot }}</td>
             <td>{{ s.magasin.nom }}</td>
             <td>{{ s.produit.nom_produit }}</td>
+            <td>{{s.type_conditionnement.value}}</td>
             <td class="fw-bold">{{ s.quantite }}</td>
 
             <td>
@@ -99,49 +102,56 @@
                 id="stockForm"
                 action="{{ url_for('ajouter_stock') }}">
 
-            <table class="table table-sm">
-              <thead>
+           <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle shadow-sm">
+              
+              <thead class="table-dark text-center">
                 <tr>
-                  <th>Numéro de lot</th>
-                  <th>Magasin</th>
-                  <th>Produit</th>
-                  <th>Quantité</th>
-                  <th></th>
+                  <th style="width: 140px;">N° Lot</th>
+                  <th style="width: 220px;">Magasin</th>
+                  <th style="width: 200px;">Produit</th>
+                  <th style="width: 150px;">Conditionnement</th>
+                  <th style="width: 120px;">Quantité</th>
+                  <th style="width: 50px;"></th>
                 </tr>
               </thead>
 
               <tbody id="lignesStock">
                 <tr class="ligne-stock">
+
+                  <!-- 🔹 LOT -->
                   <td>
                     <input type="text"
-                           name="numero_lot[]"
-                           id="numero_lot"
-                           class="form-control"
-                           required>
+                          name="numero_lot[]"
+                          class="form-control form-control-sm"
+                          placeholder="Ex: LOT-001"
+                          required>
                   </td>
+
+                  <!-- 🔹 MAGASIN -->
                   <td>
                     <select name="magasin_id[]"
-                            id="magasin_id"
-                            class="form-control">
-                      <option value="">---magasin---</option>
+                            class="form-select form-select-sm mb-2">
+                      <option value="">--- Choisir ---</option>
                       {% for magasin in magasins %}
                         <option value="{{ magasin.id }}">
                           {{ magasin.nom }}
                         </option>
                       {% endfor %}
                     </select>
-                    <small class="text-muted">nouveau magasin :</small>
+
                     <input type="text"
                           name="nouveau_magasin[]"
-                          class="form-control mt-1 col-6"
-                          placeholder="Entrer un nouveau magasin">
+                          class="form-control form-control-sm"
+                          placeholder="Nouveau magasin (optionnel)">
                   </td>
+
+                  <!-- 🔹 PRODUIT -->
                   <td>
                     <select name="produit_id[]"
-                            id="produit_id"
-                            class="form-select"
+                            class="form-select form-select-sm"
                             required>
-                      <option value="">--choisi un produit--</option>
+                      <option value="">-- Choisir un produit --</option>
                       {% for p in produits_all %}
                         <option value="{{ p.id }}">
                           {{ p.nom_produit }}
@@ -149,30 +159,51 @@
                       {% endfor %}
                     </select>
                   </td>
+
+                  <!-- 🔹 CONDITIONNEMENT -->
+                  <td>
+                    <select name="type_conditionnement[]"
+                            class="form-select form-select-sm"
+                            required>
+                      <option value="">-- Choisir --</option>
+                      <option value="carton">📦 Carton</option>
+                      <option value="paquet">📦 Paquet</option>
+                      <option value="unite">🧾 Unité</option>
+                    </select>
+                  </td>
+
+                  <!-- 🔹 QUANTITÉ -->
                   <td>
                     <input type="number"
-                           name="quantite[]"
-                           id="quantite"
-                           class="form-control"
-                           min="1"
-                           required>
+                          name="quantite[]"
+                          class="form-control form-control-sm text-center"
+                          min="1"
+                          required>
                   </td>
-                  <td>
+
+                  <!-- 🔹 ACTION -->
+                  <td class="text-center">
                     <button type="button"
-                            class="btn btn-danger btn-sm supprimer">
-                      ✖
+                            class="btn btn-outline-danger btn-sm supprimer">
+                      x
                     </button>
                   </td>
+
                 </tr>
               </tbody>
-            </table>
 
+            </table>
+          </div>
+
+          <!-- Bouton ajouter ligne -->
+          <div class="d-flex justify-content-end mt-2">
             <button type="button"
-                    id="ajouterLigne"
-                    class="btn btn-outline-secondary mb-3">
+                    class="btn btn-outline-primary btn-sm mb-3"
+                    id="ajouterLigne">
               ➕ Ajouter une ligne
             </button>
-
+          </div>
+          
             <div class="d-flex justify-content-end gap-2">
               <button type="submit" class="btn btn-primary">
                 Enregistrer
@@ -231,6 +262,10 @@ document.addEventListener("DOMContentLoaded", function () {
       form.magasin_id.value = this.dataset.magasin;
       form.produit_id.value = this.dataset.produit;
       form.quantite.value = this.dataset.quantite;
+      form.type_conditionnement.value = this.dataset.conditionnement
+
+      console.log(this.dataset);
+      console.log(this.dataset.conditionnement);
 
       btnAjouter.style.display = "none";
 

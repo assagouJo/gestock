@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from decimal import Decimal
+import enum
 
 
 class User(UserMixin, db.Model):
@@ -56,6 +57,11 @@ class Produit(db.Model):
   def stock_total(self):
       return sum(s.quantite for s in self.stocks)
 
+class TypeConditionnement(enum.Enum):
+    CARTON = "carton"
+    PAQUET = "paquet"
+    UNITE = "unite"
+
 
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,6 +76,15 @@ class Stock(db.Model):
     quantite = db.Column(db.Integer, nullable=False, default=0)
     seuil_alerte = db.Column(db.Integer, default=5)
     date_creation = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
+
+    type_conditionnement = db.Column(
+    db.Enum(
+        TypeConditionnement,
+        values_callable=lambda x: [e.value for e in x],
+        name="typeconditionnement"
+    ),
+    nullable=True
+    )
 
     magasin_id = db.Column(db.Integer, db.ForeignKey("magasin.id"), nullable=False)
 
@@ -93,7 +108,7 @@ class Stock(db.Model):
         return f"<Stock produit_id={self.produit_id} lot={self.numero_lot} ({self.quantite})>"
     
     __table_args__ = (
-    db.UniqueConstraint("produit_id", "numero_lot", name="uix_produit_lot"),
+    db.UniqueConstraint("produit_id", "numero_lot", "magasin_id", "type_conditionnement", name="uix_produit_lot_magasin_conditionnement"),
 )
     
 
@@ -122,14 +137,14 @@ class Vente(db.Model):
     vendeur_id = db.Column(
         db.Integer,
         db.ForeignKey("vendeur.id", name='fk_vente_vendeur'),
-        nullable=True,
+        nullable=False,
         index=True
     )
 
     compagnie_id = db.Column(
         db.Integer,
         db.ForeignKey("vendeur_compagnie.id", name='fk_vente_compagnie'),
-        nullable=True,
+        nullable=False,
         index=True
     )
 
