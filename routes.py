@@ -245,23 +245,22 @@ def produit():
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
 def edit_produit(id):
+
     produit = Produit.query.get_or_404(id)
     form = ProduitForm()
 
-    if form.validate_on_submit():
-        # champs texte / stock
+    # ⚠️ On enlève validate_on_submit() ici
+    if request.method == "POST":
+
         produit.nom_produit = form.nom_produit.data
         produit.description = form.description.data
         produit.stock = form.stock.data
 
         file = form.image.data
 
-        # 🔄 NOUVELLE IMAGE ?
         if file and file.filename:
-            # supprimer l’ancienne image Cloudinary
             delete_cloudinary_image(produit.image)
 
-            # upload nouvelle image
             result = upload(
                 file,
                 folder="gestock/produits"
@@ -272,8 +271,6 @@ def edit_produit(id):
         flash("Produit modifié avec succès", "success")
 
     return redirect(url_for('produit'))
-
-
 
 
 def delete_cloudinary_image(image_url):
