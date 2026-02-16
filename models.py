@@ -83,7 +83,7 @@ class Stock(db.Model):
         values_callable=lambda x: [e.value for e in x],
         name="typeconditionnement"
     ),
-    nullable=True  # a remplacer par False apres render ok
+    nullable=False  # a remplacer par False apres render ok
     )
 
     magasin_id = db.Column(db.Integer, db.ForeignKey("magasin.id"), nullable=False)
@@ -137,7 +137,7 @@ class Vente(db.Model):
     vendeur_id = db.Column(
         db.Integer,
         db.ForeignKey("vendeur.id", name='fk_vente_vendeur'),
-        nullable=True, # a remplacer par False apres render ok
+        nullable=False, # a remplacer par False apres render ok
         index=True
     )
 

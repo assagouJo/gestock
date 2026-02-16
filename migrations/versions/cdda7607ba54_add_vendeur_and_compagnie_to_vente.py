@@ -19,10 +19,10 @@ depends_on = None
 def upgrade():
     with op.batch_alter_table('vente') as batch_op:
         batch_op.add_column(
-            sa.Column('vendeur_id', sa.Integer(), nullable=True)
+            sa.Column('vendeur_id', sa.Integer(), nullable=False)
         )
         batch_op.add_column(
-            sa.Column('compagnie_id', sa.Integer(), nullable=True)
+            sa.Column('compagnie_id', sa.Integer(), nullable=False)
         )
 
         batch_op.create_foreign_key(

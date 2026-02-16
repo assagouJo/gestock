@@ -570,24 +570,41 @@ def ajouter_stock():
             continue
 
         # 🔍 Vérification stock existant
-        stock = Stock.query.filter_by(
+       # 🔎 Vérifier si le lot existe déjà (peu importe produit/magasin)
+    stock_lot = Stock.query.filter_by(
+        numero_lot=lot
+    ).first()
+
+    if stock_lot:
+
+        # ✅ Cas identique → on additionne
+        if (
+            stock_lot.produit_id == produit_id and
+            stock_lot.magasin_id == magasin_id and
+            stock_lot.type_conditionnement == type_conditionnement
+        ):
+            stock_lot.quantite += quantite
+
+        # ❌ Cas conflit → erreur
+        else:
+            flash(
+                f"❌ Le lot '{lot}' est déjà utilisé avec des informations différentes.",
+                "danger"
+            )
+            db.session.rollback()
+            return redirect(url_for("etat_stock"))
+
+    # 🔹 Sinon → création nouveau lot
+    else:
+        nouveau_stock = Stock(
             produit_id=produit_id,
             numero_lot=lot,
+            quantite=quantite,
             magasin_id=magasin_id,
             type_conditionnement=type_conditionnement
-        ).first()
+        )
+        db.session.add(nouveau_stock)
 
-        if stock:
-            stock.quantite += quantite
-        else:
-            stock = Stock(
-                produit_id=produit_id,
-                numero_lot=lot,
-                quantite=quantite,
-                magasin_id=magasin_id,
-                type_conditionnement=type_conditionnement
-            )
-            db.session.add(stock)
 
     db.session.commit()
 
