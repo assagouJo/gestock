@@ -124,9 +124,21 @@
                                 <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
                             </li>
 
-                            <li class="{{ 'bg-nav2' if is_active('rapport') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-cash-coin text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('rapport')}}">Rapports</a>
+                            <li class="{{ 'bg-nav2' if is_active('rapport_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-box-seam text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('rapport_stock')}}">Rapports Stock</a>
+                            </li>
+                            <li class="{{ 'bg-nav2' if is_active('rapport_vendeur') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-person-workspace text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('rapport_vendeur')}}">Rapports Vendeurs</a>
+                            </li>
+                            <li class="{{ 'bg-nav2' if is_active('rapport_client') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-person-lines-fill text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('rapport_client')}}">Rapports Clients</a>
+                            </li>
+                            <li class="{{ 'bg-nav2' if is_active('etat_propositions') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi bi-receipt text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('etat_propositions')}}">Etat des Propositions</a>
                             </li>
                             {% endif %}
                             {% if current_user.role in ["admin","operateur"] %}

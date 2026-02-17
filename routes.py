@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -452,19 +452,53 @@ def etat_stock():
 @app.route("/stock/edit/<int:id>", methods=["POST"])
 @login_required
 @role_required("admin")
-def edit_stock(id):    
+def edit_stock(id):
+
     stock = Stock.query.get_or_404(id)
 
-    stock.numero_lot = request.form.getlist("numero_lot[]")[0]
-    stock.magasin_id = request.form.getlist("magasin_id[]")[0]
-    stock.produit_id = request.form.getlist("produit_id[]")[0]
-    stock.quantite = request.form.getlist("quantite[]")[0]
-    stock.type_conditionnement = request.form.getlist("type_conditionnement[]")[0]
+    try:
+        # 📥 Récupération des données (une seule ligne en mode modification)
+        produit_id = request.form.getlist("produit_id[]")[0]
+        magasin_id = request.form.getlist("magasin_id[]")[0]
+        quantite = request.form.getlist("quantite[]")[0]
+        type_cond = request.form.getlist("type_conditionnement[]")[0]
 
-    db.session.commit()
+        # 🔎 Vérification données obligatoires
+        if not produit_id or not magasin_id or not quantite or not type_cond:
+            flash("Données invalides ❌", "danger")
+            return redirect(url_for("etat_stock"))
 
-    flash("Stock modifié avec succès", "success")
+        # 🔢 Conversion types
+        produit_id = int(produit_id)
+        magasin_id = int(magasin_id)
+        quantite = int(quantite)
+
+        if quantite < 0:
+            flash("Quantité invalide ❌", "danger")
+            return redirect(url_for("etat_stock"))
+
+        try:
+            type_conditionnement = TypeConditionnement(type_cond)
+        except ValueError:
+            flash("Conditionnement invalide ❌", "danger")
+            return redirect(url_for("etat_stock"))
+
+        # 🛠 Mise à jour
+        stock.produit_id = produit_id
+        stock.magasin_id = magasin_id
+        stock.quantite = quantite
+        stock.type_conditionnement = type_conditionnement
+
+        db.session.commit()
+
+        flash("Stock modifié avec succès ✅", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la modification ❌ : {str(e)}", "danger")
+
     return redirect(url_for("etat_stock"))
+
 
 
 @app.route("/delete/lot", methods=["POST"])
@@ -508,105 +542,87 @@ def ajouter_stock():
     if request.method == "GET":
         return redirect(url_for("etat_stock"))
 
-    # 📥 Récupération des données
-    lots = request.form.getlist("numero_lot[]")
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     magasins = request.form.getlist("magasin_id[]")
     nouveaux_magasins = request.form.getlist("nouveau_magasin[]")
-    types = request.form.getlist("type_conditionnement[]")  # ✅ AJOUT
+    types = request.form.getlist("type_conditionnement[]")
 
-    if not lots or not produits or not quantites:
+    if not produits or not quantites:
         flash("Aucune donnée reçue ❌", "danger")
         return redirect(url_for("etat_stock"))
 
-    for lot, produit_id, quantite, magasin_id, nouveau_nom, type_cond in zip(
-        lots, produits, quantites, magasins, nouveaux_magasins, types
-    ):
+    try:
+        for produit_id, quantite, magasin_id, nouveau_nom, type_cond in zip(
+            produits, quantites, magasins, nouveaux_magasins, types
+        ):
 
-        if not lot or not produit_id or not quantite or not type_cond:
-            continue
-
-        lot = lot.strip()
-        if lot == "":
-            continue
-
-        try:
-            produit_id = int(produit_id)
-            quantite = int(quantite)
-        except ValueError:
-            continue
-
-        if quantite <= 0:
-            continue
-
-        # 🎯 Gestion du magasin
-        nouveau_nom = nouveau_nom.strip() if nouveau_nom else ""
-
-        if nouveau_nom:
-            magasin = Magasin.query.filter(
-                Magasin.nom.ilike(nouveau_nom)
-            ).first()
-
-            if not magasin:
-                magasin = Magasin(nom=nouveau_nom)
-                db.session.add(magasin)
-                db.session.flush()
-
-            magasin_id = magasin.id
-        else:
-            try:
-                magasin_id = int(magasin_id)
-            except (ValueError, TypeError):
+            if not produit_id or not quantite or not type_cond:
                 continue
 
-        # 🎯 Conversion string → Enum
-        try:
-            type_conditionnement = TypeConditionnement(type_cond)
-        except ValueError:
-            continue
+            try:
+                produit_id = int(produit_id)
+                quantite = int(quantite)
+            except ValueError:
+                continue
 
-        # 🔍 Vérification stock existant
-       # 🔎 Vérifier si le lot existe déjà (peu importe produit/magasin)
-    stock_lot = Stock.query.filter_by(
-        numero_lot=lot
-    ).first()
+            if quantite <= 0:
+                continue
 
-    if stock_lot:
+            # 🎯 Gestion du magasin
+            nouveau_nom = nouveau_nom.strip() if nouveau_nom else ""
 
-        # ✅ Cas identique → on additionne
-        if (
-            stock_lot.produit_id == produit_id and
-            stock_lot.magasin_id == magasin_id and
-            stock_lot.type_conditionnement == type_conditionnement
-        ):
-            stock_lot.quantite += quantite
+            if nouveau_nom:
+                magasin = Magasin.query.filter(
+                    Magasin.nom.ilike(nouveau_nom)
+                ).first()
 
-        # ❌ Cas conflit → erreur
-        else:
-            flash(
-                f"❌ Le lot '{lot}' est déjà utilisé avec des informations différentes.",
-                "danger"
-            )
-            db.session.rollback()
-            return redirect(url_for("etat_stock"))
+                if not magasin:
+                    magasin = Magasin(nom=nouveau_nom)
+                    db.session.add(magasin)
+                    db.session.flush()
 
-    # 🔹 Sinon → création nouveau lot
-    else:
-        nouveau_stock = Stock(
-            produit_id=produit_id,
-            numero_lot=lot,
-            quantite=quantite,
-            magasin_id=magasin_id,
-            type_conditionnement=type_conditionnement
-        )
-        db.session.add(nouveau_stock)
+                magasin_id = magasin.id
+            else:
+                try:
+                    magasin_id = int(magasin_id)
+                except (ValueError, TypeError):
+                    continue
 
+            # 🎯 Conversion string → Enum
+            try:
+                type_conditionnement = TypeConditionnement(type_cond)
+            except ValueError:
+                continue
 
-    db.session.commit()
+            # 🔎 Vérifier si stock existe déjà
+            stock_existant = Stock.query.filter_by(
+                produit_id=produit_id,
+                magasin_id=magasin_id,
+                type_conditionnement=type_conditionnement
+            ).first()
 
-    flash("Stock enregistré avec succès ✅", "success")
+            if stock_existant:
+                stock_existant.quantite += quantite
+            else:
+                nouveau_stock = Stock(
+                    produit_id=produit_id,
+                    numero_lot="AUTO",  # ⚠ temporaire si colonne obligatoire
+                    quantite=quantite,
+                    magasin_id=magasin_id,
+                    type_conditionnement=type_conditionnement
+                )
+                db.session.add(nouveau_stock)
+
+        db.session.commit()
+        flash("Stock enregistré avec succès ✅", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de l'enregistrement ❌ : {str(e)}", "danger")
+
     return redirect(url_for("etat_stock"))
+
 
 
 
@@ -1207,6 +1223,82 @@ def proforma_pdf(proforma_id):
     return response
 
 
+@app.route("/bon-commande/nouveau", methods=["GET", "POST"])
+@login_required
+def nouveau_bon_commande():
+
+    if request.method == "POST":
+
+        client_id = request.form.get("client_id")
+        produits = request.form.getlist("produit_id[]")
+        quantites = request.form.getlist("quantite[]")
+        prix = request.form.getlist("prix[]")
+
+        if not client_id:
+            flash("Veuillez sélectionner un client", "danger")
+            return redirect(url_for("nouveau_bon_commande"))
+
+        # Création du bon
+        bon = BonCommande(
+            client_id=client_id
+        )
+        db.session.add(bon)
+        db.session.flush()
+
+        total = 0
+
+        for produit_id, qte, pu in zip(produits, quantites, prix):
+
+            if not produit_id or not qte or not pu:
+                continue
+
+            qte = int(qte)
+            pu = float(pu)
+            sous_total = qte * pu
+            total += sous_total
+
+            ligne = LigneBonCommande(
+                bon_id=bon.id,
+                produit_id=produit_id,
+                quantite=qte,
+                prix_unitaire=pu,
+                sous_total=sous_total
+            )
+            db.session.add(ligne)
+
+        bon.total = total
+        db.session.commit()
+
+        flash("Bon de commande créé avec succès", "success")
+        return redirect(url_for("liste_bons"))
+
+    clients = Client.query.order_by(Client.nom_client).all()
+    produits = Produit.query.order_by(Produit.nom_produit).all()
+
+    return render_template(
+        "bon_commande.html",
+        clients=clients,
+        produits=produits
+    )
+
+
+@app.route("/bon-commande")
+@login_required
+def liste_bons():
+
+    from sqlalchemy.orm import joinedload
+
+    bons = BonCommande.query.options(
+        joinedload(BonCommande.client)
+    ).order_by(BonCommande.date_creation.desc()).all()
+
+    return render_template(
+        "liste_bons.html",
+        bons=bons,
+        today=datetime.now()
+    )
+
+
 
 @app.route('/gestion_materiel/compagnie', methods=['GET', 'POST'])
 @login_required
@@ -1250,10 +1342,394 @@ def compagnie():
 
 
 
-@app.route('/rapport')
+
+@app.route("/rapport/stock")
 @login_required
-def rapport():
-    return render_template('rapport.html')
+def rapport_stock():
+
+    produit_id = request.args.get("produit_id", type=int)
+    magasin_id = request.args.get("magasin_id", type=int)
+
+    query = Stock.query
+
+    if produit_id:
+        query = query.filter(Stock.produit_id == produit_id)
+
+    if magasin_id:
+        query = query.filter(Stock.magasin_id == magasin_id)
+
+    stocks = query.all()
+
+    produits = Produit.query.all()
+    magasins = Magasin.query.all()
+
+    return render_template(
+        "rapport_stock.html",
+        stocks=stocks,
+        produits=produits,
+        magasins=magasins
+    )
+
+
+
+from sqlalchemy import and_
+
+@app.route("/rapport/client")
+@login_required
+def rapport_client():
+
+    client_id = request.args.get("client_id", type=int)
+    statut = request.args.get("statut")
+
+    clients = Client.query.order_by(Client.nom_client).all()
+
+    # ===============================
+    # CAS 1 : CLIENT SPECIFIQUE
+    # ===============================
+    if client_id:
+
+        ventes = Vente.query.options(
+            joinedload(Vente.paiements)
+        ).filter(Vente.client_id == client_id)\
+         .order_by(Vente.date_vente.desc())\
+         .all()
+
+        if statut == "solde":
+            ventes = [v for v in ventes if v.reste_a_payer == 0]
+        elif statut == "non_solde":
+            ventes = [v for v in ventes if v.reste_a_payer > 0]
+
+        vente_ids = [v.id for v in ventes]
+
+        paiements = Paiement.query.filter(
+            Paiement.vente_id.in_(vente_ids)
+        ).order_by(Paiement.date_paiement.desc()).all() if vente_ids else []
+
+        total_ventes = sum(v.total for v in ventes)
+        total_paiements = sum(p.montant for p in paiements)
+        reste_global = total_ventes - total_paiements
+
+        return render_template(
+            "rapport_client.html",
+            clients=clients,
+            ventes=ventes,
+            paiements=paiements,
+            total_ventes=total_ventes,
+            total_paiements=total_paiements,
+            reste_global=reste_global,
+            client_id=client_id,
+            statut=statut,
+            rapport_par_client=None
+        )
+
+    # ===============================
+    # CAS 2 : TOUS LES CLIENTS
+    # ===============================
+    rapport_par_client = []
+
+    for client in clients:
+
+        ventes = Vente.query.options(
+            joinedload(Vente.paiements)
+        ).filter(Vente.client_id == client.id).all()
+
+        if statut == "solde":
+            ventes = [v for v in ventes if v.reste_a_payer == 0]
+        elif statut == "non_solde":
+            ventes = [v for v in ventes if v.reste_a_payer > 0]
+
+        if not ventes:
+            continue
+
+        vente_ids = [v.id for v in ventes]
+
+        paiements = Paiement.query.filter(
+            Paiement.vente_id.in_(vente_ids)
+        ).all()
+
+        total_ventes = sum(v.total for v in ventes)
+        total_paiements = sum(p.montant for p in paiements)
+        reste = total_ventes - total_paiements
+
+        rapport_par_client.append({
+            "client": client,
+            "ventes": ventes,
+            "paiements": paiements,
+            "total_ventes": total_ventes,
+            "total_paiements": total_paiements,
+            "reste": reste
+        })
+
+    return render_template(
+        "rapport_client.html",
+        clients=clients,
+        rapport_par_client=rapport_par_client,
+        client_id=None,
+        statut=statut
+    )
+
+
+
+
+@app.route("/rapport/vendeur")
+@login_required
+def rapport_vendeur():
+
+    vendeur_id = request.args.get("vendeur_id", type=int)
+
+    vendeurs = Vendeur.query.all()
+
+    ventes = []
+    total = 0
+
+    if vendeur_id:
+        ventes = Vente.query.filter_by(vendeur_id=vendeur_id)\
+                            .order_by(Vente.date_vente.desc())\
+                            .all()
+
+        total = sum(v.total for v in ventes)
+
+    return render_template(
+        "rapport_vendeur.html",
+        vendeurs=vendeurs,
+        ventes=ventes,
+        total=total
+    )
+
+
+
+@app.route("/rapport/client/pdf")
+@login_required
+def rapport_client_pdf():
+
+
+    client_id = request.args.get("client_id", type=int)
+    statut = request.args.get("statut")
+
+    # ==================================================
+    # CAS 1 : CLIENT SPECIFIQUE
+    # ==================================================
+    if client_id:
+
+        client = Client.query.get_or_404(client_id)
+
+        ventes = Vente.query.options(
+            joinedload(Vente.paiements)
+        ).filter(Vente.client_id == client_id).all()
+
+        if statut == "solde":
+            ventes = [v for v in ventes if v.reste_a_payer == 0]
+        elif statut == "non_solde":
+            ventes = [v for v in ventes if v.reste_a_payer > 0]
+
+        vente_ids = [v.id for v in ventes]
+
+        paiements = Paiement.query.filter(
+            Paiement.vente_id.in_(vente_ids)
+        ).all() if vente_ids else []
+
+        total = sum(v.total for v in ventes)
+        total_paye = sum(p.montant for p in paiements)
+        reste = total - total_paye
+
+        html = render_template(
+            "rapport_client_pdf.html",
+            client=client,
+            ventes=ventes,
+            paiements=paiements,
+            total=total,
+            total_paye=total_paye,
+            reste=reste,
+            statut=statut,
+            date_rapport=datetime.now()
+        )
+
+        pdf = HTML(string=html).write_pdf()
+
+        response = make_response(pdf)
+        response.headers["Content-Type"] = "application/pdf"
+        response.headers["Content-Disposition"] = \
+            f"inline; filename=rapport_client_{client.id}.pdf"
+
+        return response
+
+    # ==================================================
+    # CAS 2 : TOUS LES CLIENTS
+    # ==================================================
+
+    clients = Client.query.order_by(Client.nom_client).all()
+    rapport_par_client = []
+
+    for client in clients:
+
+        ventes = Vente.query.options(
+            joinedload(Vente.paiements)
+        ).filter(Vente.client_id == client.id).all()
+
+        if statut == "solde":
+            ventes = [v for v in ventes if v.reste_a_payer == 0]
+        elif statut == "non_solde":
+            ventes = [v for v in ventes if v.reste_a_payer > 0]
+
+        if not ventes:
+            continue
+
+        vente_ids = [v.id for v in ventes]
+
+        paiements = Paiement.query.filter(
+            Paiement.vente_id.in_(vente_ids)
+        ).all() if vente_ids else []
+
+        total = sum(v.total for v in ventes)
+        total_paye = sum(p.montant for p in paiements)
+        reste = total - total_paye
+
+        rapport_par_client.append({
+            "client": client,
+            "ventes": ventes,
+            "paiements": paiements,
+            "total": total,
+            "total_paye": total_paye,
+            "reste": reste
+        })
+
+    html = render_template(
+        "rapport_client_pdf_all.html",
+        rapport_par_client=rapport_par_client,
+        statut=statut,
+        date_rapport=datetime.now()
+    )
+
+    pdf = HTML(string=html).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = \
+        "inline; filename=rapport_tous_clients.pdf"
+
+    return response
+
+
+import pandas as pd
+from flask import send_file
+import io
+
+
+@app.route("/rapport/client/excel/<int:client_id>")
+@login_required
+def rapport_client_excel(client_id):
+
+    client = Client.query.get_or_404(client_id)
+
+    # 🔹 Charger ventes + paiements
+    ventes = Vente.query.options(
+        joinedload(Vente.paiements)
+    ).filter_by(client_id=client_id).all()
+
+    # 🔹 Totaux globaux
+    total_ventes = sum(v.total for v in ventes)
+    total_paiements = sum(
+        p.montant for v in ventes for p in v.paiements
+    )
+    reste_global = total_ventes - total_paiements
+
+    # ===============================
+    # 📋 Feuille 1 : Résumé
+    # ===============================
+    resume_data = {
+        "Client": [client.nom_client],
+        "Total Facturé": [float(total_ventes)],
+        "Total Encaissé": [float(total_paiements)],
+        "Reste Global": [float(reste_global)]
+    }
+
+    df_resume = pd.DataFrame(resume_data)
+
+    # ===============================
+    # 📋 Feuille 2 : Ventes
+    # ===============================
+    ventes_data = []
+
+    for v in ventes:
+        ventes_data.append({
+            "Date": v.date_vente.strftime('%d/%m/%Y'),
+            "Total Vente": float(v.total),
+            "Montant Payé": float(v.montant_paye or 0),
+            "Reste": float(v.reste_a_payer),
+            "Statut": v.statut_paiement
+        })
+
+    df_ventes = pd.DataFrame(ventes_data)
+
+    # ===============================
+    # 📋 Feuille 3 : Paiements
+    # ===============================
+    paiements_data = []
+
+    for v in ventes:
+        for p in v.paiements:
+            paiements_data.append({
+                "Date Paiement": p.date_paiement.strftime('%d/%m/%Y'),
+                "Montant": float(p.montant),
+                "Vente ID": p.vente_id
+            })
+
+    df_paiements = pd.DataFrame(paiements_data)
+
+    # ===============================
+    # 📤 Génération fichier Excel
+    # ===============================
+    output = io.BytesIO()
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df_resume.to_excel(writer, sheet_name="Résumé", index=False)
+        df_ventes.to_excel(writer, sheet_name="Ventes", index=False)
+        df_paiements.to_excel(writer, sheet_name="Paiements", index=False)
+
+    output.seek(0)
+
+    return send_file(
+        output,
+        download_name=f"rapport_client_{client.id}.xlsx",
+        as_attachment=True
+    )
+
+
+@app.route("/etat/propositions")
+@login_required
+def etat_propositions():
+
+    from sqlalchemy.orm import joinedload
+
+    ventes = Vente.query.options(
+        joinedload(Vente.client),
+        joinedload(Vente.paiements)
+    ).order_by(
+        Vente.client_id,
+        Vente.date_vente.desc()
+    ).all()
+
+    etat = {}
+
+    for v in ventes:
+        client = v.client
+
+        if client.id not in etat:
+            etat[client.id] = {
+                "client": client,
+                "factures": [],
+                "total_reste": 0
+            }
+
+        etat[client.id]["factures"].append(v)
+        etat[client.id]["total_reste"] += v.reste_a_payer or 0
+
+    return render_template(
+        "etat_propositions.html",
+        etat=etat.values()
+    )
+
+
 
 
 

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Rapport | gestock{% endblock %}
+
+{% block styles %}
+    
+{% endblock %}
+{% block content %}
+    <form method="GET" class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <select name="produit_id" class="form-select">
+            <option value="">-- Choisir Produit --</option>
+            {% for p in produits %}
+            <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <select name="magasin_id" class="form-select">
+            <option value="">-- Choisir Magasin --</option>
+            {% for m in magasins %}
+            <option value="{{ m.id }}">{{ m.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary w-100">
+            🔎 Filtrer
+        </button>
+    </div>
+
+</form>
+<div>
+    {% if stocks %}
+<hr>
+
+<div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+    <table class="table w-100 caption-top table-bordered px-1 align-middle
+                  table-responsive my-2">
+        <thead class="table-dark">
+            <tr>
+                <th>Produit</th>
+                <th>Magasin</th>
+                <th>Conditionnement</th>
+                <th>Quantité</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in stocks %}
+            <tr>
+                <td>{{ s.produit.nom_produit }}</td>
+                <td>{{ s.magasin.nom }}</td>
+                <td>{{ s.type_conditionnement.value }}</td>
+                <td class="fw-bold">{{ s.quantite }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% elif request.args %}
+<div class="alert alert-warning">
+    Aucun résultat trouvé.
+</div>
+{% endif %}
+
+</div>
+
+{% endblock %}

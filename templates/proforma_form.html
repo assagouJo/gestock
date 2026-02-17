@@ -1,54 +1,153 @@
 {% extends "base.html" %}
-{% block title %}Rapport | gestock{% endblock %}
+{% block title %}Proforma | gestock{% endblock %}
 
 {% block styles %}
-    
+<style>
+
+/* CONTAINER */
+.proforma-wrapper {
+    max-width: 1100px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+/* HEADER */
+.proforma-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* TABLE */
+.table thead {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* BOUTONS */
+.btn-add {
+    background: #f8f9fa;
+    border: 1px dashed #6c757d;
+    transition: 0.3s ease;
+}
+
+.btn-add:hover {
+    background: #e9ecef;
+}
+
+.btn-submit {
+    background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-submit:hover {
+    opacity: 0.9;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        border: none;
+        padding: 8px 5px;
+    }
+
+    .table td::before {
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table td:nth-child(1)::before { content: "Produit"; }
+    .table td:nth-child(2)::before { content: "Quantité"; }
+    .table td:nth-child(3)::before { content: "Prix Unitaire"; }
+}
+
+</style>
 {% endblock %}
+
 {% block content %}
-    <form method="POST">
-    {{ form.hidden_tag() }}
 
-    <div class="mb-3">
-        <label class="form-label">Client</label>
-        {{ form.client_id(class="form-select") }}
+<div class="proforma-wrapper">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="proforma-title">🧾 Nouvelle Proforma</h4>
     </div>
-    <table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Produit</th>
-            <th>Quantité</th>
-            <th>Prix unitaire</th>
-        </tr>
-    </thead>
-    <tbody id="lignes">
-        <tr>
-            <td>
-                <select name="produit_id[]" class="form-select">
-                    {% for p in produits %}
-                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <input type="number" name="quantite[]" class="form-control" min="1" required>
-            </td>
-            <td>
-                <input type="number" name="prix[]" class="form-control" min="0" step="0.01" required>
-            </td>
-        </tr>
-    </tbody>
-</table>
 
-<button type="button" class="btn btn-secondary" onclick="ajouterLigne()">
-    + Ajouter un produit
-</button>
+    <form method="POST">
+        {{ form.hidden_tag() }}
 
-<br><br>
-<div class="col-12 text-end">
-    {{ form.submit(class="btn btn-primary") }}
+        <!-- CLIENT -->
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Client</label>
+            {{ form.client_id(class="form-select shadow-sm") }}
+        </div>
+
+        <!-- TABLE PRODUITS -->
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th style="width:40%">Produit</th>
+                        <th style="width:20%">Quantité</th>
+                        <th style="width:30%">Prix unitaire</th>
+                    </tr>
+                </thead>
+                <tbody id="lignes">
+                    <tr>
+                        <td>
+                            <select name="produit_id[]" class="form-select">
+                                {% for p in produits %}
+                                <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="quantite[]" class="form-control text-center" min="1" required>
+                        </td>
+                        <td>
+                            <input type="number" name="prix[]" class="form-control text-end" min="0" step="0.01" required>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- AJOUT LIGNE -->
+        <div class="mb-4">
+            <button type="button" class="btn btn-add w-100" onclick="ajouterLigne()">
+                ➕ Ajouter un produit
+            </button>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="text-end">
+            {{ form.submit(class="btn btn-submit px-4 py-2") }}
+        </div>
+
+    </form>
 
 </div>
-</form>
 
 <script>
 function ajouterLigne() {
@@ -64,13 +163,14 @@ function ajouterLigne() {
                 </select>
             </td>
             <td>
-                <input type="number" name="quantite[]" class="form-control" min="1">
+                <input type="number" name="quantite[]" class="form-control text-center" min="1" required>
             </td>
             <td>
-                <input type="number" name="prix[]" class="form-control" min="0" step="0.01">
+                <input type="number" name="prix[]" class="form-control text-end" min="0" step="0.01" required>
             </td>
         </tr>
     `);
 }
 </script>
+
 {% endblock %}

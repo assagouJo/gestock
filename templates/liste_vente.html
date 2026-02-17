@@ -5,11 +5,21 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="fw-bold text-primary mb-0">📋 Ventes</h4>
-  <button class="btn btn-outline-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#venteModal">
-    ➕ Nouvelle Vente
-  </button>
+  <div>
+    <button class="btn btn-outline-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#venteModal">
+      ➕ Nouvelle Vente
+    </button>
+        <a href="{{ url_for('nouvelle_proforma') }}"
+         class="btn btn-info">
+        ➕ Nouvelle proforma
+      </a>
+        <a href="{{ url_for('nouveau_bon_commande') }}"
+         class="btn btn-info">
+        ➕ Bon de Commande
+      </a>
+  </div>
 </div>
 
 {% if ventes %}

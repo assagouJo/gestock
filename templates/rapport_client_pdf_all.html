@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Rapport Tous Clients</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 30px;
+        }
+
+        h1, h2 {
+            margin-bottom: 5px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .client-section {
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+
+        .resume {
+            background: #f2f2f2;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #444;
+            color: white;
+        }
+
+        .danger {
+            color: red;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: right;
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>📊 Rapport Financier - Tous les Clients</h1>
+
+    <p>
+        Statut filtré :
+        <strong>
+            {% if statut == "solde" %}
+                Clients Soldés
+            {% elif statut == "non_solde" %}
+                Clients Non Soldés
+            {% else %}
+                Tous
+            {% endif %}
+        </strong>
+    </p>
+
+    <p>Date du rapport : {{ date_rapport.strftime('%d/%m/%Y') }}</p>
+</div>
+
+
+{% if rapport_par_client %}
+
+    {% for bloc in rapport_par_client %}
+
+    <div class="client-section">
+
+        <h2>👤 {{ bloc.client.nom_client }}</h2>
+
+        <div class="resume">
+            Total facturé : {{ bloc.total | money }} |
+            Total encaissé : {{ bloc.total_paye | money }} |
+            Reste :
+            <span class="{% if bloc.reste > 0 %}danger{% else %}success{% endif %}">
+                {{ bloc.reste | money }}
+            </span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Payé</th>
+                    <th>Reste</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in bloc.ventes %}
+                <tr>
+                    <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ v.total | money }}</td>
+                    <td>{{ v.montant_paye | money }}</td>
+                    <td>
+                        <span class="{% if v.reste_a_payer > 0 %}danger{% else %}success{% endif %}">
+                            {{ v.reste_a_payer | money }}
+                        </span>
+                    </td>
+                    <td>{{ v.statut_paiement }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3 style="margin-top:15px;">💵 Paiements</h3>
+
+        {% if bloc.paiements %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Montant</th>
+                    <th>Vente ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in bloc.paiements %}
+                <tr>
+                    <td>{{ p.date_paiement.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ p.montant | money }}</td>
+                    <td>#{{ p.vente_id }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun paiement enregistré.</p>
+        {% endif %}
+    </div>
+
+    {% endfor %}
+
+{% else %}
+
+<p>Aucun résultat trouvé.</p>
+
+{% endif %}
+
+
+<div class="footer">
+    Rapport généré automatiquement par Gestock
+</div>
+
+</body>
+</html>

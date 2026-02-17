@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Nouveau Bon de Commande{% endblock %}
+
+{% block styles %}
+<style>
+
+/* ===== CONTAINER ===== */
+.bc-wrapper {
+    max-width: 1200px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+/* ===== TITRE ===== */
+.bc-title {
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: 0.5px;
+}
+
+/* ===== SELECT & INPUT ===== */
+.form-select,
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: 0.2s ease-in-out;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+}
+
+/* ===== TABLE ===== */
+.table thead {
+    background: linear-gradient(45deg, #1e293b, #334155);
+    color: white;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+/* ===== TOTAL GENERAL ===== */
+.total-box {
+    background: #f1f5f9;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* ===== BOUTONS ===== */
+.btn-add {
+    background: #f8fafc;
+    border: 2px dashed #94a3b8;
+    color: #475569;
+    transition: 0.3s ease;
+}
+
+.btn-add:hover {
+    background: #e2e8f0;
+}
+
+.btn-save {
+    background: linear-gradient(45deg, #2563eb, #06b6d4);
+    border: none;
+    font-weight: 500;
+    padding: 10px 25px;
+}
+
+.btn-save:hover {
+    opacity: 0.9;
+}
+
+/* ===== SUPPRESSION ===== */
+.btn-danger {
+    border-radius: 6px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px;
+        background: #f9fafb;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        border: none;
+        padding: 8px 5px;
+    }
+
+    .table td::before {
+        font-weight: bold;
+        color: #64748b;
+    }
+
+    .table td:nth-child(1)::before { content: "Produit"; }
+    .table td:nth-child(2)::before { content: "Quantité"; }
+    .table td:nth-child(3)::before { content: "Prix Unitaire"; }
+    .table td:nth-child(4)::before { content: "Total"; }
+}
+
+/* ===== IMPRESSION ===== */
+@media print {
+
+    body {
+        background: white;
+    }
+
+    .btn,
+    .btn-add,
+    .btn-save {
+        display: none !important;
+    }
+
+    .bc-wrapper {
+        box-shadow: none;
+        padding: 0;
+    }
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="bc-wrapper">
+
+<div class="container py-4">
+
+<h4 class="bc-title">📦 Nouveau Bon de Commande</h4>
+
+<form method="POST">
+
+    <!-- CLIENT -->
+    <div class="mb-3">
+        <label class="form-label fw-bold">Client</label>
+        <select name="client_id" class="form-select" required>
+            <option value="">-- Choisir un client --</option>
+            {% for c in clients %}
+            <option value="{{ c.id }}">{{ c.nom_client }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- TABLE PRODUITS -->
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Prix Unitaire</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="lignes">
+                <tr>
+                    <td>
+                        <select name="produit_id[]" class="form-select">
+                            {% for p in produits %}
+                            <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="quantite[]" class="form-control qte" min="1" required>
+                    </td>
+                    <td>
+                        <input type="number" name="prix[]" class="form-control prix" min="0" step="0.01" required>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control total-ligne" readonly>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm supprimer">x</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button type="button" class="btn btn-add" onclick="ajouterLigne()">
+        ➕ Ajouter une ligne
+    </button>
+
+    <!-- TOTAL GLOBAL -->
+    <div class="text-end mb-3">
+        <h5>Total Général : <span id="totalGeneral">0</span></h5>
+    </div>
+
+    <div class="text-end">
+        <button type="submit" class="btn btn-save">
+            💾 Enregistrer Bon
+        </button>
+    </div>
+
+</form>
+
+</div>
+</div>
+
+<script>
+function ajouterLigne() {
+    const lignes = document.getElementById("lignes");
+
+    lignes.insertAdjacentHTML("beforeend", `
+        <tr>
+            <td>
+                <select name="produit_id[]" class="form-select">
+                    {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="quantite[]" class="form-control qte" min="1">
+            </td>
+            <td>
+                <input type="number" name="prix[]" class="form-control prix" min="0" step="0.01">
+            </td>
+            <td>
+                <input type="text" class="form-control total-ligne" readonly>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm supprimer">x</button>
+            </td>
+        </tr>
+    `);
+}
+
+document.addEventListener("input", function(e) {
+
+    if (e.target.classList.contains("qte") || e.target.classList.contains("prix")) {
+
+        const row = e.target.closest("tr");
+        const qte = parseFloat(row.querySelector(".qte").value) || 0;
+        const prix = parseFloat(row.querySelector(".prix").value) || 0;
+
+        const total = qte * prix;
+        row.querySelector(".total-ligne").value = total.toFixed(2);
+
+        calculTotalGeneral();
+    }
+});
+
+document.addEventListener("click", function(e){
+    if(e.target.classList.contains("supprimer")){
+        e.target.closest("tr").remove();
+        calculTotalGeneral();
+    }
+});
+
+function calculTotalGeneral() {
+    let total = 0;
+    document.querySelectorAll(".total-ligne").forEach(el => {
+        total += parseFloat(el.value) || 0;
+    });
+    document.getElementById("totalGeneral").innerText = total.toFixed(2);
+}
+</script>
+
+{% endblock %}

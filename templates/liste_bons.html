@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}Nouveau Bon de Commande{% endblock %}
+
+{% block styles %}
+<style>
+
+/* ================== CONTAINER ================== */
+.bc-wrapper {
+    max-width: 1100px;
+    margin: auto;
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+}
+
+/* ================== HEADER ================== */
+.bc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.bc-title {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* ================== FORM ================== */
+.form-select,
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: 0.2s;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+}
+
+/* ================== TABLE ================== */
+.table thead {
+    background: linear-gradient(45deg, #1e293b, #334155);
+    color: white;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+/* ================== BUTTONS ================== */
+.btn-add {
+    background: #f8fafc;
+    border: 2px dashed #94a3b8;
+    transition: 0.3s;
+}
+
+.btn-add:hover {
+    background: #e2e8f0;
+}
+
+.btn-save {
+    background: linear-gradient(45deg, #2563eb, #06b6d4);
+    border: none;
+    padding: 10px 25px;
+    font-weight: 500;
+}
+
+.btn-save:hover {
+    opacity: 0.9;
+}
+
+/* ================== TOTAL ================== */
+.total-box {
+    background: #f1f5f9;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 768px) {
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px;
+        background: #f9fafb;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        border: none;
+        padding: 8px 5px;
+    }
+
+    .table td::before {
+        font-weight: bold;
+        color: #64748b;
+    }
+
+    .table td:nth-child(1)::before { content: "Produit"; }
+    .table td:nth-child(2)::before { content: "Quantité"; }
+    .table td:nth-child(3)::before { content: "Prix Unitaire"; }
+    .table td:nth-child(4)::before { content: "Total"; }
+}
+
+/* ================== PRINT ================== */
+@media print {
+
+    .btn,
+    .btn-add,
+    .btn-save {
+        display: none !important;
+    }
+
+    .bc-wrapper {
+        box-shadow: none;
+        padding: 0;
+    }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="bc-wrapper">
+
+    <div class="bc-header">
+        <h4 class="bc-title">📦 Nouveau Bon de Commande</h4>
+        <span class="text-muted">
+           {{ today.strftime('%d/%m/%Y') }}
+        </span>
+    </div>
+
+    <form method="POST">
+
+        <!-- CLIENT -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">Client</label>
+            <select name="client_id" class="form-select" required>
+                <option value="">-- Choisir un client --</option>
+                {% for c in clients %}
+                <option value="{{ c.id }}">{{ c.nom_client }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- TABLE PRODUITS -->
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th style="width:40%">Produit</th>
+                        <th style="width:15%">Quantité</th>
+                        <th style="width:20%">Prix Unitaire</th>
+                        <th style="width:20%">Total</th>
+                        <th style="width:5%"></th>
+                    </tr>
+                </thead>
+                <tbody id="lignes">
+                    <tr>
+                        <td>
+                            <select name="produit_id[]" class="form-select">
+                                {% for p in produits %}
+                                <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="quantite[]" class="form-control qte text-center" min="1" required>
+                        </td>
+                        <td>
+                            <input type="number" name="prix[]" class="form-control prix text-end" min="0" step="0.01" required>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control total-ligne text-end" readonly>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm supprimer">x</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ADD BUTTON -->
+        <div class="mb-4">
+            <button type="button" class="btn btn-add w-100" onclick="ajouterLigne()">
+                ➕ Ajouter une ligne
+            </button>
+        </div>
+
+        <!-- TOTAL -->
+        <div class="text-end mb-4">
+            <div class="total-box">
+                Total Général : <span id="totalGeneral">0.00</span>
+            </div>
+        </div>
+
+        <!-- SAVE -->
+        <div class="text-end">
+            <button type="submit" class="btn btn-save">
+                💾 Enregistrer Bon
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+function ajouterLigne() {
+    const lignes = document.getElementById("lignes");
+
+    lignes.insertAdjacentHTML("beforeend", `
+        <tr>
+            <td>
+                <select name="produit_id[]" class="form-select">
+                    {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="quantite[]" class="form-control qte text-center" min="1">
+            </td>
+            <td>
+                <input type="number" name="prix[]" class="form-control prix text-end" min="0" step="0.01">
+            </td>
+            <td>
+                <input type="text" class="form-control total-ligne text-end" readonly>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm supprimer">x</button>
+            </td>
+        </tr>
+    `);
+}
+
+document.addEventListener("input", function(e) {
+
+    if (e.target.classList.contains("qte") || e.target.classList.contains("prix")) {
+
+        const row = e.target.closest("tr");
+        const qte = parseFloat(row.querySelector(".qte").value) || 0;
+        const prix = parseFloat(row.querySelector(".prix").value) || 0;
+
+        const total = qte * prix;
+        row.querySelector(".total-ligne").value = total.toFixed(2);
+
+        calculTotal();
+    }
+});
+
+document.addEventListener("click", function(e){
+    if(e.target.classList.contains("supprimer")){
+        e.target.closest("tr").remove();
+        calculTotal();
+    }
+});
+
+function calculTotal() {
+    let total = 0;
+    document.querySelectorAll(".total-ligne").forEach(el => {
+        total += parseFloat(el.value) || 0;
+    });
+    document.getElementById("totalGeneral").innerText = total.toFixed(2);
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Rapport Vendeur{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h4>👨‍💼 Rapport Vendeur</h4>
+
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="vendeur_id" class="form-select">
+                <option value="">-- Choisir Vendeur --</option>
+                {% for v in vendeurs %}
+                <option value="{{ v.id }}"
+                {% if request.args.get('vendeur_id') == v.id|string %}selected{% endif %}>
+                    {{ v.nom }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-success w-100">
+                🔎 Filtrer
+            </button>
+        </div>
+    </form>
+
+    {% if ventes %}
+
+    <div class="card p-3 mb-3">
+        <strong>Total des ventes :</strong> {{ total | money}}
+    </div>
+    <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+    <table class="table w-100 caption-top table-bordered px-1 align-middle
+                  table-responsive my-2">
+        <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Total</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ventes %}
+            <tr>
+                <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
+                <td>{{ v.client.nom_client }}</td>
+                <td>{{ v.total | money}}</td>
+                <td>{{ v.statut_paiement }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% elif request.args %}
+    <div class="alert alert-warning">
+        Aucun résultat trouvé.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

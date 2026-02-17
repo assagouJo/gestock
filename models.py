@@ -37,6 +37,12 @@ class Client(db.Model):
     ville = db.Column(db.String(100))
     numero_rcc = db.Column(db.String(50))
 
+    bons = db.relationship(
+        "BonCommande",
+        back_populates="client",
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
         return f"<Client {self.name}>"
     
@@ -49,6 +55,13 @@ class Produit(db.Model):
   description = db.Column(db.String(256), nullable=False)
   image = db.Column(db.String(255), nullable=True)
   stocks = db.relationship("Stock", backref="produit", lazy=True)
+
+  lignes_bon = db.relationship(
+    "LigneBonCommande",
+    back_populates="produit",
+    cascade="all, delete-orphan"
+)
+
 
   def __repr__(self):
       return f"<Produit {self.nom_produit}>"
@@ -352,6 +365,31 @@ class LigneProforma(db.Model):
 
     def __repr__(self):
         return f"<LigneProforma {self.produit.nom_produit}>"
+
+
+class BonCommande(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
+    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    total = db.Column(db.Numeric(10,2), default=0)
+
+    client = db.relationship(
+        "Client",
+        back_populates="bons"
+    )
+    lignes = db.relationship("LigneBonCommande", backref="bon", cascade="all, delete-orphan")
+
+
+class LigneBonCommande(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bon_id = db.Column(db.Integer, db.ForeignKey("bon_commande.id"), nullable=False)
+    produit_id = db.Column(db.Integer, db.ForeignKey("produit.id"), nullable=False)
+
+    quantite = db.Column(db.Integer, nullable=False)
+    prix_unitaire = db.Column(db.Numeric(10,2), nullable=False)
+    sous_total = db.Column(db.Numeric(10,2), nullable=False)
+
+    produit = db.relationship("Produit")
 
 
 

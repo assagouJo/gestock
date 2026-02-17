@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Arial; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #000; padding: 6px; }
+th { background: #eee; }
+</style>
+</head>
+<body>
+
+<h2>Rapport Client : {{ client.nom_client }}</h2>
+
+<p>
+Total facturé : {{ total | money }} <br>
+Total payé : {{ total_paye | money }} <br>
+Reste : {{ reste | money }}
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Total</th>
+<th>Payé</th>
+<th>Reste</th>
+</tr>
+</thead>
+<tbody>
+{% for v in ventes %}
+<tr>
+<td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
+<td>{{ v.total | money }}</td>
+<td>{{ v.montant_paye | money }}</td>
+<td>{{ v.reste_a_payer | money }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<h5>💵 Paiements</h5>
+<div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+    <table class="table w-100 caption-top table-bordered px-1 align-middle
+                  table-responsive my-2">
+    <thead class="table-dark">
+        <tr>
+            <th>Date</th>
+            <th>Montant</th>
+            <th>Vente ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for v in ventes %}
+            {% for p in v.paiements %}
+        <tr>
+            <td>{{ p.date_paiement.strftime('%d/%m/%Y') }}</td>
+            <td>{{ (p.montant) | money }}</td>
+            <td>#{{ p.vente_id }}</td>
+        </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</body>
+</html>

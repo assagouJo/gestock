@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}État des Restes à Payer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+<h4>📊 État des Restes à Payer</h4>
+
+{% for bloc in etat %}
+
+<div class="mt-5">
+
+    <!-- NOM DU CLIENT -->
+    <h5 class="fw-bold border-bottom pb-2">
+        👤 {{ bloc.client.nom_client }}
+    </h5>
+
+    <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>N° Facture</th>
+                <th>Reste</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for v in bloc.factures %}
+            <tr>
+                <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
+
+                <td>{{ v.facture.numero }}</td>
+
+                <td>
+                    <span class="{% if v.reste_a_payer > 0 %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
+                        {{ v.reste_a_payer | money }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+
+            <!-- TOTAL CLIENT -->
+            <tr class="table-secondary fw-bold">
+                <td colspan="2" class="text-end">
+                    Total Reste Client
+                </td>
+                <td class="{% if bloc.total_reste > 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ bloc.total_reste | money }}
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+{% endblock %}

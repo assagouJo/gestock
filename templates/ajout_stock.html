@@ -12,10 +12,6 @@
             data-bs-target="#addAchatModal">
       ➕ Entrée Stock
     </button>
-    <a href="{{ url_for('nouvelle_proforma') }}"
-       class="btn btn-primary">
-      ➕ Nouvelle proforma
-    </a>
   </div>
 
   <hr>
@@ -28,7 +24,7 @@
         <thead class="table-dark">
           <tr>
             <th>#</th>
-            <th>Numéro de lot</th>
+            <th>Code Produit</th>
             <th>Magasin</th>
             <th>Produit</th>
             <th>Conditionnement</th>
@@ -41,11 +37,10 @@
         {% for s in stocks %}
           <tr class="stock-row"
               data-id="{{ s.id }}"
-              data-lot="{{ s.numero_lot }}"
               data-magasin="{{ s.magasin.id }}"
               data-produit="{{ s.produit.id }}"
               data-quantite="{{ s.quantite }}"
-              data-conditionnement="{{ s.type_conditionnement.value}}"
+              data-conditionnement="{{ s.type_conditionnement.value }}"
               style="cursor:pointer">
 
             <td class="text-center align-middle">
@@ -54,10 +49,10 @@
                      value="{{ s.id }}">
             </td>
 
-            <td>{{ s.numero_lot }}</td>
+            <td>{{ s.produit.code_produit }}</td>
             <td>{{ s.magasin.nom }}</td>
             <td>{{ s.produit.nom_produit }}</td>
-            <td>{{s.type_conditionnement.value}}</td>
+            <td>{{ s.type_conditionnement.value }}</td>
             <td class="fw-bold">{{ s.quantite }}</td>
 
             <td>
@@ -77,8 +72,8 @@
 
     <button type="submit"
             class="btn btn-outline-danger mt-2"
-            onclick="return confirm('Supprimer les lots sélectionnés ?')">
-      🗑 Supprimer lots
+            onclick="return confirm('Supprimer les éléments sélectionnés ?')">
+      🗑 Supprimer
     </button>
   </form>
   {% else %}
@@ -103,32 +98,31 @@
                 action="{{ url_for('ajouter_stock') }}">
 
            <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle shadow-sm">
+            <table class="table table-bordered align-middle shadow-sm">
               
               <thead class="table-dark text-center">
                 <tr>
-                  <th style="width: 140px;">N° Lot</th>
-                  <th style="width: 220px;">Magasin</th>
-                  <th style="width: 200px;">Produit</th>
-                  <th style="width: 150px;">Conditionnement</th>
-                  <th style="width: 120px;">Quantité</th>
-                  <th style="width: 50px;"></th>
+                  <th>Code Produit</th>
+                  <th>Magasin</th>
+                  <th>Produit</th>
+                  <th>Conditionnement</th>
+                  <th>Quantité</th>
+                  <th></th>
                 </tr>
               </thead>
 
               <tbody id="lignesStock">
                 <tr class="ligne-stock">
 
-                  <!-- 🔹 LOT -->
+                  <!-- CODE PRODUIT (auto affiché) -->
                   <td>
                     <input type="text"
-                          name="numero_lot[]"
-                          class="form-control form-control-sm"
-                          placeholder="Ex: LOT-001"
-                          required>
+                           class="form-control form-control-sm code-produit"
+                           placeholder="Code auto"
+                           readonly>
                   </td>
 
-                  <!-- 🔹 MAGASIN -->
+                  <!-- MAGASIN -->
                   <td>
                     <select name="magasin_id[]"
                             class="form-select form-select-sm mb-2">
@@ -141,26 +135,27 @@
                     </select>
 
                     <input type="text"
-                          name="nouveau_magasin[]"
-                          class="form-control form-control-sm"
-                          placeholder="Nouveau magasin (optionnel)">
+                           name="nouveau_magasin[]"
+                           class="form-control form-control-sm"
+                           placeholder="Nouveau magasin (optionnel)">
                   </td>
 
-                  <!-- 🔹 PRODUIT -->
+                  <!-- PRODUIT -->
                   <td>
                     <select name="produit_id[]"
-                            class="form-select form-select-sm"
+                            class="form-select form-select-sm produit-select"
                             required>
                       <option value="">-- Choisir un produit --</option>
                       {% for p in produits_all %}
-                        <option value="{{ p.id }}">
+                        <option value="{{ p.id }}"
+                                data-code="{{ p.code_produit }}">
                           {{ p.nom_produit }}
                         </option>
                       {% endfor %}
                     </select>
                   </td>
 
-                  <!-- 🔹 CONDITIONNEMENT -->
+                  <!-- CONDITIONNEMENT -->
                   <td>
                     <select name="type_conditionnement[]"
                             class="form-select form-select-sm"
@@ -172,16 +167,15 @@
                     </select>
                   </td>
 
-                  <!-- 🔹 QUANTITÉ -->
+                  <!-- QUANTITE -->
                   <td>
                     <input type="number"
-                          name="quantite[]"
-                          class="form-control form-control-sm text-center"
-                          min="1"
-                          required>
+                           name="quantite[]"
+                           class="form-control form-control-sm text-center"
+                           min="1"
+                           required>
                   </td>
 
-                  <!-- 🔹 ACTION -->
                   <td class="text-center">
                     <button type="button"
                             class="btn btn-outline-danger btn-sm supprimer">
@@ -195,25 +189,24 @@
             </table>
           </div>
 
-          <!-- Bouton ajouter ligne -->
           <div class="d-flex justify-content-end mt-2">
             <button type="button"
-                    class="btn btn-outline-primary btn-sm mb-3"
+                    class="btn btn-outline-primary btn-sm"
                     id="ajouterLigne">
               ➕ Ajouter une ligne
             </button>
           </div>
           
-            <div class="d-flex justify-content-end gap-2">
-              <button type="submit" class="btn btn-primary">
-                Enregistrer
-              </button>
-              <button type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal">
-                Annuler
-              </button>
-            </div>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">
+              Enregistrer
+            </button>
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+              Annuler
+            </button>
+          </div>
 
           </form>
         </div>
@@ -235,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("stockForm");
   const title = modalEl.querySelector(".modal-title");
 
-  // AJOUT LIGNE
+  /* ================= AJOUT LIGNE ================= */
   btnAjouter.addEventListener("click", () => {
     const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
     ligne.querySelectorAll("input").forEach(i => i.value = "");
@@ -243,6 +236,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tbody.appendChild(ligne);
   });
 
+  /* ================= SUPPRESSION ================= */
   tbody.addEventListener("click", e => {
     if (e.target.classList.contains("supprimer")) {
       if (tbody.children.length > 1) {
@@ -251,27 +245,62 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // MODIFICATION DOUBLE-CLIC
-  document.querySelectorAll(".stock-row").forEach(row => {
-    row.addEventListener("dblclick", function () {
+  /* ================= AUTO CODE PRODUIT ================= */
+  tbody.addEventListener("change", function(e) {
+    if (e.target.classList.contains("produit-select")) {
 
-      title.textContent = "Modifier le stock";
-      form.action = `/stock/edit/${this.dataset.id}`;
+      const select = e.target;
+      const selectedOption = select.options[select.selectedIndex];
+      const code = selectedOption.getAttribute("data-code");
 
-      form.querySelector('[name="numero_lot[]"]').value = this.dataset.lot;
-      form.querySelector('[name="magasin_id[]"]').value = this.dataset.magasin;
-      form.querySelector('[name="produit_id[]"]').value = this.dataset.produit;
-      form.querySelector('[name="quantite[]"]').value = this.dataset.quantite;
-      form.querySelector('[name="type_conditionnement[]"]').value = this.dataset.conditionnement;
+      const row = select.closest("tr");
+      const inputCode = row.querySelector(".code-produit");
 
-
-      btnAjouter.style.display = "none";
-
-      modal.show();
-    });
+      inputCode.value = code || "";
+    }
   });
 
-  // RESET
+  /* ================= DOUBLE CLIC MODIFICATION ================= */
+  /* ================= DOUBLE CLIC MODIFICATION ================= */
+document.querySelectorAll(".stock-row").forEach(row => {
+  row.addEventListener("dblclick", function () {
+
+    title.textContent = "Modifier le stock";
+    form.action = `/stock/edit/${this.dataset.id}`;
+
+    // 🔥 On clone AVANT de vider
+    const templateRow = tbody.querySelector(".ligne-stock").cloneNode(true);
+
+    // Ensuite on vide
+    tbody.innerHTML = "";
+
+    // Puis on ajoute la ligne clonée
+    tbody.appendChild(templateRow);
+
+    const selectProduit = templateRow.querySelector('[name="produit_id[]"]');
+    const selectMagasin = templateRow.querySelector('[name="magasin_id[]"]');
+    const selectCond = templateRow.querySelector('[name="type_conditionnement[]"]');
+    const inputQuantite = templateRow.querySelector('[name="quantite[]"]');
+    const inputCode = templateRow.querySelector(".code-produit");
+
+    // Remplissage
+    selectProduit.value = this.dataset.produit;
+    selectMagasin.value = this.dataset.magasin;
+    selectCond.value = this.dataset.conditionnement;
+    inputQuantite.value = this.dataset.quantite;
+
+    // Mise à jour code produit
+    const selectedOption = selectProduit.options[selectProduit.selectedIndex];
+    inputCode.value = selectedOption.getAttribute("data-code") || "";
+
+    btnAjouter.style.display = "none";
+
+    modal.show();
+  });
+});
+
+
+  /* ================= RESET MODAL ================= */
   modalEl.addEventListener("hidden.bs.modal", function () {
     title.textContent = "Nouvelle Entrée de Stock";
     form.action = "{{ url_for('ajouter_stock') }}";
@@ -281,5 +310,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+
 
 {% endblock %}
