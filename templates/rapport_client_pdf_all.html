@@ -140,6 +140,8 @@
                 <tr>
                     <th>Date</th>
                     <th>Montant</th>
+                    <th>Mode de paiement</th>
+                    <th>Numéro</th>
                     <th>Vente ID</th>
                 </tr>
             </thead>
@@ -148,6 +150,14 @@
                 <tr>
                     <td>{{ p.date_paiement.strftime('%d/%m/%Y') }}</td>
                     <td>{{ p.montant | money }}</td>
+                    <td>{{ p.mode or '-' }}</td>
+                    <td>
+                        {% if p.mode and p.mode.lower() in ['virement', 'cheque'] %}
+                            {{ p.reference_paiement or '-' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td>#{{ p.vente_id }}</td>
                 </tr>
                 {% endfor %}

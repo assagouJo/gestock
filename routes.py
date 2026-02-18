@@ -1,6 +1,6 @@
 from app import app, db, login_manager
 from datetime import datetime, timezone
-from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response
+from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
 from flask_login import current_user, login_user, logout_user, login_required
 from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
@@ -18,6 +18,7 @@ from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
 from weasyprint import HTML
+from sqlalchemy.orm import joinedload
 
 
 
@@ -221,6 +222,14 @@ def produit():
             )
             image_url = result["secure_url"]
 
+        exist_produit = Produit.query.filter_by(
+        nom_produit=form.nom_produit.data
+        ).first()
+
+        if exist_produit:
+            flash("Ce nom de produit existe déjà","danger")
+            return redirect(url_for("produit"))
+
         nouveau_produit = Produit(
         nom_produit = form.nom_produit.data,
         description=form.description.data,
@@ -229,11 +238,6 @@ def produit():
         )
         db.session.add(nouveau_produit)
         db.session.commit()
-
-        print("ID:", nouveau_produit.id)
-        print("Nom:", nouveau_produit.nom_produit)
-        print("Code:", nouveau_produit.code_produit)
-
 
         flash("Produit ajouter avec succes", "success")
         return redirect(url_for("produit"))
@@ -623,11 +627,6 @@ def ajouter_stock():
 
     return redirect(url_for("etat_stock"))
 
-
-
-
-
-from sqlalchemy.orm import joinedload
 
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
@@ -1286,7 +1285,6 @@ def nouveau_bon_commande():
 @login_required
 def liste_bons():
 
-    from sqlalchemy.orm import joinedload
 
     bons = BonCommande.query.options(
         joinedload(BonCommande.client)
@@ -1498,16 +1496,16 @@ def rapport_vendeur():
 
 
 
+
 @app.route("/rapport/client/pdf")
 @login_required
 def rapport_client_pdf():
-
 
     client_id = request.args.get("client_id", type=int)
     statut = request.args.get("statut")
 
     # ==================================================
-    # CAS 1 : CLIENT SPECIFIQUE
+    # CAS 1 : CLIENT SPÉCIFIQUE
     # ==================================================
     if client_id:
 
@@ -1515,8 +1513,12 @@ def rapport_client_pdf():
 
         ventes = Vente.query.options(
             joinedload(Vente.paiements)
-        ).filter(Vente.client_id == client_id).all()
+        ).filter(
+            Vente.client_id == client_id
+        ).all()
 
+
+        # Filtre statut
         if statut == "solde":
             ventes = [v for v in ventes if v.reste_a_payer == 0]
         elif statut == "non_solde":
@@ -1524,12 +1526,15 @@ def rapport_client_pdf():
 
         vente_ids = [v.id for v in ventes]
 
-        paiements = Paiement.query.filter(
-            Paiement.vente_id.in_(vente_ids)
-        ).all() if vente_ids else []
+        paiements = []
+        if vente_ids:
+            paiements = Paiement.query.filter(
+                Paiement.vente_id.in_(vente_ids),
+                Paiement.annule == False   # on ignore paiements annulés
+            ).all()
 
-        total = sum(v.total for v in ventes)
-        total_paye = sum(p.montant for p in paiements)
+        total = sum(v.total for v in ventes) if ventes else 0
+        total_paye = sum(p.montant for p in paiements) if paiements else 0
         reste = total - total_paye
 
         html = render_template(
@@ -1544,7 +1549,10 @@ def rapport_client_pdf():
             date_rapport=datetime.now()
         )
 
-        pdf = HTML(string=html).write_pdf()
+        pdf = HTML(
+            string=html,
+            base_url=current_app.root_path
+        ).write_pdf()
 
         response = make_response(pdf)
         response.headers["Content-Type"] = "application/pdf"
@@ -1564,7 +1572,9 @@ def rapport_client_pdf():
 
         ventes = Vente.query.options(
             joinedload(Vente.paiements)
-        ).filter(Vente.client_id == client.id).all()
+        ).filter(
+            Vente.client_id == client.id
+        ).all()
 
         if statut == "solde":
             ventes = [v for v in ventes if v.reste_a_payer == 0]
@@ -1577,7 +1587,8 @@ def rapport_client_pdf():
         vente_ids = [v.id for v in ventes]
 
         paiements = Paiement.query.filter(
-            Paiement.vente_id.in_(vente_ids)
+            Paiement.vente_id.in_(vente_ids),
+            Paiement.annule == False
         ).all() if vente_ids else []
 
         total = sum(v.total for v in ventes)
@@ -1600,7 +1611,10 @@ def rapport_client_pdf():
         date_rapport=datetime.now()
     )
 
-    pdf = HTML(string=html).write_pdf()
+    pdf = HTML(
+        string=html,
+        base_url=current_app.root_path
+    ).write_pdf()
 
     response = make_response(pdf)
     response.headers["Content-Type"] = "application/pdf"
@@ -1608,6 +1622,7 @@ def rapport_client_pdf():
         "inline; filename=rapport_tous_clients.pdf"
 
     return response
+
 
 
 import pandas as pd
@@ -1698,8 +1713,6 @@ def rapport_client_excel(client_id):
 @app.route("/etat/propositions")
 @login_required
 def etat_propositions():
-
-    from sqlalchemy.orm import joinedload
 
     ventes = Vente.query.options(
         joinedload(Vente.client),

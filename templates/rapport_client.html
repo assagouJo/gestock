@@ -67,15 +67,6 @@
 <!-- ================= CAS 1 : CLIENT SPECIFIQUE ================= -->
 {% if client_id and ventes %}
 
-<div class="card p-3 mb-4 shadow-sm">
-    <h5>Résumé Global</h5>
-    <strong>Total facturé :</strong> {{ total_ventes | money }} <br>
-    <strong>Total encaissé :</strong> {{ total_paiements | money }} <br>
-    <strong>Reste global :</strong>
-    <span class="{% if reste_global > 0 %}text-danger{% else %}text-success{% endif %}">
-        {{ reste_global | money }}
-    </span>
-</div>
 
 <h5>📋 Ventes</h5>
 <div class="table-responsive mb-4">
@@ -98,7 +89,7 @@
                 <td class="{% if v.reste_a_payer > 0 %}text-danger{% else %}text-success{% endif %}">
                     {{ v.reste_a_payer | money }}
                 </td>
-                <td>{{ v.statut_paiement }}</td>
+                <td>{{ v.statut_paiement }}</td>                
             </tr>
             {% endfor %}
         </tbody>
@@ -136,16 +127,8 @@
 {% for bloc in rapport_par_client %}
 
 <hr class="my-4">
-
-<h4>👤 {{ bloc.client.nom_client }}</h4>
-
-<div class="card p-3 mb-3 shadow-sm">
-    <strong>Total facturé :</strong> {{ bloc.total_ventes | money }} <br>
-    <strong>Total encaissé :</strong> {{ bloc.total_paiements | money }} <br>
-    <strong>Reste :</strong>
-    <span class="{% if bloc.reste > 0 %}text-danger{% else %}text-success{% endif %}">
-        {{ bloc.reste | money }}
-    </span>
+<div class="text-center">
+    <h4>👤 {{ bloc.client.nom_client }}</h4>
 </div>
 
 <h6>📋 Ventes</h6>

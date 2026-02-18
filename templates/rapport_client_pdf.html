@@ -3,21 +3,51 @@
 <head>
 <meta charset="utf-8">
 <style>
-body { font-family: Arial; }
-table { width: 100%; border-collapse: collapse; }
-th, td { border: 1px solid #000; padding: 6px; }
-th { background: #eee; }
+body { 
+    font-family: Arial; 
+    font-size: 14px;
+}
+h2 { margin-bottom: 5px; }
+p { margin-top: 0; }
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 10px;
+}
+
+th, td { 
+    border: 1px solid #000; 
+    padding: 6px; 
+    text-align: center;
+}
+
+th { 
+    background: #eee; 
+}
+.section-title {
+    margin-top: 25px;
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
 
 <h2>Rapport Client : {{ client.nom_client }}</h2>
+<p>
+    ventes: {{ ventes|length }} 
+</p>
+<p>
+    paiements: {{ paiements|length }}
+</p>
 
 <p>
 Total facturé : {{ total | money }} <br>
 Total payé : {{ total_paye | money }} <br>
 Reste : {{ reste | money }}
 </p>
+
+<h4 class="section-title">📄 Détail des ventes</h4>
 
 <table>
 <thead>
@@ -39,29 +69,37 @@ Reste : {{ reste | money }}
 {% endfor %}
 </tbody>
 </table>
-<h5>💵 Paiements</h5>
-<div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
-    <table class="table w-100 caption-top table-bordered px-1 align-middle
-                  table-responsive my-2">
-    <thead class="table-dark">
-        <tr>
-            <th>Date</th>
-            <th>Montant</th>
-            <th>Vente ID</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for v in ventes %}
-            {% for p in v.paiements %}
-        <tr>
-            <td>{{ p.date_paiement.strftime('%d/%m/%Y') }}</td>
-            <td>{{ (p.montant) | money }}</td>
-            <td>#{{ p.vente_id }}</td>
-        </tr>
-            {% endfor %}
-        {% endfor %}
-    </tbody>
+
+<h4 class="section-title">💵 Détail des paiements</h4>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Montant</th>
+<th>Vente ID</th>
+<th>Mode de paiement</th>
+<th>Numéro (si virement / cheque)</th>
+</tr>
+</thead>
+<tbody>
+{% for p in paiements %}
+<tr>
+<td>{{ p.date_paiement.strftime('%d/%m/%Y') }}</td>
+<td>{{ p.montant | money }}</td>
+<td>#{{ p.vente_id }}</td>
+<td>{{ p.mode or '-' }}</td>
+<td>
+    {% if p.mode and p.mode.lower() in ['virement', 'cheque'] %}
+        {{ p.reference_paiement or '-' }}
+    {% else %}
+        -
+    {% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
 </table>
-</div>
+
 </body>
 </html>
