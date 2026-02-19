@@ -6,12 +6,14 @@
 
 <h4>📊 État des Restes à Payer</h4>
 <hr>
+{% if etat %}
 <div>
     <a href="{{ url_for('etat_propositions_pdf') }}" target="_blank" 
     class="btn btn-danger mb-3">
     Télécharger PDF
     </a>
 </div>
+{% endif %}
 
 {% for bloc in etat %}
 
