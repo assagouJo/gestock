@@ -19,6 +19,9 @@ import cloudinary.uploader
 from cloudinary.uploader import upload
 from weasyprint import HTML
 from sqlalchemy.orm import joinedload
+import pandas as pd
+from flask import send_file
+import io
 
 
 
@@ -1624,92 +1627,6 @@ def rapport_client_pdf():
     return response
 
 
-
-import pandas as pd
-from flask import send_file
-import io
-
-
-@app.route("/rapport/client/excel/<int:client_id>")
-@login_required
-def rapport_client_excel(client_id):
-
-    client = Client.query.get_or_404(client_id)
-
-    # 🔹 Charger ventes + paiements
-    ventes = Vente.query.options(
-        joinedload(Vente.paiements)
-    ).filter_by(client_id=client_id).all()
-
-    # 🔹 Totaux globaux
-    total_ventes = sum(v.total for v in ventes)
-    total_paiements = sum(
-        p.montant for v in ventes for p in v.paiements
-    )
-    reste_global = total_ventes - total_paiements
-
-    # ===============================
-    # 📋 Feuille 1 : Résumé
-    # ===============================
-    resume_data = {
-        "Client": [client.nom_client],
-        "Total Facturé": [float(total_ventes)],
-        "Total Encaissé": [float(total_paiements)],
-        "Reste Global": [float(reste_global)]
-    }
-
-    df_resume = pd.DataFrame(resume_data)
-
-    # ===============================
-    # 📋 Feuille 2 : Ventes
-    # ===============================
-    ventes_data = []
-
-    for v in ventes:
-        ventes_data.append({
-            "Date": v.date_vente.strftime('%d/%m/%Y'),
-            "Total Vente": float(v.total),
-            "Montant Payé": float(v.montant_paye or 0),
-            "Reste": float(v.reste_a_payer),
-            "Statut": v.statut_paiement
-        })
-
-    df_ventes = pd.DataFrame(ventes_data)
-
-    # ===============================
-    # 📋 Feuille 3 : Paiements
-    # ===============================
-    paiements_data = []
-
-    for v in ventes:
-        for p in v.paiements:
-            paiements_data.append({
-                "Date Paiement": p.date_paiement.strftime('%d/%m/%Y'),
-                "Montant": float(p.montant),
-                "Vente ID": p.vente_id
-            })
-
-    df_paiements = pd.DataFrame(paiements_data)
-
-    # ===============================
-    # 📤 Génération fichier Excel
-    # ===============================
-    output = io.BytesIO()
-
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df_resume.to_excel(writer, sheet_name="Résumé", index=False)
-        df_ventes.to_excel(writer, sheet_name="Ventes", index=False)
-        df_paiements.to_excel(writer, sheet_name="Paiements", index=False)
-
-    output.seek(0)
-
-    return send_file(
-        output,
-        download_name=f"rapport_client_{client.id}.xlsx",
-        as_attachment=True
-    )
-
-
 @app.route("/etat/propositions")
 @login_required
 def etat_propositions():
@@ -1743,6 +1660,117 @@ def etat_propositions():
     )
 
 
+@app.route("/etat/propositions/pdf")
+@login_required
+def etat_propositions_pdf():
+
+    ventes = Vente.query.options(
+        joinedload(Vente.client),
+        joinedload(Vente.paiements)
+    ).order_by(
+        Vente.client_id,
+        Vente.date_vente.desc()
+    ).all()
+
+    etat = {}
+
+    for v in ventes:
+        client = v.client
+
+        if client.id not in etat:
+            etat[client.id] = {
+                "client": client,
+                "factures": [],
+                "total_reste": 0
+            }
+
+        etat[client.id]["factures"].append(v)
+        etat[client.id]["total_reste"] += v.reste_a_payer or 0
+
+    html = render_template(
+        "etat_propositions_pdf.html",
+        etat=etat.values(),
+        now=datetime.now()
+    )
+
+    pdf = HTML(string=html, base_url=request.base_url).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = "inline; filename=etat_propositions.pdf"
+
+    return response
+
+
+@app.route("/etat/stock/pdf")
+@login_required
+def etat_stock_pdf():
+
+    stocks = Stock.query.options(
+        joinedload(Stock.produit),
+        joinedload(Stock.magasin)
+    ).all()
+
+    html = render_template(
+        "etat_stock_pdf.html",
+        stocks=stocks,
+        now=datetime.now()
+    )
+
+    pdf = HTML(string=html, base_url=request.base_url).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = "inline; filename=etat_stock.pdf"
+
+    return response
+
+
+@app.route("/etat/stock/excel")
+@login_required
+def etat_stock_excel():
+
+    stocks = Stock.query.options(
+        joinedload(Stock.produit),
+        joinedload(Stock.magasin)
+    ).all()
+
+    data = []
+
+    for s in stocks:
+
+        if s.quantite == 0:
+            statut = "Rupture"
+        elif s.quantite < s.seuil_alerte:
+            statut = "Stock Faible"
+        else:
+            statut = "Disponible"
+
+        data.append({
+            "Code Produit": s.produit.code_produit,
+            "Magasin": s.magasin.nom,
+            "Produit": s.produit.nom_produit,
+            "Conditionnement": s.type_conditionnement.value,
+            "Quantité": float(s.quantite),
+            "Seuil Alerte": float(s.seuil_alerte),
+            "Statut": statut
+        })
+
+    df = pd.DataFrame(data)
+
+    # 🔹 Génération fichier Excel
+    output = io.BytesIO()
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="Etat Stock", index=False)
+
+    output.seek(0)
+
+    return send_file(
+        output,
+        download_name="etat_stock.xlsx",
+        as_attachment=True
+    )
 
 
 

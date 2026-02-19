@@ -5,6 +5,13 @@
 <div class="container py-4">
 
 <h4>📊 État des Restes à Payer</h4>
+<hr>
+<div>
+    <a href="{{ url_for('etat_propositions_pdf') }}" target="_blank" 
+    class="btn btn-danger mb-3">
+    Télécharger PDF
+    </a>
+</div>
 
 {% for bloc in etat %}
 
@@ -42,14 +49,13 @@
 
             <!-- TOTAL CLIENT -->
             <tr class="table-secondary fw-bold">
-                <td colspan="2" class="text-end">
+                <td colspan="2" class="text-start">
                     Total Reste Client
                 </td>
                 <td class="{% if bloc.total_reste > 0 %}text-danger{% else %}text-success{% endif %}">
                     {{ bloc.total_reste | money }}
                 </td>
             </tr>
-
         </tbody>
     </table>
     </div>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>État du Stock</title>
+
+<style>
+@page {
+    size: A4;
+    margin: 2cm;
+}
+
+body {
+    font-family: DejaVu Sans, Arial, sans-serif;
+    font-size: 12px;
+    color: #000;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.company {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.title {
+    font-size: 16px;
+    margin-top: 8px;
+    padding: 6px 0;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+}
+
+.date {
+    text-align: right;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th {
+    background-color: #000;
+    color: #fff;
+    padding: 6px;
+    text-align: left;
+}
+
+td {
+    border: 1px solid #000;
+    padding: 6px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.badge {
+    padding: 3px 6px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.rupture { color: red; }
+.faible { color: orange; }
+.disponible { color: green; }
+
+.footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 10px;
+    border-top: 1px solid #000;
+    padding-top: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="company">
+        {{ current_user.entreprise.nom if current_user.entreprise else "MON ENTREPRISE" }}
+    </div>
+    <div class="title">
+        ÉTAT DU STOCK
+    </div>
+    <div class="date">
+        Édité le : {{ now.strftime('%d/%m/%Y') }}
+    </div>
+</div>
+
+{% if stocks %}
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Magasin</th>
+            <th>Produit</th>
+            <th>Conditionnement</th>
+            <th class="text-center">Quantité</th>
+            <th>Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in stocks %}
+        <tr>
+            <td>{{ s.produit.code_produit }}</td>
+            <td>{{ s.magasin.nom }}</td>
+            <td>{{ s.produit.nom_produit }}</td>
+            <td>{{ s.type_conditionnement.value }}</td>
+            <td class="text-center"><strong>{{ s.quantite }}</strong></td>
+            <td>
+                {% if s.quantite == 0 %}
+                    <span class="rupture">Rupture</span>
+                {% elif s.quantite < s.seuil_alerte %}
+                    <span class="faible">Stock Faible</span>
+                {% else %}
+                    <span class="disponible">Disponible</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Aucun produit en stock.</p>
+{% endif %}
+
+<div class="footer">
+    Document généré automatiquement – Système de gestion de stock
+</div>
+
+</body>
+</html>
