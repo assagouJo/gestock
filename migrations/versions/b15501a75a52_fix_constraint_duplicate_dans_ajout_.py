@@ -17,31 +17,37 @@ depends_on = None
 
 
 def upgrade():
-    with op.batch_alter_table('stock') as batch_op:
-        # Supprimer ancienne contrainte si elle existe
-        batch_op.drop_constraint('uix_produit_lot', type_='unique')
+    # Supprimer toutes les anciennes contraintes possibles
+    op.execute("""
+        ALTER TABLE stock 
+        DROP CONSTRAINT IF EXISTS uix_produit_lot_magasin_conditionnement;
+    """)
 
-        # Supprimer aussi si PostgreSQL l’a générée automatiquement
-        try:
-            batch_op.drop_constraint('stock_produit_id_numero_lot_key', type_='unique')
-        except:
-            pass
+    op.execute("""
+        ALTER TABLE stock 
+        DROP CONSTRAINT IF EXISTS uix_produit_lot;
+    """)
 
-        # Créer nouvelle contrainte propre
-        batch_op.create_unique_constraint(
-            'uix_stock_unique',
-            ['produit_id', 'magasin_id', 'type_conditionnement']
-        )
+    op.execute("""
+        ALTER TABLE stock 
+        DROP CONSTRAINT IF EXISTS stock_produit_id_numero_lot_key;
+    """)
 
+    # Créer la nouvelle contrainte propre
+    op.create_unique_constraint(
+        "uix_stock_unique",
+        "stock",
+        ["produit_id", "magasin_id", "type_conditionnement"]
+    )
     # ### end Alembic commands ###
 
 
 def downgrade():
-    with op.batch_alter_table('stock') as batch_op:
-        batch_op.drop_constraint('uix_stock_unique', type_='unique')
+    op.drop_constraint("uix_stock_unique", "stock", type_="unique")
 
-        batch_op.create_unique_constraint(
-            'uix_produit_lot',
-            ['produit_id', 'numero_lot']
-        )
+    op.create_unique_constraint(
+        "uix_produit_lot",
+        "stock",
+        ["produit_id", "numero_lot"]
+    )
     # ### end Alembic commands ###
