@@ -612,7 +612,6 @@ def ajouter_stock():
             stock_existant = Stock.query.filter_by(
                 produit_id=produit_id,
                 magasin_id=magasin_id,
-                numero_lot=numero_lot,
                 type_conditionnement=type_conditionnement
             ).first()
 
