@@ -121,7 +121,7 @@ class Stock(db.Model):
         return f"<Stock produit_id={self.produit_id} lot={self.numero_lot} ({self.quantite})>"
     
     __table_args__ = (
-    db.UniqueConstraint("produit_id", "numero_lot", "magasin_id", "type_conditionnement", name="uix_produit_lot_magasin_conditionnement"),
+    db.UniqueConstraint("produit_id", "magasin_id", "type_conditionnement", name="uix_produit_lot_magasin_conditionnement"),
 )
     
 

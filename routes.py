@@ -602,10 +602,17 @@ def ajouter_stock():
             except ValueError:
                 continue
 
+            produit = Produit.query.get(produit_id)
+            if not produit:
+                continue
+
+            numero_lot = produit.code_produit
+
             # 🔎 Vérifier si stock existe déjà
             stock_existant = Stock.query.filter_by(
                 produit_id=produit_id,
                 magasin_id=magasin_id,
+                numero_lot=numero_lot,
                 type_conditionnement=type_conditionnement
             ).first()
 
@@ -614,7 +621,7 @@ def ajouter_stock():
             else:
                 nouveau_stock = Stock(
                     produit_id=produit_id,
-                    numero_lot="AUTO",  # ⚠ temporaire si colonne obligatoire
+                    numero_lot=numero_lot, 
                     quantite=quantite,
                     magasin_id=magasin_id,
                     type_conditionnement=type_conditionnement
