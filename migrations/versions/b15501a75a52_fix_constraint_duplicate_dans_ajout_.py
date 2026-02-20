@@ -17,7 +17,8 @@ depends_on = None
 
 
 def upgrade():
-    # Supprimer toutes les anciennes contraintes possibles
+
+    # Supprimer anciennes contraintes
     op.execute("""
         ALTER TABLE stock 
         DROP CONSTRAINT IF EXISTS uix_produit_lot_magasin_conditionnement;
@@ -33,9 +34,36 @@ def upgrade():
         DROP CONSTRAINT IF EXISTS stock_produit_id_numero_lot_key;
     """)
 
-    # Créer la nouvelle contrainte propre
+    # 🔥 1️⃣ Fusionner les doublons (addition des quantités)
+    op.execute("""
+        UPDATE stock s1
+        SET quantite = s1.quantite + s2.extra_quantite
+        FROM (
+            SELECT MIN(id) as keep_id,
+                   produit_id,
+                   magasin_id,
+                   type_conditionnement,
+                   SUM(quantite) - MIN(quantite) as extra_quantite
+            FROM stock
+            GROUP BY produit_id, magasin_id, type_conditionnement
+            HAVING COUNT(*) > 1
+        ) s2
+        WHERE s1.id = s2.keep_id;
+    """)
+
+    # 🔥 2️⃣ Supprimer les doublons restants
+    op.execute("""
+        DELETE FROM stock
+        WHERE id NOT IN (
+            SELECT MIN(id)
+            FROM stock
+            GROUP BY produit_id, magasin_id, type_conditionnement
+        );
+    """)
+
+    # 🔥 3️⃣ Créer la contrainte propre
     op.create_unique_constraint(
-        "uix_stock_unique",
+        "uix_produit_lot_magasin_conditionnement",
         "stock",
         ["produit_id", "magasin_id", "type_conditionnement"]
     )
