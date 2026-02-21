@@ -636,7 +636,9 @@ def ajouter_stock():
 
     return redirect(url_for("etat_stock"))
 
-
+@app.route("/achat/nouveau")
+def nouvelle_achat():
+    return render_template("achat.html")
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
 @login_required

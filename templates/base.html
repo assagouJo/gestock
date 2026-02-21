@@ -119,27 +119,58 @@
                             </li>
                             {% endif %}
                             {% if current_user.role == "admin" %}
+                            <li class="{{ 'bg-nav2' if is_active('nouvelle_achat') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                <i class="bi-cart-check text-light fs-3"></i>
+                                <a class="nav-link text-light" href="{{url_for('nouvelle_achat')}}">Achat</a>
+                            </li>
                             <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-check text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
                             </li>
 
-                            <li class="{{ 'bg-nav2' if is_active('rapport_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-box-seam text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('rapport_stock')}}">Rapports Stock</a>
-                            </li>
-                            <li class="{{ 'bg-nav2' if is_active('rapport_vendeur') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-person-workspace text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('rapport_vendeur')}}">Rapports Vendeurs</a>
-                            </li>
-                            <li class="{{ 'bg-nav2' if is_active('rapport_client') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-person-lines-fill text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('rapport_client')}}">Rapports Clients</a>
-                            </li>
-                            <li class="{{ 'bg-nav2' if is_active('etat_propositions') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-receipt text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('etat_propositions')}}">Etat des Propositions</a>
-                            </li>
+                            <li class="nav-item dropdown
+                                {{ 'bg-nav2' if is_active('rapport_stock') 
+                                    or is_active('rapport_vendeur') 
+                                    or is_active('rapport_client') 
+                                    or is_active('etat_propositions') else '' }} bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center" >
+
+                                <i class="bi bi-bar-chart-line text-light fs-3"></i>
+                                <a class="nav-link dropdown-toggle text-light"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                    Rapports
+                                </a>
+
+                                <ul class="dropdown-menu">
+
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('rapport_stock') }}">
+                                            <i class="bi bi-box-seam me-2"></i> Rapport Stock
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('rapport_vendeur') }}">
+                                            <i class="bi bi-person-workspace me-2"></i> Rapport Vendeurs
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('rapport_client') }}">
+                                            <i class="bi bi-person-lines-fill me-2"></i> Rapport Clients
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('etat_propositions') }}">
+                                            <i class="bi bi-receipt me-2"></i> Etat des Propositions
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>                    
                             {% endif %}
                             {% if current_user.role in ["admin","operateur"] %}
                             <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
