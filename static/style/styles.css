@@ -156,3 +156,11 @@ body,html{
   color: #999;
   pointer-events: none; /* 🔥 empêche le blocage */
 }
+
+
+.table-responsive thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #212529; /* même couleur que table-dark */
+}
