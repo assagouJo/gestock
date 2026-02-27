@@ -24,7 +24,22 @@ from flask import send_file
 import io
 
 
+@app.route("/create-admin")
+def create_admin():
+    # éviter doublon
+    user = User.query.filter_by(username="admin").first()
+    if user:
+        return "Admin already exists"
 
+    user = User(
+        username="admin",
+        email="admin@gestock.com",
+        password_hash=generate_password_hash("admin123"),
+        role="admin"
+    )
+    db.session.add(user)
+    db.session.commit()
+    return "Admin created"
 
 
 
