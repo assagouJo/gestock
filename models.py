@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from decimal import Decimal
 import enum
+from sqlalchemy import event
+from helper import generate_code_produit
 
 
 class User(UserMixin, db.Model):
@@ -84,6 +86,12 @@ class Produit(db.Model):
     def stock_total(self):
         return sum(s.quantite for s in self.stocks)
   
+
+@event.listens_for(Produit, "before_insert")
+def generate_code_before_insert(mapper, connection, target):
+    if not target.code_produit:
+        target.code_produit = generate_code_produit()
+
 
 
 class TypeConditionnement(enum.Enum):
