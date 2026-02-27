@@ -121,7 +121,7 @@
                             {% if current_user.role == "admin" %}
                             <li class="{{ 'bg-nav2' if is_active('nouvelle_achat') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-check text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('nouvelle_achat')}}">Achat</a>
+                                <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Achat</a>
                             </li>
                             <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                 <i class="bi-cart-check text-light fs-3"></i>

@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat
 from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -22,6 +22,8 @@ from sqlalchemy.orm import joinedload
 import pandas as pd
 from flask import send_file
 import io
+
+
 
 
 
@@ -202,11 +204,75 @@ def delete_users():
 
 
 
-@app.route('/dashboard')
+@app.route("/dashboard")
 @login_required
 def dashboard():
-     # TOTAL VENTES
-    return render_template("dashboard.html")
+
+    from collections import defaultdict
+    from calendar import month_name
+
+    ventes = Vente.query.all()
+    achats = Achat.query.all()
+    vendeurs = Vendeur.query.all()
+    clients = Client.query.all()
+
+    # =========================
+    # 🔹 VENTES & ACHATS PAR MOIS
+    # =========================
+    ventes_mois = defaultdict(float)
+    achats_mois = defaultdict(float)
+
+    for v in ventes:
+        if v.date_vente:
+            mois = month_name[v.date_vente.month]
+            ventes_mois[mois] += float(v.total or 0)
+
+    for a in achats:
+        if a.date_achat:
+            mois = month_name[a.date_achat.month]
+            achats_mois[mois] += float(a.total_ttc or 0)
+
+    # 🔥 Fusion des mois pour éviter pertes
+    mois_uniques = sorted(
+        set(list(ventes_mois.keys()) + list(achats_mois.keys()))
+    )
+
+    labels = mois_uniques
+    ventes_data = [ventes_mois[m] for m in labels]
+    achats_data = [achats_mois[m] for m in labels]
+
+    # =========================
+    # 🔹 DETTES CLIENTS
+    # =========================
+    clients_labels = []
+    dettes_data = []
+
+    for client in clients:
+        total_reste = sum(v.reste_a_payer or 0 for v in client.ventes)
+        clients_labels.append(client.nom_client)
+        dettes_data.append(float(total_reste))
+
+    # =========================
+    # 🔹 VENTES PAR VENDEUR
+    # =========================
+    vendeur_labels = []
+    vendeur_data = []
+
+    for vendeur in vendeurs:
+        total_vendeur = sum(v.total or 0 for v in vendeur.ventes)
+        vendeur_labels.append(vendeur.nom)
+        vendeur_data.append(float(total_vendeur))
+
+    return render_template(
+        "dashboard.html",
+        labels=labels,
+        ventes_data=ventes_data,
+        achats_data=achats_data,
+        clients_labels=clients_labels,
+        dettes_data=dettes_data,
+        vendeur_labels=vendeur_labels,
+        vendeur_data=vendeur_data
+    )
 
 
 @app.route('/gestion_materiel/produit', methods=['GET', 'POST'])
@@ -444,7 +510,6 @@ def etat_stock():
         Stock.query
         .join(Produit)
         .filter(Stock.quantite > 0) 
-        .order_by(Stock.numero_lot)
         .all()
     )    
 
@@ -636,9 +701,7 @@ def ajouter_stock():
 
     return redirect(url_for("etat_stock"))
 
-@app.route("/achat/nouveau")
-def nouvelle_achat():
-    return render_template("achat.html")
+
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
 @login_required
@@ -890,6 +953,92 @@ def modifier_vente(vente_id):
         clients=clients,
         produits=produits
     )
+
+
+@app.route("/achat/nouveau", methods=["GET"])
+def nouveau_achat():
+    clients = Client.query.order_by(Client.nom_client).all()
+    produits = Produit.query.order_by(Produit.nom_produit).all()
+    magasins = Magasin.query.order_by(Magasin.nom).all()
+
+    achats = Achat.query.order_by(Achat.date_achat.desc()).all()
+
+    return render_template(
+        "achat_form.html",
+        clients=clients,
+        produits=produits,
+        magasins=magasins,
+        achats=achats,
+        now=datetime.now()
+    )
+
+
+@app.route("/achat/nouveau", methods=["POST"])
+def ajouter_achat():
+
+    client_id = request.form.get("client_id")
+    magasin_id = request.form.get("magasin_id")
+    taxe_douane = float(request.form.get("taxe_douane") or 0)
+
+    produits = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    prix = request.form.getlist("prix_unitaire[]")
+    types = request.form.getlist("type_conditionnement[]")
+
+    achat = Achat(
+        client_id=client_id,
+        magasin_id=magasin_id,
+        taxe_douane=taxe_douane
+    )
+
+    db.session.add(achat)
+
+    for produit_id, quantite, prix_unitaire, type_conditionnement in zip(
+        produits, quantites, prix, types
+    ):
+
+        if not produit_id or not quantite:
+            continue
+
+        quantite = int(quantite)
+        prix_unitaire = float(prix_unitaire)
+
+        ligne = LigneAchat(
+            achat=achat,
+            produit_id=produit_id,
+            quantite=quantite,
+            prix_unitaire=prix_unitaire,
+            total_ligne=quantite * prix_unitaire,
+            type_conditionnement=type_conditionnement
+        )
+
+        db.session.add(ligne)
+
+        # 🔥 Mise à jour Stock
+        stock = Stock.query.filter_by(
+            produit_id=produit_id,
+            magasin_id=magasin_id,
+            type_conditionnement=type_conditionnement
+        ).first()
+
+        if stock:
+            stock.ajouter(quantite)
+        else:
+            stock = Stock(
+                produit_id=produit_id,
+                magasin_id=magasin_id,
+                quantite=quantite,
+                type_conditionnement=type_conditionnement
+            )
+            db.session.add(stock)
+
+    # 🔥 Calcul total global
+    achat.calculer_totaux()
+
+    db.session.commit()
+
+    flash("Achat enregistré avec succès", "success")
+    return redirect(url_for("nouveau_achat"))
 
 
 @app.route("/vendeur/ajouter", methods=["POST"])
@@ -1348,8 +1497,6 @@ def compagnie():
         form=form,
         compagnie=compagnie
     )
-
-
 
 
 @app.route("/rapport/stock")

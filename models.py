@@ -43,37 +43,104 @@ class Client(db.Model):
         cascade="all, delete-orphan"
     )
 
+    # 🔥 NOUVELLE RELATION
+    achats = db.relationship(
+        "Achat",
+        back_populates="client",
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
-        return f"<Client {self.name}>"
+        return f"<Client {self.nom_client}>"
     
 
 class Produit(db.Model):
-  
-  id = db.Column(db.Integer, primary_key=True)
-  nom_produit = db.Column(db.String(128), nullable=False,index=True)
-  code_produit = db.Column(db.String(256), nullable=False, unique=True)
-  description = db.Column(db.String(256), nullable=False)
-  image = db.Column(db.String(255), nullable=True)
-  stocks = db.relationship("Stock", backref="produit", lazy=True)
 
-  lignes_bon = db.relationship(
-    "LigneBonCommande",
+    id = db.Column(db.Integer, primary_key=True)
+    nom_produit = db.Column(db.String(128), nullable=False, index=True)
+    code_produit = db.Column(db.String(256), nullable=False, unique=True)
+    description = db.Column(db.String(256), nullable=False)
+    image = db.Column(db.String(255), nullable=True)
+
+    stocks = db.relationship("Stock", backref="produit", lazy=True)
+
+    lignes_bon = db.relationship(
+        "LigneBonCommande",
+        back_populates="produit",
+        cascade="all, delete-orphan"
+    )
+
+    # 🔥 NOUVELLE RELATION
+    lignes_achat = db.relationship(
+    "LigneAchat",
     back_populates="produit",
     cascade="all, delete-orphan"
 )
 
+    def __repr__(self):
+        return f"<Produit {self.nom_produit}>"
 
-  def __repr__(self):
-      return f"<Produit {self.nom_produit}>"
+    @property
+    def stock_total(self):
+        return sum(s.quantite for s in self.stocks)
   
-  @property
-  def stock_total(self):
-      return sum(s.quantite for s in self.stocks)
+
 
 class TypeConditionnement(enum.Enum):
     CARTON = "carton"
     PAQUET = "paquet"
     UNITE = "unite"
+
+
+class Achat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_achat = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+
+    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
+    magasin_id = db.Column(db.Integer, db.ForeignKey("magasin.id"), nullable=False)
+
+    taxe_douane = db.Column(db.Float, default=0)
+    total_ht = db.Column(db.Float, default=0)
+    total_ttc = db.Column(db.Float, default=0)
+
+    client = db.relationship("Client", back_populates="achats")
+    magasin = db.relationship("Magasin")
+
+    lignes = db.relationship(
+        "LigneAchat",
+        back_populates="achat",
+        cascade="all, delete-orphan"
+    )
+
+    def calculer_totaux(self):
+        self.total_ht = sum(l.total_ligne for l in self.lignes)
+        self.total_ttc = self.total_ht + self.taxe_douane
+
+
+class LigneAchat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    achat_id = db.Column(db.Integer, db.ForeignKey("achat.id"), nullable=False)
+    produit_id = db.Column(db.Integer, db.ForeignKey("produit.id"), nullable=False)
+
+    quantite = db.Column(db.Integer, nullable=False)
+    prix_unitaire = db.Column(db.Float, nullable=False)
+    total_ligne = db.Column(db.Float, nullable=False)
+
+    type_conditionnement = db.Column(
+        db.Enum(
+            TypeConditionnement,
+            values_callable=lambda x: [e.value for e in x],
+            name="typeconditionnement"
+        ),
+        nullable=False
+    )
+
+    achat = db.relationship("Achat", back_populates="lignes")
+    produit = db.relationship("Produit", back_populates="lignes_achat")
+
+    def calculer_total(self):
+        self.total_ligne = self.quantite * self.prix_unitaire
 
 
 class Stock(db.Model):
@@ -85,7 +152,6 @@ class Stock(db.Model):
         nullable=False
     )
     
-    numero_lot = db.Column(db.String(120), nullable=False)
     quantite = db.Column(db.Integer, nullable=False, default=0)
     seuil_alerte = db.Column(db.Integer, default=5)
     date_creation = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
@@ -118,7 +184,7 @@ class Stock(db.Model):
         return self.quantite <= self.seuil_alerte
 
     def __repr__(self):
-        return f"<Stock produit_id={self.produit_id} lot={self.numero_lot} ({self.quantite})>"
+        return f"<Stock produit_id={self.produit_id} ({self.quantite})>"
     
     __table_args__ = (
     db.UniqueConstraint("produit_id", "magasin_id", "type_conditionnement", name="uix_stock_unique"),
@@ -128,7 +194,15 @@ class Stock(db.Model):
 class Magasin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(120), unique=True, nullable=False)
+
     stocks = db.relationship("Stock", backref="magasin", lazy=True)
+
+    # 🔥 NOUVELLE RELATION
+    achats = db.relationship(
+        "Achat",
+        back_populates="magasin",
+        cascade="all, delete-orphan"
+    )
 
 
 

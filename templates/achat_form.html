@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Nouveaux Achats{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold text-success mb-0">📦 Achats</h4>
+  <div>
+      <button class="btn btn-outline-success"
+              data-bs-toggle="modal"
+              data-bs-target="#achatModal">
+        ➕ Nouvel Achat
+      </button>
+        <a href="{{ url_for('nouveau_bon_commande') }}"
+            class="btn btn-info">
+        ➕ Bon de Commande
+        </a>
+  </div>
+</div>
+
+{% if achats %}
+<div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+  <table class="table table-hover table-bordered align-middle">
+    <thead class="table-dark sticky-top">
+      <tr>
+        <th>Date</th>
+        <th>Client</th>
+        <th>Magasin</th>
+        <th>Produits</th>
+        <th>Qté</th>
+        <th>Total HT</th>
+        <th>Taxe</th>
+        <th>Total TTC</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for achat in achats %}
+      <tr>
+        <td>{{ achat.date_achat.strftime('%d/%m/%Y') }}</td>
+
+        <td class="fw-bold text-primary">
+          {{ achat.client.nom_client }}
+        </td>
+
+        <td>
+          <span class="badge bg-info text-dark">
+            {{ achat.magasin.nom }}
+          </span>
+        </td>
+
+        <!-- PRODUITS -->
+        <td>
+          {% for ligne in achat.lignes %}
+            <div>{{ ligne.produit.nom_produit }}</div>
+          {% endfor %}
+        </td>
+
+        <!-- QUANTITES -->
+        <td>
+          {% for ligne in achat.lignes %}
+            <div>{{ ligne.quantite }}</div>
+          {% endfor %}
+        </td>
+
+        <td class="fw-bold">
+          {{ achat.total_ht | money}}
+        </td>
+
+        <td>
+          {{ achat.taxe_douane | money}}
+        </td>
+
+        <td class="fw-bold text-success">
+          {{ achat.total_ttc | money}}
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+  Aucun achat enregistré.
+</div>
+{% endif %}
+
+<!-- ================================================= -->
+<!-- 📦 MODAL : NOUVEL ACHAT -->
+<!-- ================================================= -->
+
+<div class="modal fade" id="achatModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-success">
+          📦 Nouvel Achat
+        </h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <form method="post" action="{{ url_for('ajouter_achat') }}">
+
+          <!-- CLIENT + MAGASIN + TAXE -->
+          <div class="row mb-3">
+
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Date</label>
+              <input type="datetime-local"
+                     name="date_achat"
+                     class="form-control"
+                     value="{{ now.strftime('%Y-%m-%dT%H:%M') }}"
+                     required>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Client</label>
+              <select name="client_id" class="form-select" required>
+                {% for c in clients %}
+                  <option value="{{ c.id }}">{{ c.nom_client }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Magasin</label>
+              <select name="magasin_id" class="form-select" required>
+                {% for m in magasins %}
+                  <option value="{{ m.id }}">{{ m.nom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Taxe Douane</label>
+              <input type="number"
+                     step="0.01"
+                     name="taxe_douane"
+                     id="taxeDouane"
+                     class="form-control"
+                     value="0">
+            </div>
+
+          </div>
+
+          <!-- LIGNES PRODUITS -->
+          <table class="table table-sm table-bordered">
+            <thead class="table-light">
+              <tr>
+                <th>Produit</th>
+                <th>Conditionnement</th>
+                <th width="120">Qté</th>
+                <th width="150">Prix</th>
+                <th width="150">Total Ligne</th>
+                <th width="40"></th>
+              </tr>
+            </thead>
+
+            <tbody id="lignesAchat">
+
+            <tr class="ligne-achat">
+
+              <td>
+                <select name="produit_id[]" class="form-select" required>
+                  <option value="">-- Produit --</option>
+                  {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+
+              <td>
+                <select name="type_conditionnement[]" class="form-select" required>
+                  <option value="carton">Carton</option>
+                  <option value="paquet">Paquet</option>
+                  <option value="unite">Unité</option>
+                </select>
+              </td>
+
+              <td>
+                <input type="number"
+                       name="quantite[]"
+                       class="form-control quantite"
+                       min="1"
+                       required>
+              </td>
+
+              <td>
+                <input type="number"
+                       step="0.01"
+                       name="prix_unitaire[]"
+                       class="form-control prix"
+                       required>
+              </td>
+
+              <td>
+                <input type="text"
+                       class="form-control total-ligne"
+                       readonly>
+              </td>
+
+              <td class="text-center">
+                <button type="button"
+                        class="btn btn-danger btn-sm supprimer">
+                  ✖
+                </button>
+              </td>
+
+            </tr>
+
+            </tbody>
+          </table>
+
+          <div class="text-end mb-3">
+            <strong>Total HT : <span id="totalHT">0</span></strong><br>
+            <strong>Total TTC : <span id="totalTTC">0</span></strong>
+          </div>
+
+          <button type="button"
+                  class="btn btn-outline-secondary mb-3"
+                  id="ajouterLigneAchat">
+            ➕ Ajouter ligne
+          </button>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-success">
+              Valider Achat
+            </button>
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+              Annuler
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS Calcul automatique -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const tbody = document.getElementById("lignesAchat");
+  const btnAjouter = document.getElementById("ajouterLigneAchat");
+  const taxeInput = document.getElementById("taxeDouane");
+
+  function calculerTotaux() {
+    let totalHT = 0;
+
+    document.querySelectorAll(".ligne-achat").forEach(row => {
+      const qte = parseFloat(row.querySelector(".quantite").value) || 0;
+      const prix = parseFloat(row.querySelector(".prix").value) || 0;
+      const total = qte * prix;
+
+      row.querySelector(".total-ligne").value = total.toFixed(2);
+      totalHT += total;
+    });
+
+    const taxe = parseFloat(taxeInput.value) || 0;
+    const totalTTC = totalHT + taxe;
+
+    document.getElementById("totalHT").innerText = totalHT.toFixed(2);
+    document.getElementById("totalTTC").innerText = totalTTC.toFixed(2);
+  }
+
+  document.addEventListener("input", calculerTotaux);
+
+  btnAjouter.addEventListener("click", () => {
+    const ligne = tbody.querySelector(".ligne-achat").cloneNode(true);
+    ligne.querySelectorAll("input").forEach(i => i.value = "");
+    ligne.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+    tbody.appendChild(ligne);
+  });
+
+  tbody.addEventListener("click", e => {
+    if (e.target.classList.contains("supprimer") && tbody.children.length > 1) {
+      e.target.closest("tr").remove();
+      calculerTotaux();
+    }
+  });
+
+});
+</script>
+
+{% endblock %}

@@ -2,8 +2,153 @@
 {% block title %}Dashboard | gestock{% endblock %}
 
 {% block styles %}
+   <style>
+      body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #adcdbf, #d5f5e2, #adcdbf);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+/* 🔥 Taille fixe identique pour chaque graphique */
+.card {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+
+    height: 260px;  
+    width: 95%;      /* 🔥 hauteur contrôlée */
+    display: flex;
+    margin-bottom: 15px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 🔥 Force le canvas à remplir la card */
+
+    </style>
     
 {% endblock %}
 {% block content %}
+
+
+<h2>📊 Tableau de Bord</h2>
+
+<div class="grid-container">
+
+    <div class="card">
+        <canvas id="ventesAchatsChart"></canvas>
+    </div>
+
+    <div class="card">
+        <canvas id="dettesChart"></canvas>
+    </div>
+
+    <div class="card">
+        <canvas id="vendeurChart"></canvas>
+    </div>
+
+    <div class="card">
+        <canvas id="doughnutChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+    const labels = {{ labels | tojson }};
+    const ventesData = {{ ventes_data | tojson }};
+    const achatsData = {{ achats_data | tojson }};
+    const clientsLabels = {{ clients_labels | tojson }};
+    const dettesData = {{ dettes_data | tojson }};
+    const vendeurLabels = {{ vendeur_labels | tojson }};
+    const vendeurData = {{ vendeur_data | tojson }};
+
+    // 1️⃣ VENTES VS ACHATS
+    new Chart(document.getElementById("ventesAchatsChart"), {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Ventes",
+                    data: ventesData,
+                    backgroundColor: "rgba(54, 162, 235, 0.7)"
+                },
+                {
+                    label: "Achats",
+                    data: achatsData,
+                    backgroundColor: "rgba(255, 99, 132, 0.7)"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // 2️⃣ DETTES CLIENTS (LINE)
+    new Chart(document.getElementById("dettesChart"), {
+        type: "line",
+        data: {
+            labels: clientsLabels,
+            datasets: [{
+                label: "Dettes Clients",
+                data: dettesData,
+                borderColor: "orange",
+                fill: false,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // 3️⃣ VENTES PAR VENDEUR
+    new Chart(document.getElementById("vendeurChart"), {
+        type: "bar",
+        data: {
+            labels: vendeurLabels,
+            datasets: [{
+                label: "Total Ventes",
+                data: vendeurData,
+                backgroundColor: "rgba(75, 192, 192, 0.7)"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // 4️⃣ DETTES EN CAMEMBERT
+    new Chart(document.getElementById("doughnutChart"), {
+        type: "doughnut",
+        data: {
+            labels: clientsLabels,
+            datasets: [{
+                label: "Reste à payer",
+                data: dettesData
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+</script>
 
 {% endblock %}
