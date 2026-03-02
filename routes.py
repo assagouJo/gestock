@@ -517,7 +517,7 @@ def fournisseur():
 
      flash("Fournisseur ajouter avec succes", "success")
      return redirect(url_for("fournisseur"))
-  return render_template('fournisseur.html', form=form, fournisseurs=fournisseurs)
+  return render_template('Fournisseur.html', form=form, fournisseurs=fournisseurs)
 
 
 @app.route('/gestion_materiel/fournisseur/edit/<int:id>', methods=['POST'])
