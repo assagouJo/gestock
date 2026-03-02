@@ -59,7 +59,7 @@ class ClientForm(FlaskForm):
 
 class FournisseurForm(FlaskForm):
     nom_fournisseur = StringField("Nom client", validators=[DataRequired()])
-    telephone = StringField("Telephone", validators=[DataRequired()])
+    telephone = StringField("Telephone")
     adresse_email = StringField("Adresse")
     ville = StringField("Ville", validators=[DataRequired()])
     numero_rcc = StringField("RCC")

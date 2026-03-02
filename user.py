@@ -14,36 +14,6 @@ with app.app_context():
 
 
 
-# def creer_magasins_defaut():
-#     magasins_defaut = ["Imedical", "Lavilla", "Gonzague"]
-
-#     for nom in magasins_defaut:
-#         existe = Magasin.query.filter_by(nom=nom).first()
-#         if not existe:
-#             db.session.add(Magasin(nom=nom))
-
-#     db.session.commit()
-
-# with app.app_context():
-#     creer_magasins_defaut()
-
-# ####################################
-
-# def creer_vendeur_compagnie_defaut():
-#     vendeur_compagnie_defaut = ["Imedical", "Fuji"]
-
-#     for nom in vendeur_compagnie_defaut:
-#         existe = VendeurCompagnie.query.filter_by(nom=nom).first()
-#         if not existe:
-#             db.session.add(VendeurCompagnie(nom=nom))
-
-#     db.session.commit()
-
-# with app.app_context():
-#     creer_vendeur_compagnie_defaut()
-
-######################################
-
 
 # @app.route("/create-admin")
 # def create_admin():

@@ -29,6 +29,23 @@ def montant_format(valeur):
     return f"{valeur:,.2f}".replace(",", " ").replace(".", ",")
 
 
+@app.route("/create-admin")
+def create_admin():
+    # éviter doublon
+    user = User.query.filter_by(username="admin").first()
+    if user:
+        return "Admin already exists"
+
+    user = User(
+        username="admin",
+        email="admin@gestock.com",
+        password_hash=generate_password_hash("admin123"),
+        role="admin"
+    )
+    db.session.add(user)
+    db.session.commit()
+    return "Admin created"
+
 @app.after_request
 def disable_cache(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
