@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, EmailField, IntegerField, TextAreaField, DecimalField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, EmailField, IntegerField, TextAreaField, DecimalField, DateField
 from wtforms.validators import DataRequired, Email, Optional, EqualTo, NumberRange, Length
 from flask_wtf.file import FileField, FileAllowed
 
@@ -18,9 +18,11 @@ class UserForm(FlaskForm):
   role = SelectField(
     'Role',
     choices=[
+        ('superadmin', 'SuperAdmin'),
       ('admin', 'Admin'),
       ('support', 'Support'),
-      ('operateur', 'Operateur')
+      ('operateur', 'Operateur'),
+      ('finance', 'Finance')
     ],
     validators=[DataRequired()]
   )
@@ -48,6 +50,15 @@ class ChangePasswordForm(FlaskForm):
 
 class ClientForm(FlaskForm):
     nom_client = StringField("Nom client", validators=[DataRequired()])
+    telephone = StringField("Telephone", validators=[DataRequired()])
+    adresse_email = StringField("Adresse")
+    ville = StringField("Ville", validators=[DataRequired()])
+    numero_rcc = StringField("RCC")
+    submit = SubmitField("Enregistrer")
+
+
+class FournisseurForm(FlaskForm):
+    nom_fournisseur = StringField("Nom client", validators=[DataRequired()])
     telephone = StringField("Telephone", validators=[DataRequired()])
     adresse_email = StringField("Adresse")
     ville = StringField("Ville", validators=[DataRequired()])
@@ -191,3 +202,16 @@ class ProformaForm(FlaskForm):
         validators=[DataRequired()]
     )
     submit = SubmitField("Créer la proforma")
+
+
+
+class MagasinForm(FlaskForm):
+    nom = StringField("Nom du magasin", validators=[DataRequired()])
+    submit = SubmitField("Enregistrer")
+
+
+class LogFilterForm(FlaskForm):
+    date_debut = DateField("Date début", validators=[DataRequired()])
+    date_fin = DateField("Date fin", validators=[DataRequired()])
+    utilisateur = SelectField("Utilisateur", choices=[], validate_choice=False)
+    submit = SubmitField("Afficher")

@@ -2,69 +2,76 @@
 {% block title %}Dashboard | gestock{% endblock %}
 
 {% block styles %}
-   <style>
-      body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #adcdbf, #d5f5e2, #adcdbf);
-}
+<style>
 
-h2 {
-    text-align: center;
-    margin-bottom: 15px;
-}
 
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
+    h3 {
+        text-align: center;
+        margin-bottom: 15px;
+    }
 
-/* 🔥 Taille fixe identique pour chaque graphique */
-.card {
-    background: white;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-
-    height: 260px;  
-    width: 95%;      /* 🔥 hauteur contrôlée */
-    display: flex;
-    margin-bottom: 15px;
-    align-items: center;
-    justify-content: center;
-}
+    .grid-container {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+    }
+    
+    /* 🔥 Taille fixe identique pour chaque graphique */
+    .card {
+        background: white;
+        padding: 5px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        
+        height: 260px;  
+        width: 95%;      /* 🔥 hauteur contrôlée */
+        display: flex;
+        margin-bottom: 15px;
+        align-items: center;
+        justify-content: center;
+    }
 
 /* 🔥 Force le canvas à remplir la card */
 
-    </style>
+</style>
     
 {% endblock %}
 {% block content %}
 
-
-<h2>📊 Tableau de Bord</h2>
+<h3>📊 Tableau de Bord</h3>
 
 <div class="grid-container">
 
-    <div class="card">
+    <div class="card" id="card-ventes-achats">
         <canvas id="ventesAchatsChart"></canvas>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-dettes">
         <canvas id="dettesChart"></canvas>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-vendeur">
         <canvas id="vendeurChart"></canvas>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-doughnut">
         <canvas id="doughnutChart"></canvas>
     </div>
 
 </div>
 
 <script>
+    function showEmptyMessage(cardId, message) {
+    const card = document.getElementById(cardId);
+    card.innerHTML = `
+        <div style="text-align:center; color:gray;">
+            <h5>${message}</h5>
+        </div>
+    `;
+    }
+
     const labels = {{ labels | tojson }};
     const ventesData = {{ ventes_data | tojson }};
     const achatsData = {{ achats_data | tojson }};
@@ -74,30 +81,24 @@ h2 {
     const vendeurData = {{ vendeur_data | tojson }};
 
     // 1️⃣ VENTES VS ACHATS
-    new Chart(document.getElementById("ventesAchatsChart"), {
-        type: "bar",
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: "Ventes",
-                    data: ventesData,
-                    backgroundColor: "rgba(54, 162, 235, 0.7)"
-                },
-                {
-                    label: "Achats",
-                    data: achatsData,
-                    backgroundColor: "rgba(255, 99, 132, 0.7)"
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+    if (labels.length > 0 && (ventesData.length > 0 || achatsData.length > 0)) {
+        new Chart(document.getElementById("ventesAchatsChart"), {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: "Ventes", data: ventesData, backgroundColor: "rgba(54, 162, 235, 0.7)" },
+                    { label: "Achats", data: achatsData, backgroundColor: "rgba(255, 99, 132, 0.7)" }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    } else {
+        showEmptyMessage("card-ventes-achats", "Aucune donnée de ventes/achats 📊");
+    }
 
     // 2️⃣ DETTES CLIENTS (LINE)
+    if (clientsLabels.length > 0 && dettesData.length > 0) {
     new Chart(document.getElementById("dettesChart"), {
         type: "line",
         data: {
@@ -110,13 +111,14 @@ h2 {
                 tension: 0.3
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+        options: { responsive: true, maintainAspectRatio: false }
+        });
+    } else {
+        showEmptyMessage("card-dettes", "Aucune dette client 💳");
+    }
 
     // 3️⃣ VENTES PAR VENDEUR
+    if (vendeurLabels.length > 0 && vendeurData.length > 0) {
     new Chart(document.getElementById("vendeurChart"), {
         type: "bar",
         data: {
@@ -127,13 +129,13 @@ h2 {
                 backgroundColor: "rgba(75, 192, 192, 0.7)"
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
+        options: { responsive: true, maintainAspectRatio: false }
+        });
+    } else {
+        showEmptyMessage("card-vendeur", "Aucune vente par vendeur 👤");
+    }
     // 4️⃣ DETTES EN CAMEMBERT
+    if (clientsLabels.length > 0 && dettesData.length > 0) {
     new Chart(document.getElementById("doughnutChart"), {
         type: "doughnut",
         data: {
@@ -143,11 +145,11 @@ h2 {
                 data: dettesData
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
+    } else {
+        showEmptyMessage("card-doughnut", "Aucune donnée pour le graphique circulaire 🥯");
+    }
 
 </script>
 

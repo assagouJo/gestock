@@ -25,9 +25,11 @@ login_manager.login_view = "login"
 
 
 
-import routes, models
+import models
 
+import audit
 
+import routes
 
 # with app.app_context():
 #     db.create_all()

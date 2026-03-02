@@ -40,7 +40,7 @@
         <td>{{ achat.date_achat.strftime('%d/%m/%Y') }}</td>
 
         <td class="fw-bold text-primary">
-          {{ achat.client.nom_client }}
+          {{ achat.fournisseur.nom_fournisseur }}
         </td>
 
         <td>
@@ -121,10 +121,10 @@
             </div>
 
             <div class="col-md-3">
-              <label class="form-label fw-bold">Client</label>
-              <select name="client_id" class="form-select" required>
-                {% for c in clients %}
-                  <option value="{{ c.id }}">{{ c.nom_client }}</option>
+              <label class="form-label fw-bold">Fournisseur</label>
+              <select name="fournisseur_id" class="form-select" required>
+                {% for f in fournisseurs %}
+                  <option value="{{ f.id }}">{{ f.nom_fournisseur }}</option>
                 {% endfor %}
               </select>
             </div>

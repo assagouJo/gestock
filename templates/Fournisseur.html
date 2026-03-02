@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Gestion Clients | gestock{% endblock %}
+{% block title %}Gestion Fournisseurs | gestock{% endblock %}
 
 {% block styles %}
     
@@ -9,17 +9,17 @@
 <div class="row">
     <div class="col">
         <a class="btn btn-outline-success" data-bs-toggle="modal" 
-        data-bs-target="#addclientmodal">Ajouter Client</a>        
+        data-bs-target="#addclientmodal">Ajouter Fournisseur</a>        
     </div>
 </div>
 <hr>
-{% if clients %}
+{% if fournisseurs %}
   <!-- <div class=""> -->
-      <form action="{{ url_for('delete_clients') }}" method="post">
+      <form action="{{ url_for('delete_fournisseurs') }}" method="post">
         {{ form.hidden_tag() }}
     <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
       <caption class="fs-3 fw-semibold">
-        Liste des clients
+        Liste des Fournisseurs
     </caption>
         <table class="table w-100 caption-top table-bordered px-1 align-middle
                   table-responsive my-2">
@@ -34,39 +34,39 @@
         </tr>
       </thead>
       <tbody>
-        {% for client in clients %}
-        <tr class="client-row"
-            data-id="{{ client.id }}"
-            data-nom="{{ client.nom_client }}"
-            data-telephone="{{ client.telephone }}"
-            data-adresse="{{ client.adresse_email }}"
-            data-ville="{{ client.ville }}"
-            data-rcc="{{ client.numero_rcc }}"
+        {% for fournisseur in fournisseurs %}
+        <tr class="fournisseur-row"
+            data-id="{{ fournisseur.id }}"
+            data-nom="{{ fournisseur.nom_fournisseur }}"
+            data-telephone="{{ fournisseur.telephone }}"
+            data-adresse="{{ fournisseur.adresse_email }}"
+            data-ville="{{ fournisseur.ville }}"
+            data-rcc="{{ fournisseur.numero_rcc }}"
             style="cursor:pointer">
           <td>
-            <input class="form-check-input border-success client-checkbox" 
-            name="client_ids"
-            type="checkbox" value="{{client.id}}">
+            <input class="form-check-input border-success fournisseur-checkbox" 
+            name="fournisseur_ids"
+            type="checkbox" value="{{fournisseur.id}}">
           </td>
-          <td>{{client.nom_client.upper()}}</td>
-          <td>{{client.telephone}}</td>
-          <td>{{client.adresse_email}}</td>
-          <td>{{client.ville}}</td>
-          <td>{{client.numero_rcc}}</td>
+          <td>{{fournisseur.nom_fournisseur.upper()}}</td>
+          <td>{{fournisseur.telephone}}</td>
+          <td>{{fournisseur.adresse_email}}</td>
+          <td>{{fournisseur.ville}}</td>
+          <td>{{fournisseur.numero_rcc}}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     </div>
     <button type="submit" class="btn btn-outline-danger" 
-      onclick="return confirm('Voulez-vous supprimer ce ou ces clients ?')">Suprimer Client
+      onclick="return confirm('Voulez-vous supprimer ce ou ces fournisseurs ?')">Suprimer Fournisseur
     </button>
     </form>
   <!-- </div> -->
 </div>
 {% else %}
 <div class="alert alert-warning text-center">
-        Aucun client enregistré pour le moment.
+        Aucun fournisseurs enregistré pour le moment.
     </div>
 {% endif %}
 <!-- Ajouter Client Modal -->
@@ -84,15 +84,15 @@
       <!-- BODY -->
       <div class="modal-body">
         <form method="post"
-              id = "clientForm"
-              action="{{ url_for('client') }}"
+              id = "fournisseurForm"
+              action="{{ url_for('fournisseur') }}"
               class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
 
           {{ form.hidden_tag() }}
 
           <div class="mb-3">
-            {{ form.nom_client.label(class="form-label") }}
-            {{ form.nom_client(class="form-control") }}
+            {{ form.nom_fournisseur.label(class="form-label") }}
+            {{ form.nom_fournisseur(class="form-control") }}
           </div>
 
           <div class="mb-3">
@@ -141,43 +141,52 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("clientForm");
   const title = document.getElementById("modalTitle");
 
-  // 👉 MODE MODIFICATION (double clic)
-  document.querySelectorAll(".client-row").forEach(row => {
-    row.addEventListener("dblclick", function () {
+  /* ===============================
+     MODE MODIFICATION (DOUBLE CLIC)
+  =============================== */
+  document.addEventListener("dblclick", function (e) {
 
-      title.textContent = "Modifier le client";
-      form.action = `/gestion_materiel/client/edit/${this.dataset.id}`;
+    const row = e.target.closest(".client-row");
+    if (!row) return;
 
-      form.nom_client.value = this.dataset.nom;
-      form.telephone.value = this.dataset.telephone;
-      form.adresse_email.value = this.dataset.adresse;
-      form.ville.value = this.dataset.ville;
-      form.numero_rcc.value = this.dataset.rcc;
+    title.textContent = "Modifier le client";
+    form.action = `/gestion_materiel/client/edit/${row.dataset.id}`;
 
-      modal.show();
-    });
+    form.nom_client.value = row.dataset.nom || "";
+    form.telephone.value = row.dataset.telephone || "";
+    form.adresse_email.value = row.dataset.adresse || "";
+    form.ville.value = row.dataset.ville || "";
+    form.numero_rcc.value = row.dataset.rcc || "";
+
+    modal.show();
   });
 
-  // 👉 MODE AJOUT (bouton Ajouter Client)
+  /* ===============================
+     RESET MODAL (MODE AJOUT)
+  =============================== */
   modalEl.addEventListener("hidden.bs.modal", function () {
     title.textContent = "Ajouter un client";
     form.action = "{{ url_for('client') }}";
     form.reset();
   });
 
-    /* ===============================
-   BOUTON SUPPRESSION CHECKBOX
-  ================================ */
-  const btn = document.querySelector(".btn-outline-danger");
-  const checkboxes = document.querySelectorAll(".client-checkbox");
+  /* ===============================
+     BOUTON SUPPRESSION CHECKBOX
+  =============================== */
+  const btnDelete = document.querySelector(".btn-outline-danger");
 
-  // bouton désactivé au départ
-  if (btn) btn.disabled = true;
+  function toggleDeleteButton() {
+    const checked = document.querySelector(".client-checkbox:checked");
+    if (btnDelete) btnDelete.disabled = !checked;
+  }
 
-  checkboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      btn.disabled = !document.querySelector(".client-checkbox:checked");
-    });
+  // Désactivé au départ
+  toggleDeleteButton();
+
+  document.addEventListener("change", function (e) {
+    if (e.target.classList.contains("client-checkbox")) {
+      toggleDeleteButton();
+    }
   });
 
 });

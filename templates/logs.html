@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Journal d'activité | gestock{% endblock %}
+
+{% block content %}
+<div class="py-2">
+
+<div class="card shadow-sm p-3 mb-4">
+    <form method="post" class="row g-3 align-items-end">
+        {{ form.hidden_tag() }}
+
+        <div class="col-md-3">
+            {{ form.date_debut.label(class="form-label fw-semibold") }}
+            {{ form.date_debut(class="form-control") }}
+        </div>
+
+        <div class="col-md-3">
+            {{ form.date_fin.label(class="form-label fw-semibold") }}
+            {{ form.date_fin(class="form-control") }}
+        </div>
+
+        <div class="col-md-3">
+            {{ form.utilisateur.label(class="form-label fw-semibold") }}
+            {{ form.utilisateur(class="form-select") }}
+        </div>
+
+        <div class="col-md-3">
+            {{ form.submit(class="btn btn-success w-100") }}
+        </div>
+    </form>
+</div>
+
+{% if logs is not none %}
+
+    {% if logs %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-success">
+                <tr>
+                    <th class="text-light">Utilisateur</th>
+                    <th class="text-light">Action</th>
+                    <th class="text-light">Table</th>
+                    <th class="text-light">ID</th>
+                    <th class="text-light">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.username }}</td>
+
+                    <td>
+                        {% if log.action == "INSERT" %}
+                            <span class="badge bg-success">Ajout</span>
+                        {% elif log.action == "UPDATE" %}
+                            <span class="badge bg-warning text-dark">Modification</span>
+                        {% elif log.action == "DELETE" %}
+                            <span class="badge bg-danger">Suppression</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ log.table_name }}</td>
+                    <td>{{ log.record_id }}</td>
+                    <td>{{ log.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+        <div class="alert alert-warning text-center">
+            Aucun log trouvé pour ce filtre.
+        </div>
+    {% endif %}
+
+{% endif %}
+
+</div>
+{% endblock %}

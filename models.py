@@ -14,7 +14,7 @@ class User(UserMixin, db.Model):
   email = db.Column(db.String(120), unique=True, nullable=False)
   password_hash = db.Column(db.String(256))
   role = db.Column(db.String(20), nullable=False, default='operateur')
-  joined_at = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
+  joined_at = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
   must_change_password = db.Column(db.Boolean, default=False)
 
   __table_args__ = (
@@ -39,21 +39,33 @@ class Client(db.Model):
     ville = db.Column(db.String(100))
     numero_rcc = db.Column(db.String(50))
 
+    def __repr__(self):
+        return f"<Client {self.nom_client}>"
+    
+
+class Fournisseur(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nom_fournisseur = db.Column(db.String(100), nullable=False)
+    telephone = db.Column(db.String(30))
+    adresse_email = db.Column(db.String(255))
+    ville = db.Column(db.String(100))
+    numero_rcc = db.Column(db.String(50))
+
     bons = db.relationship(
         "BonCommande",
-        back_populates="client",
+        back_populates="fournisseur",
         cascade="all, delete-orphan"
     )
 
     # 🔥 NOUVELLE RELATION
     achats = db.relationship(
         "Achat",
-        back_populates="client",
+        back_populates="fournisseur",
         cascade="all, delete-orphan"
     )
 
     def __repr__(self):
-        return f"<Client {self.nom_client}>"
+        return f"<Founisseur {self.nom_fournisseur}>"
     
 
 class Produit(db.Model):
@@ -100,19 +112,27 @@ class TypeConditionnement(enum.Enum):
     UNITE = "unite"
 
 
+
+
 class Achat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date_achat = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    date_achat = db.Column(db.DateTime, default=datetime.utcnow)
 
-    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
     magasin_id = db.Column(db.Integer, db.ForeignKey("magasin.id"), nullable=False)
 
     taxe_douane = db.Column(db.Float, default=0)
     total_ht = db.Column(db.Float, default=0)
     total_ttc = db.Column(db.Float, default=0)
 
-    client = db.relationship("Client", back_populates="achats")
     magasin = db.relationship("Magasin")
+
+    fournisseur_id = db.Column(
+        db.Integer,
+        db.ForeignKey("fournisseur.id", name="fk_achat_fournisseur_id"),
+        nullable=False
+    )
+
+    fournisseur = db.relationship("Fournisseur", back_populates="achats")
 
     lignes = db.relationship(
         "LigneAchat",
@@ -162,7 +182,7 @@ class Stock(db.Model):
     
     quantite = db.Column(db.Integer, nullable=False, default=0)
     seuil_alerte = db.Column(db.Integer, default=5)
-    date_creation = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
+    date_creation = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
 
     type_conditionnement = db.Column(
     db.Enum(
@@ -217,7 +237,7 @@ class Magasin(db.Model):
 class Vente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
-    date_vente = db.Column(db.DateTime(), default = datetime.now(timezone.utc), index = True)
+    date_vente = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
     total = db.Column(db.Numeric(10, 2), nullable=False)
 
     # 🔽 AJOUTS PAIEMENT
@@ -349,7 +369,7 @@ class Paiement(db.Model):
 
     annule = db.Column(db.Boolean, default=False)
 
-    date_paiement = db.Column(db.DateTime(), default = datetime.now(timezone.utc))
+    date_paiement = db.Column(db.DateTime(), default = datetime.utcnow)
 
     def est_reversible(self):
         return not self.annule
@@ -369,7 +389,7 @@ class Facture(db.Model):
 
     date_facture = db.Column(
         db.DateTime(),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.utcnow,
         nullable=False
     )
 
@@ -398,7 +418,7 @@ class Proforma(db.Model):
 
     date = db.Column(
         db.DateTime,
-        default=lambda: datetime.now(timezone.utc)
+        default=lambda: datetime.utcnow
     )
 
     total = db.Column(db.Float, default=0)
@@ -455,10 +475,14 @@ class BonCommande(db.Model):
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
     total = db.Column(db.Numeric(10,2), default=0)
 
-    client = db.relationship(
-        "Client",
-        back_populates="bons"
+    fournisseur_id = db.Column(
+        db.Integer,
+        db.ForeignKey("fournisseur.id", name="fk_bon_commande_fournisseur_id"),
+        nullable=False
     )
+
+    fournisseur = db.relationship("Fournisseur", back_populates="bons")
+
     lignes = db.relationship("LigneBonCommande", backref="bon", cascade="all, delete-orphan")
 
 
@@ -485,6 +509,16 @@ class Compagnie(db.Model):
     numero_rcc = db.Column(db.String(50))
     logo = db.Column(db.String(255)) 
 
+
+
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer)
+    username = db.Column(db.String(100))
+    action = db.Column(db.String(20))
+    table_name = db.Column(db.String(100))
+    record_id = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 

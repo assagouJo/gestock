@@ -2,8 +2,8 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat
-from forms import LoginForm, ClientForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur
+from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -24,11 +24,9 @@ from flask import send_file
 import io
 
 
-
 @app.template_filter('money')
 def montant_format(valeur):
     return f"{valeur:,.2f}".replace(",", " ").replace(".", ",")
-
 
 
 @app.after_request
@@ -69,10 +67,12 @@ def role_required(*roles):
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        if current_user.role == "admin":
+        if current_user.role in ["admin","superadmin"]:
             return redirect(url_for("dashboard"))
+        elif current_user.role == "finance":
+            return redirect(url_for("nouvelle_vente"))
         else:
-            return redirect(url_for("etat_stock"))
+            return redirect(url_for("nouveau_achat"))        
 
     form = LoginForm(csrf_enabled=False)
 
@@ -86,10 +86,12 @@ def login():
                 return redirect(url_for('force_change_password'))
 
             # 🔥 REDIRECTION SELON LE RÔLE
-            if user.role == "admin":
+            if user.role in ["admin","superadmin"]:
                 return redirect(url_for("dashboard"))
+            elif current_user.role == "finance":
+                return redirect(url_for("nouvelle_vente"))
             else:
-                return redirect(url_for("etat_stock"))
+                return redirect(url_for("nouveau_achat")) 
 
         flash("Identifiants incorrects", "danger")
 
@@ -494,7 +496,86 @@ def delete_clients():
 
     return redirect(url_for('client'))
 
+# fournisseur
 
+@app.route('/gestion_materiel/fournisseur', methods=['GET', 'POST'])
+@login_required
+def fournisseur():
+  form = FournisseurForm(csrf_enabled=False)
+  fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
+  
+  if form.validate_on_submit():
+     nouveau_fournisseur = Fournisseur(
+      nom_fournisseur = form.nom_fournisseur.data,
+      telephone = form.telephone.data,
+      adresse_email = form.adresse_email.data,
+      ville = form.ville.data,
+      numero_rcc = form.numero_rcc.data    
+     )
+     db.session.add(nouveau_fournisseur)
+     db.session.commit()
+
+     flash("Fournisseur ajouter avec succes", "success")
+     return redirect(url_for("fournisseur"))
+  return render_template('fournisseur.html', form=form, fournisseurs=fournisseurs)
+
+
+@app.route('/gestion_materiel/fournisseur/edit/<int:id>', methods=['POST'])
+@login_required
+def edit_fournisseur(id):
+    fournisseur = Fournisseur.query.get_or_404(id)
+    form = FournisseurForm()
+
+    if form.validate_on_submit():
+        form.populate_obj(fournisseur)
+        db.session.commit()
+        flash("Client modifié avec succès", "success")
+
+    return redirect(url_for('fournisseur'))
+
+
+
+@app.route('/gestion_materiel/fournisseur/delete', methods=['POST'])
+@login_required
+def delete_fournisseurs():
+
+    ids = request.form.getlist('fournisseur_ids')
+
+    if not ids:
+        flash("Aucun fournisseur sélectionné", "warning")
+        return redirect(url_for('fournisseur'))
+
+    fournisseurs = Fournisseur.query.filter(Fournisseur.id.in_(ids)).all()
+
+    fournisseurs_bloques = []
+    fournisseurs_supprimes = 0
+
+    for f in fournisseurs:
+
+        # 🔒 Vérifier s’il a des ventes
+        if f.achats:
+            fournisseurs_bloques.append(f.nom_fournisseur)
+            continue
+
+        db.session.delete(f)
+        fournisseurs_supprimes += 1
+
+    db.session.commit()
+
+    if fournisseurs_bloques:
+        flash(
+            "Impossible de supprimer (clients liés à des ventes) : " +
+            ", ".join(fournisseurs_bloques),
+            "danger"
+        )
+
+    if fournisseurs_supprimes:
+        flash(f"{fournisseurs_supprimes} client(s) supprimé(s)", "success")
+
+    return redirect(url_for('fournisseur'))
+
+
+# fornisseur
 
 
 @app.route("/stock", methods=["GET"])
@@ -954,7 +1035,7 @@ def modifier_vente(vente_id):
 
 @app.route("/achat/nouveau", methods=["GET"])
 def nouveau_achat():
-    clients = Client.query.order_by(Client.nom_client).all()
+    fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
     magasins = Magasin.query.order_by(Magasin.nom).all()
 
@@ -962,7 +1043,7 @@ def nouveau_achat():
 
     return render_template(
         "achat_form.html",
-        clients=clients,
+        fournisseurs=fournisseurs,
         produits=produits,
         magasins=magasins,
         achats=achats,
@@ -973,7 +1054,7 @@ def nouveau_achat():
 @app.route("/achat/nouveau", methods=["POST"])
 def ajouter_achat():
 
-    client_id = request.form.get("client_id")
+    fournisseur_id = request.form.get("fournisseur_id")
     magasin_id = request.form.get("magasin_id")
     taxe_douane = float(request.form.get("taxe_douane") or 0)
 
@@ -983,7 +1064,7 @@ def ajouter_achat():
     types = request.form.getlist("type_conditionnement[]")
 
     achat = Achat(
-        client_id=client_id,
+        fournisseur_id=fournisseur_id,
         magasin_id=magasin_id,
         taxe_douane=taxe_douane
     )
@@ -1924,6 +2005,74 @@ def etat_stock_excel():
         as_attachment=True
     )
 
+
+@app.route('/gestion_materiel/magasin', methods=['GET', 'POST'])
+def magasin():
+    form = MagasinForm()
+
+    if form.validate_on_submit():
+        nouveau = Magasin(nom=form.nom.data)
+        db.session.add(nouveau)
+        db.session.commit()
+        return redirect(url_for('magasin'))
+
+    magasins = Magasin.query.all()
+    return render_template("magasin.html", magasins=magasins, form=form)
+
+
+@app.route('/gestion_materiel/magasin/edit/<int:id>', methods=['POST'])
+def edit_magasin(id):
+    magasin = Magasin.query.get_or_404(id)
+    form = MagasinForm()
+
+    if form.validate_on_submit():
+        magasin.nom = form.nom.data
+        db.session.commit()
+
+    return redirect(url_for('magasin'))
+
+
+@app.route('/gestion_materiel/magasin/delete', methods=['POST'])
+def delete_magasins():
+    ids = request.form.getlist('magasin_ids')
+
+    for id in ids:
+        magasin = Magasin.query.get(id)
+        if magasin:
+            db.session.delete(magasin)
+
+    db.session.commit()
+    return redirect(url_for('magasin'))
+
+
+@app.route('/logs', methods=['GET', 'POST'])
+def logs():
+
+    form = LogFilterForm()
+    logs = None
+
+    # Remplir dynamiquement les utilisateurs
+    utilisateurs = User.query.all()
+    form.utilisateur.choices = [("", "Tous les utilisateurs")] + [
+        (str(u.id), u.username) for u in utilisateurs
+    ]
+
+    if form.validate_on_submit():
+
+        date_debut = datetime.combine(form.date_debut.data, datetime.min.time())
+        date_fin = datetime.combine(form.date_fin.data, datetime.max.time())
+
+        query = Log.query.filter(
+            Log.created_at.between(date_debut, date_fin)
+        )
+
+        # Si utilisateur sélectionné
+        if form.utilisateur.data:
+            query = query.filter(Log.user_id == int(form.utilisateur.data))
+
+        logs = query.order_by(Log.created_at.desc()).all()
+
+    return render_template("logs.html", form=form, logs=logs)
 
 
 @app.route('/gestion_materiel/user')
