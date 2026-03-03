@@ -112,13 +112,15 @@
                                     </li>
                                     {% endif %}
 
-                                    {% if current_user.role in ["superadmin","admin","finance"] %}
+                                    {% if current_user.role in ["superadmin","admin","finance","operateur"] %}
                                     <li class="nav-item border-2 border-top">
                                         <a class="nav-link text-light {% if is_active('client') %}bg-nav2{% endif %}"
                                         href="{{ url_for('client') }}">
                                             Gestion Clients
                                         </a>
                                     </li>
+                                    {% endif %}
+                                    {% if current_user.role in ["superadmin","admin","finance"] %}
 
                                         <li class="nav-item border-2 border-top">
                                             <a class="nav-link text-light {% if is_active('liste_vendeurs') %}bg-nav2{% endif %}"
