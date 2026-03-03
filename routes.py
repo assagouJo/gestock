@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison
 from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -1117,6 +1117,120 @@ def ajouter_achat():
 
     flash("Achat enregistré avec succès", "success")
     return redirect(url_for("nouveau_achat"))
+
+
+@app.route("/bon-livraison/nouveau")
+def nouveau_bon_livraison():
+    clients = Client.query.all()
+    produits = Produit.query.all()
+    
+    return render_template(
+        "bon_livraison_nouveau.html",
+        clients=clients,
+        produits=produits,
+        
+    )
+
+
+@app.route("/bon-livraison/create", methods=["POST"])
+def create_bon_livraison():
+
+    try:
+        client_id = request.form.get("client_id")
+
+        # 🔹 Création initiale du bon (sans numéro)
+        bon = BonLivraison(
+            client_id=client_id,
+            date_creation=datetime.utcnow(),
+            numero=""   # temporaire
+        )
+
+        db.session.add(bon)
+        db.session.flush()   # 🔥 permet d'obtenir bon.id
+
+        # 🔹 Génération numéro basé sur ID
+        annee = datetime.utcnow().year
+        bon.numero = f"BL-{annee}-18{bon.id:05d}"
+
+        produits_ids = request.form.getlist("produit_id[]")
+        quantites = request.form.getlist("quantite[]")
+        prix_unitaires = request.form.getlist("prix_unitaire[]")
+
+        for i in range(len(produits_ids)):
+
+            produit = Produit.query.get(int(produits_ids[i]))
+            quantite = int(quantites[i])
+            prix = float(prix_unitaires[i])
+
+            # ✅ Vérification stock
+            # if produit.stock_total < quantite:
+            #     db.session.rollback()
+            #     flash(f"Stock insuffisant pour {produit.nom_produit}", "danger")
+            #     return redirect(url_for("nouveau_bon_livraison"))
+
+            # # ✅ Décrémentation du stock (si 1 seul stock)
+            # if produit.stocks:
+            #     produit.stocks[0].quantite -= quantite
+
+            # 🔹 Création ligne
+            ligne = LigneBonLivraison(
+                bon_id=bon.id,
+                produit_id=produit.id,
+                quantite=quantite,
+                prix_unitaire=prix
+            )
+
+            db.session.add(ligne)
+
+        db.session.commit()
+
+        flash("Bon de livraison créé avec succès", "success")
+        return redirect(url_for("detail_bon_livraison", id=bon.id))
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash("Erreur lors de la création du bon", "danger")
+        return redirect(url_for("nouveau_bon_livraison"))
+
+
+@app.route("/bon-livraison/<int:id>")
+def detail_bon_livraison(id):
+    compagnie = Compagnie.query.first()
+    bon = BonLivraison.query.get_or_404(id)
+    return render_template("bon_livraison_detail.html",compagnie=compagnie, bon=bon)
+
+
+
+@app.route("/bon-livraison")
+def liste_bons_livraison():
+    bons = BonLivraison.query.order_by(
+        BonLivraison.date_creation.desc()
+    ).all()
+
+    return render_template("bon_livraison_liste.html", bons=bons)
+
+
+@app.route("/bon-livraison/<int:id>/pdf")
+def bon_livraison_pdf(id):
+
+    compagnie = Compagnie.query.first()
+    bon = BonLivraison.query.get_or_404(id)
+
+    html = render_template(
+        "bon_livraison_detail.html",   # 👈 même fichier
+        compagnie=compagnie,
+        bon=bon,
+        pdf_mode=True 
+    )
+
+    pdf = HTML(string=html, base_url=request.root_url).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = \
+        f"inline; filename=bon_livraison_{bon.id}.pdf"
+
+    return response
 
 
 @app.route("/vendeur/ajouter", methods=["POST"])

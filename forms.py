@@ -91,8 +91,6 @@ class ProduitForm(FlaskForm):
     submit = SubmitField('Enregistrer')
 
 
-
-
 class VenteForm(FlaskForm):
     client_id = SelectField(
         "Client",
@@ -162,8 +160,6 @@ class CompagnieForm(FlaskForm):
                 )
             ]
     )
-
-
 
 
 class StockForm(FlaskForm):

@@ -1,0 +1,102 @@
+{% extends "base_print.html" %}
+{% block title %}Détail Bon de Livraison{% endblock %}
+{% block styles %}
+ <link rel="stylesheet" href="{{ url_for('static', filename='style/detail_bon_livraison.css') }}">
+{% endblock %}
+{% block content %}
+
+<div class="bon-wrapper ">    
+    <!-- Header -->
+    <div class=" first-header d-flex justify-content-between align-items-center">
+        <div class="img-style">
+            {% if compagnie and compagnie.logo %}
+                <img src="{{ compagnie.logo }}" height="70" width="70">
+            {% endif %}
+        </div>
+        <div class="info-style">
+            <p><span class="text-danger fw-bold">TIME INTERNATIONAL CO. LTD</span></p>
+            <p class="fw-bold">REPRESENTATION A ABIDJAN</span><br></p>
+            <p><span class="text-danger fw-bold">I - MEDICAL</span></p>
+            <p class="">Tel : (225) 27 21 59 38 82</p>
+            <p class="">E-MAIL : info@imboe.com</p>
+            <p class="">MARCORY BOULEVARD VGE</p>
+            <p class="">FACEBOOK: IMBOE I-MEDICAL</p>
+            <p class="">REPUBLIQUE DE COTE D'IVOIRE</p>
+        </div>
+    </div>
+    <div class="bon-header d-flex justify-content-between align-items-center">
+        <div>
+            <div class="bon-title">BON DE LIVRAISON</div>
+            <div class="bon-subtitle">N° {{ bon.numero }}</div>
+        </div>
+        
+        <div class="text-end">
+            <strong>Date :</strong><br>
+            {{ bon.date_creation.strftime('%d/%m/%Y') }}
+        </div>
+    </div>
+    
+    <!-- Infos -->
+    <div class="bon-info-box row">
+        <div class="col-md-12">
+            <strong>Client :</strong>
+            <span class="text-danger fw-bold">{{ bon.client.nom_client }}</span>
+        </div>        
+    </div>
+    
+    <!-- Table -->
+    <table class="bon-table">
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Prix Unitaire</th>
+                <th>Sous-total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in bon.lignes %}
+            <tr>
+                <td>{{ ligne.produit.nom_produit }}</td>
+                <td>{{ ligne.quantite }}</td>
+                <td>{{ ligne.prix_unitaire | money}} FCFA</td>
+                <td>{{ ligne.sous_total | money}} FCFA</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Total -->
+    <div class="bon-total-box">
+        <div class="bon-total">
+            TOTAL : {{ bon.total | money}} FCFA
+        </div>
+    </div>
+
+    <div class="foot-page pdf-footer">
+        <div class="footer-left">
+            <p class="fw-bold fs-6 text-decoration-underline">SIGNATURE DU CLIENT</p>
+        </div>
+        <div class="d-flex flex-column footer-right">
+            <p class="fw-bold fs-6 text-decoration-underline mb-0">LE RESPONSABLE COMMERCIAL</p>
+            <p class="fw-bold fs-6 mb-0">M. GEORGES NTAMACK</p>
+        </div>
+    </div>
+    
+</div>
+{% if not pdf_mode %}
+<div class=" p-2">
+    <a href="{{ url_for('liste_bons_livraison') }}" 
+       class="btn btn-outline-secondary">
+        ⬅ Retour
+    </a>
+
+    <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}"
+   target="_blank"
+   class="btn btn-success">
+    🖨 Imprimer PDF
+</a>
+</div>
+{% endif %}
+
+{% endblock %}

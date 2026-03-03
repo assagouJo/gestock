@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Nouveau Bon de Livraison{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h4 class="fw-bold text-success mb-4">🚚 Nouveau Bon de Livraison</h4>
+
+    <form method="POST" action="{{ url_for('create_bon_livraison') }}">
+
+        <!-- Client -->
+        <div class="mb-3">
+            <label class="form-label">Client</label>
+            <select name="client_id" class="form-select" required>
+                <option value="">-- Choisir un client --</option>
+                {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nom_client }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Company -->
+        <input type="hidden" name="compagny_id" value="{{ current_user.compagny_id }}">
+
+        <hr>
+
+        <!-- Tableau des produits -->
+        <table class="table table-bordered" id="table-lignes">
+            <thead class="table-light">
+                <tr>
+                    <th>Produit</th>
+                    <th width="120">Quantité</th>
+                    <th width="150">Prix Unitaire</th>
+                    <th width="120">Action</th>
+                </tr>
+            </thead>
+            <tbody id="lignes-body">
+                <tr>
+                    <td>
+                        <select name="produit_id[]" class="form-select" required>
+                            <option value="">-- Produit --</option>
+                            {% for produit in produits %}
+                                <option value="{{ produit.id }}">
+                                    {{ produit.nom_produit }} (Stock: {{ produit.stock_total }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    <td>
+                        <input type="number" name="quantite[]" 
+                               class="form-control" min="1" required>
+                    </td>
+
+                    <td>
+                        <input type="number" name="prix_unitaire[]" 
+                               class="form-control" step="0.01" required>
+                    </td>
+
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm remove-row">
+                            ❌
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Bouton ajouter ligne -->
+        <button type="button" class="btn btn-outline-success mb-3" id="add-row">
+            ➕ Ajouter une ligne
+        </button>
+
+        <br>
+
+        <!-- Bouton submit -->
+        <button type="submit" class="btn btn-success">
+            💾 Enregistrer
+        </button>
+
+    </form>
+</div>
+
+<!-- Script JS -->
+<script>
+document.getElementById("add-row").addEventListener("click", function () {
+
+    let tableBody = document.getElementById("lignes-body");
+    let newRow = tableBody.rows[0].cloneNode(true);
+
+    // Reset values
+    newRow.querySelectorAll("input").forEach(input => input.value = "");
+    newRow.querySelector("select").selectedIndex = 0;
+
+    tableBody.appendChild(newRow);
+});
+
+// Supprimer ligne
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("remove-row")) {
+        let rows = document.querySelectorAll("#lignes-body tr");
+        if (rows.length > 1) {
+            e.target.closest("tr").remove();
+        }
+    }
+});
+</script>
+
+{% endblock %}

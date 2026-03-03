@@ -112,8 +112,6 @@ class TypeConditionnement(enum.Enum):
     UNITE = "unite"
 
 
-
-
 class Achat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_achat = db.Column(db.DateTime, default=datetime.utcnow)
@@ -497,6 +495,55 @@ class LigneBonCommande(db.Model):
 
     produit = db.relationship("Produit")
 
+# bon de livraison
+
+class BonLivraison(db.Model):
+    __tablename__ = "bon_livraison"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
+    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    numero = db.Column(db.String(30), unique=True, nullable=False)
+
+    lignes = db.relationship(
+        "LigneBonLivraison",
+        backref="bon",
+        cascade="all, delete-orphan"
+    )
+    
+    client = db.relationship("Client", backref="bons_livraison")
+    
+    @property
+    def total(self):
+        return sum(ligne.sous_total for ligne in self.lignes)
+    
+
+class LigneBonLivraison(db.Model):
+    __tablename__ = "ligne_bon_livraison"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    bon_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bon_livraison.id"),   # ✅ CORRECTION ICI
+        nullable=False
+    )
+
+    produit_id = db.Column(
+        db.Integer,
+        db.ForeignKey("produit.id"),
+        nullable=False
+    )
+
+    quantite = db.Column(db.Integer, nullable=False)
+    prix_unitaire = db.Column(db.Numeric(10,2), nullable=False)
+
+    produit = db.relationship("Produit")
+
+    @property
+    def sous_total(self):
+        return self.quantite * self.prix_unitaire
+# bon de livraison
 
 
 class Compagnie(db.Model):

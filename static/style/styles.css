@@ -170,3 +170,9 @@ body {
     z-index: 10;
     background-color: #212529; /* même couleur que table-dark */
 }
+
+
+.table td,
+.table th {
+    white-space: nowrap;
+}
