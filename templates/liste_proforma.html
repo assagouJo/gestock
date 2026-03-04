@@ -13,12 +13,11 @@ Nouvelle Proforma
 </a>
 </div>
 
-<div class="card shadow-sm">
-<div class="card-body">
 
-<table class="table table-bordered table-striped">
-
-<thead class="table-dark">
+{% if proformas %}
+<div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+  <table class="table table-hover table-bordered align-middle">
+    <thead class="table-dark sticky-top">
 <tr>
 <th>Numero</th>
 <th>Client</th>
@@ -63,9 +62,12 @@ PDF
 </tbody>
 
 </table>
-
 </div>
+{% else %}
+<div class="alert alert-warning text-center">
+  Aucun achat enregistré.
 </div>
+{% endif %}
 
 </div>
 

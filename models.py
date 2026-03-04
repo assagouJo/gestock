@@ -473,14 +473,18 @@ class BonCommande(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
     total = db.Column(db.Numeric(10,2), default=0)
+    numero = db.Column(db.String(30), unique=True, nullable=False)
 
     fournisseur_id = db.Column(
         db.Integer,
-        db.ForeignKey("fournisseur.id", name="fk_bon_commande_fournisseur_id"),
+        db.ForeignKey("fournisseur.id"),
         nullable=False
     )
 
-    fournisseur = db.relationship("Fournisseur", back_populates="bons")
+    fournisseur = db.relationship(
+        "Fournisseur",
+        back_populates="bons"
+    )    
 
     lignes = db.relationship("LigneBonCommande", backref="bon", cascade="all, delete-orphan")
 
@@ -488,8 +492,7 @@ class BonCommande(db.Model):
 class LigneBonCommande(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     bon_id = db.Column(db.Integer, db.ForeignKey("bon_commande.id"), nullable=False)
-    produit_id = db.Column(db.Integer, db.ForeignKey("produit.id"), nullable=False)
-
+    produit_id = db.Column(db.Integer, db.ForeignKey("produit.id"), nullable=False)    
     quantite = db.Column(db.Integer, nullable=False)
     prix_unitaire = db.Column(db.Numeric(10,2), nullable=False)
     sous_total = db.Column(db.Numeric(10,2), nullable=False)

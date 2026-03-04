@@ -20,6 +20,11 @@ def generate_code_proforma(id):
     return f"PF-{annee}-{20000000+id}"
 
 
+def generate_code_bon_commande(id):
+    annee = datetime.now().year
+    return f"BC-{annee}-{40000000+id}"
+
+
 def generer_code_barre(code_produit):
     EAN = barcode.get_barcode_class('code128')
     code = EAN(code_produit, writer=ImageWriter())

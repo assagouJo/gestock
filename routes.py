@@ -13,7 +13,7 @@ from cloudinary.uploader import upload
 from decimal import Decimal
 from sqlalchemy import func, exists
 from sqlalchemy.exc import SQLAlchemyError
-from helper import generate_code_proforma, generate_numero_facture
+from helper import generate_code_proforma, generate_numero_facture, generate_code_produit, generate_code_bon_commande
 from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
@@ -23,6 +23,20 @@ import pandas as pd
 from flask import send_file
 import io
 
+
+def seed_compagnies():
+
+    compagnies = ["Fuji", "I-Medical"]
+
+    for nom in compagnies:
+
+        existe = VendeurCompagnie.query.filter_by(nom=nom).first()
+
+        if not existe:
+            nouvelle = VendeurCompagnie(nom=nom)
+            db.session.add(nouvelle)
+
+    db.session.commit()
 
 @app.template_filter('money')
 def montant_format(valeur):
@@ -785,6 +799,7 @@ def ajouter_stock():
 @login_required
 def nouvelle_vente():
 
+    seed_compagnies()
     # =========================
     # 🔹 DONNÉES POUR AFFICHAGE
     # =========================
@@ -1601,78 +1616,123 @@ def proforma_pdf(proforma_id):
     return response
 
 
-@app.route("/bon-commande/nouveau", methods=["GET", "POST"])
+@app.route("/bons-commandes")
+@login_required
+def liste_bons_commandes():
+
+    bons = BonCommande.query.order_by(BonCommande.id.desc()).all()
+
+    return render_template(
+        "bon_commande_liste.html",
+        bons=bons
+    )
+
+
+@app.route("/bon-commande/nouveau")
 @login_required
 def nouveau_bon_commande():
-
-    if request.method == "POST":
-
-        fournisseur_id = request.form.get("fournisseur_id")
-        produits = request.form.getlist("produit_id[]")
-        quantites = request.form.getlist("quantite[]")
-        prix = request.form.getlist("prix[]")
-
-        if not fournisseur_id:
-            flash("Veuillez sélectionner un fournisseur", "danger")
-            return redirect(url_for("nouveau_bon_commande"))
-
-        # Création du bon
-        bon = BonCommande(
-            fournisseur_id=fournisseur_id
-        )
-        db.session.add(bon)
-        db.session.flush()
-
-        total = 0
-
-        for produit_id, qte, pu in zip(produits, quantites, prix):
-
-            if not produit_id or not qte or not pu:
-                continue
-
-            qte = int(qte)
-            pu = float(pu)
-            sous_total = qte * pu
-            total += sous_total
-
-            ligne = LigneBonCommande(
-                bon_id=bon.id,
-                produit_id=produit_id,
-                quantite=qte,
-                prix_unitaire=pu,
-                sous_total=sous_total
-            )
-            db.session.add(ligne)
-
-        bon.total = total
-        db.session.commit()
-
-        flash("Bon de commande créé avec succès", "success")
-        return redirect(url_for("liste_bons"))
 
     fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
 
     return render_template(
-        "bon_commande.html",
+        "bon_commande_nouveau.html",
         fournisseurs=fournisseurs,
         produits=produits
     )
 
 
-@app.route("/bon-commande")
+@app.route("/bon-commande/create", methods=["POST"])
 @login_required
-def liste_bons():
+def create_bon_commande():
 
-    bons = BonCommande.query.options(
-        joinedload(BonCommande.fournisseur)
-    ).order_by(BonCommande.date_creation.desc()).all()
+    fournisseur_id = int(request.form.get("fournisseur_id"))
+
+    bon = BonCommande(
+        numero = "TEMP",
+        fournisseur_id=fournisseur_id
+    )
+
+    db.session.add(bon)
+    db.session.flush()
+
+    bon.numero = generate_code_bon_commande(bon.id)
+
+    total = 0
+
+    produits_ids = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    prix = request.form.getlist("prix_unitaire[]")
+
+    for pid, qte, pu in zip(produits_ids, quantites, prix):
+
+        if not pid or not qte or not pu:
+            continue
+
+        qte = int(qte)
+        pu = float(pu)
+
+        sous_total = qte * pu
+        total += sous_total
+
+        ligne = LigneBonCommande(
+            bon_id=bon.id,
+            produit_id=pid,
+            quantite=qte,
+            prix_unitaire=pu,
+            sous_total=sous_total
+        )
+
+        db.session.add(ligne)
+
+    bon.total = total
+
+    db.session.commit()
+
+    flash("Bon de commande créé avec succès", "success")
+
+    return redirect(url_for("details_bon_commande", bon_id=bon.id))
+
+
+
+@app.route("/bon-commande/<int:bon_id>")
+@login_required
+def details_bon_commande(bon_id):
+
+    bon = BonCommande.query.get_or_404(bon_id)
 
     return render_template(
-        "liste_bons.html",
-        bons=bons,
-        today=datetime.now()
+        "details_bon_commande.html",
+        bon=bon
     )
+
+
+@app.route("/bon-commande/<int:bon_id>/pdf")
+@login_required
+def bon_commande_pdf(bon_id):
+
+    bon = BonCommande.query.get_or_404(bon_id)
+    compagnie = Compagnie.query.first()
+
+    html = render_template(
+        "bon_commande_pdf.html",
+        bon=bon,
+        compagnie=compagnie
+    )
+
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url
+    ).write_pdf()
+
+    response = make_response(pdf)
+
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers[
+        "Content-Disposition"
+    ] = f"inline; filename=bon_commande_{bon.id}.pdf"
+
+    return response
 
 
 

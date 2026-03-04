@@ -5,21 +5,11 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="fw-bold text-success mb-0">📦 Achats</h4>
-  <div>
       <button class="btn btn-outline-success"
               data-bs-toggle="modal"
               data-bs-target="#achatModal">
         ➕ Nouvel Achat
       </button>
-        <a href="{{ url_for('nouveau_bon_commande') }}"
-            class="btn btn-info">
-        ➕ Bon de Commande
-        </a>
-        <a href="{{ url_for('nouveau_bon_livraison') }}" 
-          class="btn btn-success">
-          ➕ Nouveau Bon de Livraison
-        </a>
-  </div>
 </div>
 
 {% if achats %}

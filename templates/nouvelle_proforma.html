@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container p-4">
 
 <h4 class="text-success mb-3">Nouvelle Proforma</h4>
 
@@ -133,10 +133,16 @@ placeholder="Ex: 12 mois">
 </tbody>
 
 </table>
-
-<button class="btn btn-primary mt-3">
-Créer Proforma
-</button>
+<div class="d-fless justify-content-start align-items-center">
+    <button class="btn btn-primary mt-2">
+    Créer Proforma
+    </button>
+    
+    <a href="{{ url_for('liste_proformas') }}"
+    class="btn mt-2 btn-secondary">
+    RETOUR
+    </a>
+</div>
 
 </div>
 </div>

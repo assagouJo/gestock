@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Bon de Commande{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h4 class="fw-bold">
+
+Bon de Commande #{{ bon.id }}
+
+</h4>
+
+<p>
+
+<strong>Date :</strong>
+
+{{ bon.date_creation.strftime("%d/%m/%Y") }}
+
+</p>
+
+<p>
+
+<strong>Fournisseur :</strong>
+
+{{ bon.fournisseur.nom_fournisseur }}
+
+</p>
+
+
+<table class="table table-bordered">
+
+<thead class="table-light">
+
+<tr>
+<th>Produit</th>
+<th>Quantité</th>
+<th>Prix</th>
+<th>Sous Total</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for ligne in bon.lignes %}
+
+<tr>
+
+<td>{{ ligne.produit.nom_produit }}</td>
+
+<td>{{ ligne.quantite }}</td>
+
+<td>{{ ligne.prix_unitaire }}</td>
+
+<td>{{ ligne.sous_total }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+
+<h5 class="text-end">
+
+Total : {{ bon.total }}
+
+</h5>
+
+
+<a href="{{ url_for('bon_commande_pdf', bon_id=bon.id) }}"
+class="btn btn-success">
+
+🖨 Imprimer PDF
+
+</a>
+
+<a href="{{ url_for('liste_bons_commandes') }}"
+class="btn btn-secondary">
+
+Retour
+
+</a>
+
+</div>
+
+{% endblock %}

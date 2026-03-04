@@ -84,7 +84,8 @@
                                 <!-- Sous-menu -->
                                 <div class="collapse {% if is_active('client') 
                                                         or is_active('fournisseur') 
-                                                        or is_active('produit') 
+                                                        or is_active('produit')
+                                                        or is_active('magasin') 
                                                         or is_active('liste_vendeurs') %}show{% endif %}"
                                     id="menuParam">
 
@@ -170,20 +171,20 @@
                             {% endif %}
                             {% if current_user.role in ["admin","superadmin"] %}
                             <li class=" {{ 'bg-nav2' if is_active('etat_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi-cart-plus text-light fs-3"></i>
+                                <i class="bi bi-box-seam text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('etat_stock')}}">Entree Stock</a>
                             </li>
                             {% endif %}
                             {% if current_user.role in ["admin","superadmin","operateur"] %}
                             <li class="{{ 'bg-nav2' if is_active('nouvelle_achat') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-bag text-light fs-3"></i>
+                                <i class="bi bi-cart-plus text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Achat</a>
                             </li>
                             {% endif %}
 
                             {% if current_user.role in ["admin","superadmin","finance"] %}
                             <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-bag text-light fs-3"></i>
+                                <i class="bi bi-cash-coin text-light fs-3"></i>
                                 <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
                             </li>
                             {% endif %}
@@ -197,7 +198,7 @@
                                 role="button"
                                 aria-expanded="false">
                                     <div class="">
-                                        <i class="bi bi-bar-chart fs-2"></i>
+                                        <i class="bi bi-file-earmark-text fs-2"></i>
                                         Editer Documents
                                     </div>
                                     <i class="bi bi-caret-down-fill fs-3"></i>
@@ -205,26 +206,29 @@
 
                                 <!-- Sous-menu -->
                                 <div class="collapse 
-                                    {% if is_active('liste_bons_livraison') %}show{% endif %}"
+                                    {% if is_active('liste_bons_livraison') 
+                                    or is_active('liste_proformas') 
+                                    or is_active('liste_bons_commandes')
+                                    %}show{% endif %}"
                                     id="menuBonLivraison">
 
                                     <ul class="nav flex-column">
                                         
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link border-light text-light {% if is_active('liste_bons_livraison') %}bg-nav2{% endif %}"
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold border-light text-black {% if is_active('liste_bons_livraison') %}bg-nav2{% endif %}"
                                             href="{{ url_for('liste_bons_livraison') }}">
                                                 Bon de Livraison
                                             </a>
                                         </li>
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link border-light text-light {% if is_active('liste_proformas') %}bg-nav2{% endif %}"
+                                        <li class="nav-item fw-bold border-2 border-top bg-transparent">
+                                            <a class="nav-link border-light text-black {% if is_active('liste_proformas') %}bg-nav2{% endif %}"
                                             href="{{ url_for('liste_proformas') }}">
                                                 Proforma
                                             </a>
                                         </li>
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link border-light text-light {% if is_active('nouveau_bon_commande') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('nouveau_bon_commande') }}">
+                                        <li class="nav-item fw-bold border-2 border-top bg-transparent">
+                                            <a class="nav-link border-light text-black {% if is_active('liste_bons_commandes') %}bg-nav2{% endif %}"
+                                            href="{{ url_for('liste_bons_commandes') }}">
                                                 Bon de Commande
                                             </a>
                                         </li>
@@ -242,7 +246,7 @@
                                 role="button"
                                 aria-expanded="false">
                                     <div class="">
-                                        <i class="bi bi-bar-chart fs-2"></i>
+                                        <i class="bi bi-bar-chart-line fs-2"></i>
                                         Rapports
                                     </div>
                                     <i class="bi bi-caret-down-fill fs-3"></i>
@@ -252,48 +256,48 @@
                                 <div class="collapse 
                                     {% if is_active('rapport_stock') 
                                         or is_active('rapport_vendeur') 
-                                        or is_active('rapport_client') 
+                                        or is_active('rapport_client')
+                                        or is_active('logs') 
                                         or is_active('etat_propositions') %}show{% endif %}"
                                     id="menuRapports">
 
                                     <ul class="nav flex-column">
                                         
                                         {% if current_user.role in ["admin","superadmin"] %}
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link border-light text-light {% if is_active('rapport_stock') %}bg-nav2{% endif %}"
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold border-light text-black {% if is_active('rapport_stock') %}bg-nav2{% endif %}"
                                             href="{{ url_for('rapport_stock') }}">
                                                 Rapport Stock
                                             </a>
                                         </li>
 
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('rapport_vendeur') %}bg-nav2{% endif %}"
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold text-black {% if is_active('rapport_vendeur') %}bg-nav2{% endif %}"
                                             href="{{ url_for('rapport_vendeur') }}">
-                                                <i class="bi bi-person-workspace me-2"></i>
                                                 Rapport Vendeurs
                                             </a>
                                         </li>
                                         {% endif %}
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('rapport_client') %}bg-nav2{% endif %}"
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold text-black {% if is_active('rapport_client') %}bg-nav2{% endif %}"
                                             href="{{ url_for('rapport_client') }}">
-                                                <i class="bi bi-person-lines-fill me-2"></i>
+                                                
                                                 Rapport Clients
                                             </a>
                                         </li>
 
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('etat_propositions') %}bg-nav2{% endif %}"
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold text-black {% if is_active('etat_propositions') %}bg-nav2{% endif %}"
                                             href="{{ url_for('etat_propositions') }}">
-                                                <i class="bi bi-receipt me-2"></i>
+                                                
                                                 Etat des Propositions
                                             </a>
                                         </li>
                                         {% if current_user.role in "superadmin" %}
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('logs') %}bg-nav2{% endif %}"
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold text-black {% if is_active('logs') %}bg-nav2{% endif %}"
                                             href="{{ url_for('logs') }}">
-                                                <i class="bi bi-receipt me-2"></i>
+                                                
                                                 Logs
                                             </a>
                                         </li>

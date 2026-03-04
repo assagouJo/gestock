@@ -1,0 +1,94 @@
+{% extends "base_print.html" %}
+
+{% block styles %}
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="header">
+
+<div class="left">
+
+{% if compagnie.logo %}
+<img src="{{ compagnie.logo }}" height="70">
+{% endif %}
+
+</div>
+
+<div class="right">
+
+<strong>{{ compagnie.nom }}</strong><br>
+{{ compagnie.adresse }}<br>
+Tel : {{ compagnie.telephone }}
+
+</div>
+
+</div>
+
+
+<div class="entete">
+
+<h2>BON DE COMMANDE</h2>
+
+</div>
+
+
+<h3>
+
+Date : {{ bon.date_creation.strftime("%d/%m/%Y") }}
+
+</h3>
+
+<h3>
+
+Fournisseur : {{ bon.fournisseur.nom_fournisseur }}
+
+</h3>
+
+
+<table class="table-produits">
+
+<thead>
+
+<tr>
+<th>Produit</th>
+<th>Quantité</th>
+<th>Prix</th>
+<th>Sous-total</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for ligne in bon.lignes %}
+
+<tr>
+
+<td>{{ ligne.produit.nom_produit }}</td>
+
+<td>{{ ligne.quantite }}</td>
+
+<td>{{ ligne.prix_unitaire }}</td>
+
+<td>{{ ligne.sous_total }}</td>
+
+</tr>
+
+{% endfor %}
+
+<tr class="total-row">
+
+<td colspan="3">TOTAL</td>
+
+<td>{{ bon.total }}</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+{% endblock %}
