@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Liste Proformas{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<div class="d-flex justify-content-between mb-3">
+<h4 class="text-success">📄 Liste des Proformas</h4>
+
+<a href="{{ url_for('nouvelle_proforma') }}" class="btn btn-success">
+Nouvelle Proforma
+</a>
+</div>
+
+<div class="card shadow-sm">
+<div class="card-body">
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+<tr>
+<th>Numero</th>
+<th>Client</th>
+<th>Date</th>
+<th>Total</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for p in proformas %}
+
+<tr>
+
+<td>{{ p.numero }}</td>
+
+<td>{{ p.client.nom_client }}</td>
+
+<td>{{ p.date.strftime("%d/%m/%Y") }}</td>
+
+<td>{{ "{:,.0f}".format(p.total) }} FCFA</td>
+
+<td>
+
+<a href="{{ url_for('details_proforma', proforma_id=p.id) }}"
+class="btn btn-sm btn-primary">
+Voir
+</a>
+
+<a href="{{ url_for('proforma_pdf', proforma_id=p.id) }}" target="_blank"
+class="btn btn-sm btn-secondary">
+PDF
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

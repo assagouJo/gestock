@@ -152,11 +152,11 @@
 
     <!-- CLIENT -->
     <div class="mb-3">
-        <label class="form-label fw-bold">Client</label>
+        <label class="form-label fw-bold">Fournisseur</label>
         <select name="client_id" class="form-select" required>
-            <option value="">-- Choisir un client --</option>
-            {% for c in clients %}
-            <option value="{{ c.id }}">{{ c.nom_client }}</option>
+            <option value="">-- Choisir un fournisseur --</option>
+            {% for f in Fournisseurs %}
+            <option value="{{ f.id }}">{{ c.nom_fournisseur }}</option>
             {% endfor %}
         </select>
     </div>

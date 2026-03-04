@@ -5,7 +5,7 @@ from flask_login import UserMixin
 from decimal import Decimal
 import enum
 from sqlalchemy import event
-from helper import generate_code_produit
+from helper import generate_code_produit, generate_code_proforma
 
 
 class User(UserMixin, db.Model):
@@ -405,7 +405,9 @@ class Facture(db.Model):
 
 class Proforma(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
+    condition_paiement = db.Column(db.String(200))
+    delai_livraison = db.Column(db.String(200))
+    garantie = db.Column(db.String(200))
     numero = db.Column(db.String(50), unique=True, nullable=False)
 
     client_id = db.Column(
@@ -416,7 +418,7 @@ class Proforma(db.Model):
 
     date = db.Column(
         db.DateTime,
-        default=lambda: datetime.utcnow
+        default=datetime.utcnow
     )
 
     total = db.Column(db.Float, default=0)
@@ -469,7 +471,6 @@ class LigneProforma(db.Model):
 
 class BonCommande(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
     total = db.Column(db.Numeric(10,2), default=0)
 

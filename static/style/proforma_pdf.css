@@ -1,151 +1,205 @@
+/* ======================
+   GENERAL
+====================== */
 @page {
     size: A4;
-    margin: 20mm;
+    margin: 5mm 20mm 15mm 20mm;
+    
 }
 
-body {
-    font-family: Arial, sans-serif;
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 12px;
-    padding-bottom: 30mm;   /* 🔥 espace pour le footer */
+    color:#222;
+    margin:30px;
 }
+
+/* ======================
+   HEADER ENTREPRISE
+====================== */
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom:2px solid #444;
+    padding-bottom:10px;
+    margin-bottom:20px;
+}
+
+.left img{
+    max-height:130px;
+    width: 130px;
+}
+
+.right{
+    text-align:right;
+    font-size:12px;
+    line-height:18px;
+}
+
+.right p{
+    margin: 0;
+
+}
+
+.right strong{
+    color: red;
+}
+
+
+/* ======================
+   TITRE DOCUMENT
+====================== */
 
 .entete{
-    text-align: center;
+    text-align:center;
+    margin:20px 0;
+    color: red;
 }
+
+.entete h2{
+    font-size:20px;
+    letter-spacing:1px;
+    border-bottom:2px solid red;
+    display:inline-block;
+    padding-bottom:5px;
+}
+
+
+/* ======================
+   INFO DOCUMENT
+====================== */
+
+.info-doc{
+    margin-bottom:15px;
+    font-size:13px;
+}
+
+
+/* ======================
+   CLIENT
+====================== */
+
+.client-box{
+    margin-top:10px;
+    margin-bottom:20px;
+    padding:10px;
+    border:1px solid #ddd;
+}
+
+.client-box strong{
+    color: red;
+}
+
+/* ======================
+   CONDITIONS
+====================== */
+
+.conditions-box{
+    margin-bottom:20px;
+}
+
+.conditions-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+}
+
+.conditions-table td{
+    border:1px solid #ddd;
+    padding:6px;
+}
+
+.conditions-table td:first-child{
+    width:220px;
+    background:#f5f5f5;
+}
+
+
+/* ======================
+   TABLE PRODUITS
+====================== */
+
+.table-produits{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+.table-produits th{
+    background:#f1f1f1;
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:left;
+}
+
+.table-produits td{
+    border:1px solid #ccc;
+    padding:8px;
+}
+
+.table-produits td:nth-child(2),
+.table-produits td:nth-child(3),
+.table-produits td:nth-child(4){
+    text-align:center;
+}
+
+
+/* ======================
+   TOTAL
+====================== */
+
+.total-row td{
+    font-size:14px;
+    background:#fafafa;
+    font-weight:bold;
+}
+
+
+/* ======================
+   IMAGES PRODUITS
+====================== */
+
+.images-container{
+    margin-top:25px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+}
+
+.produit-item{
+    width:150px;
+    text-align:center;
+}
+
+.produit-nom{
+    font-size:11px;
+    margin-bottom:5px;
+}
+
+.produit-img{
+    width:140px;
+    height:120px;
+    object-fit:contain;
+    border:1px solid #ddd;
+    padding:4px;
+}
+
+
+/* ======================
+   FOOTER
+====================== */
 
 .footer-prof{
-    text-align: left;
+    margin-top:40px;
+    border-top:1px solid #ccc;
+    padding-top:10px;
+    text-align:center;
 }
 
-.header {
-    width: 100%;
-    display: table;
-    margin-bottom: 20px;
-}
-
-.left {
-    display: table-cell;
-    width: 50%;
-    vertical-align: middle;
-}
-
-.right {
-    display: table-cell;
-    width: 50%;
-    text-align: right;
-    vertical-align: middle;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th, td {
-    border: 1px solid black;
-    padding: 6px;
-}
-
-td {
-    background-color: white !important;
-}
-
-th {
-    background-color: #f2f2f2 !important;
-}
-
-
-
-.footer-note {
-    position: fixed;
-    bottom: 10mm;   /* distance du bas */
-    left: 20mm;     /* aligné avec marge */
-    right: 20mm;
-    text-align: left;
-    font-size: 16px;
-    color: gray;
-}
-
-.produit{
-    padding: 2px;
-    margin: 2px;
-}
-
-/* 🔥 Spécial PDF */
-@media print {
-    th {
-        background-color: #f2f2f2 !important;
-        color: black !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-}
-
-
-.images-container {
-    text-align: left;   /* ou center si tu veux centrer */
-}
-
-.produit-item {
-    display: inline-block;
-    text-align: left;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    vertical-align: top;
-}
-
-.produit-nom {
-    font-size: 16px;
-    margin-bottom: 1px;
-}
-
-.produit-img {
-    width: 250px;
-    height: 150px;
-    object-fit: contain;
-}
-
-.btn {
-    display: inline-block;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    border: 1px solid transparent;
-}
-
-/* Bouton rouge (Télécharger PDF) */
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border-color: #dc3545;
-}
-
-.btn-danger:hover {
-    background-color: #bb2d3b;
-    border-color: #b02a37;
-}
-
-/* Bouton outline bleu (Retour) */
-.btn-outline {
-    background-color: transparent;
-    color: #0d6efd;
-    border: 1px solid #0d6efd;
-}
-
-.btn-outline:hover {
-    background-color: #0d6efd;
-    color: white;
-}
-
-
-thead th {
-    background-color: #f2f2f2 !important;
-    color: #000 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+.footer-note{
+    font-size:11px;
+    color:#777;
 }

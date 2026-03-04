@@ -15,6 +15,11 @@ def generate_code_produit():
         return f"{uuid.uuid4().hex[:6].upper()}-{annee}"
 
 
+def generate_code_proforma(id):
+    annee = datetime.now().year
+    return f"PF-{annee}-{20000000+id}"
+
+
 def generer_code_barre(code_produit):
     EAN = barcode.get_barcode_class('code128')
     code = EAN(code_produit, writer=ImageWriter())

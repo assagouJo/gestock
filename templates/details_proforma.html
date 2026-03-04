@@ -1,0 +1,174 @@
+{% extends "base_print.html" %}
+
+{% block title %}Détail Proforma{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style/detail_bon_livraison.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="bon-wrapper">
+
+    <!-- Header -->
+    <div class="first-header d-flex justify-content-between align-items-center">
+
+        <div class="img-style">
+            {% if compagnie and compagnie.logo %}
+                <img src="{{ compagnie.logo }}" height="70" width="70">
+            {% endif %}
+        </div>
+
+        <div class="info-style">
+
+            <p><span class="text-danger fw-bold">TIME INTERNATIONAL CO. LTD</span></p>
+            <p class="fw-bold">REPRESENTATION A ABIDJAN</p>
+            <p><span class="text-danger fw-bold">I - MEDICAL</span></p>
+
+            <p>Tel : (225) 27 21 59 38 82</p>
+            <p>E-MAIL : info@imboe.com</p>
+            <p>MARCORY BOULEVARD VGE</p>
+            <p>FACEBOOK: IMBOE I-MEDICAL</p>
+            <p>REPUBLIQUE DE COTE D'IVOIRE</p>
+
+        </div>
+
+    </div>
+
+
+    <!-- Header document -->
+    <div class="bon-header d-flex justify-content-between align-items-center">
+
+        <div>
+            <div class="bon-title">PROFORMA</div>
+            <div class="bon-subtitle">N° {{ proforma.numero }}</div>
+        </div>
+
+        <div class="text-end">
+
+            <strong>Date :</strong><br>
+            {{ proforma.date.strftime('%d/%m/%Y') }}
+
+        </div>
+
+    </div>
+
+
+    <!-- Infos client -->
+
+    <div class="bon-info-box row">
+
+        <div class="col-md-12">
+
+            <strong>Client :</strong>
+
+            <span class="text-danger fw-bold">
+                {{ proforma.client.nom_client }}
+            </span>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Table produits -->
+
+    <table class="bon-table">
+
+        <thead>
+
+            <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Prix Unitaire</th>
+                <th>Sous-total</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for ligne in proforma.lignes %}
+
+            <tr>
+
+                <td>{{ ligne.produit.nom_produit }}</td>
+
+                <td>{{ ligne.quantite }}</td>
+
+                <td>{{ ligne.prix_unitaire | money }} FCFA</td>
+
+                <td>{{ ligne.sous_total | money }} FCFA</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+
+    <!-- Total -->
+
+    <div class="bon-total-box">
+
+        <div class="bon-total">
+
+            TOTAL : {{ proforma.total | money }} FCFA
+
+        </div>
+
+    </div>
+
+
+    <!-- Signatures -->
+
+    <div class="foot-page pdf-footer">
+
+        <div class="footer-left">
+            <p class="fw-bold fs-6 text-decoration-underline">
+                SIGNATURE DU CLIENT
+            </p>
+        </div>
+
+        <div class="d-flex flex-column footer-right">
+
+            <p class="fw-bold fs-6 text-decoration-underline mb-0">
+                LE RESPONSABLE COMMERCIAL
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+{% if not pdf_mode %}
+
+<div class="p-2">
+
+    <a href="{{ url_for('liste_proformas') }}"
+       class="btn btn-outline-secondary">
+
+        ⬅ Retour
+
+    </a>
+
+
+    <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}"
+       target="_blank"
+       class="btn btn-success">
+
+        🖨 Imprimer PDF
+
+    </a>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

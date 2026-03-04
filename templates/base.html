@@ -198,7 +198,7 @@
                                 aria-expanded="false">
                                     <div class="">
                                         <i class="bi bi-bar-chart fs-2"></i>
-                                        Documents
+                                        Editer Documents
                                     </div>
                                     <i class="bi bi-caret-down-fill fs-3"></i>
                                 </a>
@@ -213,7 +213,19 @@
                                         <li class="nav-item border-2 border-top">
                                             <a class="nav-link border-light text-light {% if is_active('liste_bons_livraison') %}bg-nav2{% endif %}"
                                             href="{{ url_for('liste_bons_livraison') }}">
-                                                Liste Bon de Livraison
+                                                Bon de Livraison
+                                            </a>
+                                        </li>
+                                        <li class="nav-item border-2 border-top">
+                                            <a class="nav-link border-light text-light {% if is_active('liste_proformas') %}bg-nav2{% endif %}"
+                                            href="{{ url_for('liste_proformas') }}">
+                                                Proforma
+                                            </a>
+                                        </li>
+                                        <li class="nav-item border-2 border-top">
+                                            <a class="nav-link border-light text-light {% if is_active('nouveau_bon_commande') %}bg-nav2{% endif %}"
+                                            href="{{ url_for('nouveau_bon_commande') }}">
+                                                Bon de Commande
                                             </a>
                                         </li>
                                     </ul>

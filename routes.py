@@ -13,7 +13,7 @@ from cloudinary.uploader import upload
 from decimal import Decimal
 from sqlalchemy import func, exists
 from sqlalchemy.exc import SQLAlchemyError
-from helper import generate_code_produit, generate_numero_facture
+from helper import generate_code_proforma, generate_numero_facture
 from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
@@ -1478,76 +1478,103 @@ def liste_factures():
     )
 
 
-@app.route("/proforma/nouvelle", methods=["GET", "POST"])
+@app.route("/proformas")
+@login_required
+def liste_proformas():
+
+    proformas = Proforma.query.order_by(Proforma.id.desc()).all()
+
+    return render_template(
+        "liste_proforma.html",
+        proformas=proformas
+    )
+
+
+@app.route("/proforma/nouvelle")
 @login_required
 def nouvelle_proforma():
 
-    form = ProformaForm()
-
-    # 🔹 Clients depuis la base
     clients = Client.query.order_by(Client.nom_client).all()
-    form.client_id.choices = [(c.id, c.nom_client) for c in clients]
-
-    # 🔹 Produits depuis la base
     produits = Produit.query.order_by(Produit.nom_produit).all()
 
-    if form.validate_on_submit():
-
-        proforma = Proforma(
-            numero="PF-"+generate_code_produit(),
-            client_id=form.client_id.data
-        )
-
-        db.session.add(proforma)
-        db.session.flush()  # pour récupérer proforma.id
-
-        total = 0
-
-        produits_ids = request.form.getlist("produit_id[]")
-        quantites = request.form.getlist("quantite[]")
-        prix = request.form.getlist("prix[]")
-
-        for pid, qte, pu in zip(produits_ids, quantites, prix):
-            qte = int(qte)
-            pu = float(pu)
-            sous_total = qte * pu
-            total += sous_total
-
-            ligne = LigneProforma(
-                proforma_id=proforma.id,
-                produit_id=pid,
-                quantite=qte,
-                prix_unitaire=pu,
-                sous_total=sous_total
-            )
-            db.session.add(ligne)
-
-        proforma.total = total
-        db.session.commit()
-
-        flash("Proforma créée avec succès", "success")
-        return redirect(url_for("voir_proforma", proforma_id=proforma.id))
-
     return render_template(
-        "proforma_form.html",
-        form=form,
+        "nouvelle_proforma.html",
+        clients=clients,
         produits=produits
     )
 
 
+@app.route("/proforma/create", methods=["POST"])
+@login_required
+def create_proforma():
+
+    client_id = request.form.get("client_id")
+    condition_paiement = request.form.get("condition_paiement")
+    delai_livraison = request.form.get("delai_livraison")
+    garantie = request.form.get("garantie")
+
+    proforma = Proforma(
+        numero="TEMP",
+        client_id=client_id,
+        condition_paiement=condition_paiement,
+        delai_livraison=delai_livraison,
+        garantie=garantie
+    )
+
+
+    db.session.add(proforma)
+    db.session.flush()
+
+    proforma.numero = generate_code_proforma(proforma.id)
+
+    total = 0
+
+    produits_ids = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    prix = request.form.getlist("prix[]")
+
+    for pid, qte, pu in zip(produits_ids, quantites, prix):
+
+        if not pid or not qte or not pu:
+            continue
+
+        qte = int(qte)
+        pu = float(pu)
+
+        sous_total = qte * pu
+        total += sous_total
+
+        ligne = LigneProforma(
+            proforma_id=proforma.id,
+            produit_id=pid,
+            quantite=qte,
+            prix_unitaire=pu,
+            sous_total=sous_total
+        )
+
+        db.session.add(ligne)
+
+    proforma.total = total
+
+    db.session.commit()
+
+    flash("Proforma créée avec succès", "success")
+
+    return redirect(url_for("details_proforma", proforma_id=proforma.id))
+
+
 @app.route("/proforma/<int:proforma_id>")
 @login_required
-def voir_proforma(proforma_id):
+def details_proforma(proforma_id):
 
     proforma = Proforma.query.get_or_404(proforma_id)
-    compagnie = Compagnie.query.first()  # pour logo / infos
+    compagnie = Compagnie.query.first()
 
     return render_template(
-        "proforma.html",
+        "details_proforma.html",
         proforma=proforma,
         compagnie=compagnie
     )
-
 
 
 @app.route("/proforma/<int:proforma_id>/pdf")
@@ -1569,7 +1596,7 @@ def proforma_pdf(proforma_id):
     response.headers["Content-Type"] = "application/pdf"
     response.headers[
         "Content-Disposition"
-    ] = f"attachment; filename=proforma_{proforma.numero}.pdf"
+    ] = f"inline; filename=proforma_{proforma.numero}.pdf"
 
     return response
 
@@ -1580,18 +1607,18 @@ def nouveau_bon_commande():
 
     if request.method == "POST":
 
-        client_id = request.form.get("client_id")
+        fournisseur_id = request.form.get("fournisseur_id")
         produits = request.form.getlist("produit_id[]")
         quantites = request.form.getlist("quantite[]")
         prix = request.form.getlist("prix[]")
 
-        if not client_id:
-            flash("Veuillez sélectionner un client", "danger")
+        if not fournisseur_id:
+            flash("Veuillez sélectionner un fournisseur", "danger")
             return redirect(url_for("nouveau_bon_commande"))
 
         # Création du bon
         bon = BonCommande(
-            client_id=client_id
+            fournisseur_id=fournisseur_id
         )
         db.session.add(bon)
         db.session.flush()
@@ -1623,12 +1650,12 @@ def nouveau_bon_commande():
         flash("Bon de commande créé avec succès", "success")
         return redirect(url_for("liste_bons"))
 
-    clients = Client.query.order_by(Client.nom_client).all()
+    fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
 
     return render_template(
         "bon_commande.html",
-        clients=clients,
+        fournisseurs=fournisseurs,
         produits=produits
     )
 
@@ -1637,9 +1664,8 @@ def nouveau_bon_commande():
 @login_required
 def liste_bons():
 
-
     bons = BonCommande.query.options(
-        joinedload(BonCommande.client)
+        joinedload(BonCommande.fournisseur)
     ).order_by(BonCommande.date_creation.desc()).all()
 
     return render_template(
