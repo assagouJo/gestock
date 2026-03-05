@@ -3,7 +3,7 @@
 ====================== */
 @page {
     size: A4;
-    margin: 5mm 20mm 15mm 20mm;
+    margin: 2mm 2mm 2mm 2mm;
     
 }
 
@@ -23,25 +23,26 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
-    border-bottom:2px solid #444;
-    padding-bottom:10px;
-    margin-bottom:20px;
+    border-bottom:1px solid #9e9e9e;
+    padding:10px 0 10px;
+    margin-bottom:10px;
 }
 
 .left img{
-    max-height:130px;
-    width: 130px;
+    height:110px;
+    width: 110px;
 }
 
 .right{
     text-align:right;
-    font-size:12px;
+    font-size:10px;
     line-height:18px;
 }
 
-.right p{
+.right{
     margin: 0;
-
+    font-size: 9px;
+    line-height:12px;
 }
 
 .right strong{
@@ -55,16 +56,17 @@ body{
 
 .entete{
     text-align:center;
-    margin:20px 0;
+    margin:16px 0;
     color: red;
 }
 
 .entete h2{
-    font-size:20px;
+    font-size:16px;
     letter-spacing:1px;
-    border-bottom:2px solid red;
+    border-bottom:1px solid red;
     display:inline-block;
-    padding-bottom:5px;
+    padding-bottom:2px;
+    font-weight: 800;
 }
 
 
@@ -84,12 +86,12 @@ body{
 
 .client-box{
     margin-top:10px;
-    margin-bottom:20px;
-    padding:10px;
+    margin-bottom:10px;
+    padding:5px;
     border:1px solid #ddd;
 }
 
-.client-box strong{
+.client-box strong.client{
     color: red;
 }
 
@@ -98,7 +100,7 @@ body{
 ====================== */
 
 .conditions-box{
-    margin-bottom:20px;
+    margin-bottom:10px;
 }
 
 .conditions-table{
@@ -109,7 +111,7 @@ body{
 
 .conditions-table td{
     border:1px solid #ddd;
-    padding:6px;
+    padding:3px;
 }
 
 .conditions-table td:first-child{
@@ -125,19 +127,35 @@ body{
 .table-produits{
     width:100%;
     border-collapse:collapse;
-    margin-top:10px;
+    margin-top:5px;
 }
 
 .table-produits th{
     background:#f1f1f1;
     border:1px solid #ccc;
-    padding:8px;
+    padding:5px;
     text-align:left;
+}
+
+.table-produits .produit{
+    width: 500px;
+}
+
+.table-produits .produit strong{
+    font-size: 11px;
+}
+
+.table-produits .produit span{
+    font-size: 11px;
+}
+
+.table-produits .quantite{
+    width: 40px;
 }
 
 .table-produits td{
     border:1px solid #ccc;
-    padding:8px;
+    padding:5px;
 }
 
 .table-produits td:nth-child(2),
@@ -152,9 +170,13 @@ body{
 ====================== */
 
 .total-row td{
-    font-size:14px;
+    font-size:12px;
     background:#fafafa;
     font-weight:bold;
+}
+
+.total-row .total strong{
+    text-align: right;
 }
 
 
@@ -187,19 +209,47 @@ body{
     padding:4px;
 }
 
+.montant-chiffre{
+    padding: 10px;
+}
+
+.montant-chiffre p strong{
+    margin-top: 4px;
+
+}
+
+.montant-chiffre p span{
+    color: red;
+    font-size: 15px;
+}
+
 
 /* ======================
    FOOTER
 ====================== */
 
-.footer-prof{
-    margin-top:40px;
-    border-top:1px solid #ccc;
-    padding-top:10px;
-    text-align:center;
+.footer-prof {
+    position: fixed;
+    bottom: 30mm;
+    left: 5mm;
+    right: 5mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
 }
 
-.footer-note{
-    font-size:11px;
-    color:#777;
+
+.footer-prof .footer-right h5{
+    font-size: 12px;
+    text-decoration: underline;
+    font-weight: 600;
 }
+
+.footer-prof .footer-left h5{
+    font-size: 12px;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+
+

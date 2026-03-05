@@ -28,3 +28,4 @@ python-dotenv
 weasyprint
 pandas
 openpyxl
+num2words

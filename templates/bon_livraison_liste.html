@@ -33,7 +33,7 @@
                         <td>{{ bon.id }}</td>
                         <td>{{ bon.client.nom_client }}</td>
                         <td>{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ bon.total }} FCFA</td>
+                        <td>{{ bon.total }}</td>
                         <td>
                             <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}"
                                class="btn btn-sm btn-outline-success">

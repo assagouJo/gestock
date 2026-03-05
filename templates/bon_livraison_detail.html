@@ -59,8 +59,8 @@
             <tr>
                 <td>{{ ligne.produit.nom_produit }}</td>
                 <td>{{ ligne.quantite }}</td>
-                <td>{{ ligne.prix_unitaire | money}} FCFA</td>
-                <td>{{ ligne.sous_total | money}} FCFA</td>
+                <td>{{ ligne.prix_unitaire | money}}</td>
+                <td>{{ ligne.sous_total | money}}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -69,7 +69,7 @@
     <!-- Total -->
     <div class="bon-total-box">
         <div class="bon-total">
-            TOTAL : {{ bon.total | money}} FCFA
+            TOTAL : {{ bon.total | money}}
         </div>
     </div>
 

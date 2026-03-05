@@ -408,6 +408,7 @@ class Proforma(db.Model):
     condition_paiement = db.Column(db.String(200))
     delai_livraison = db.Column(db.String(200))
     garantie = db.Column(db.String(200))
+    attn = db.Column(db.String(100))
     numero = db.Column(db.String(50), unique=True, nullable=False)
 
     client_id = db.Column(

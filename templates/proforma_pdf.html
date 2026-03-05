@@ -11,20 +11,19 @@
 
     <div class="left">
         {% if compagnie and compagnie.logo %}
-        <img src="{{ compagnie.logo }}" height="70">
+        <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}">
         {% endif %}
     </div>
 
     <div class="right">
         <strong>TIME INTERNATIONAL CO. LTD</strong><br>
-            <p>REPRESENTATION A ABIDJAN</p>
-            <strong>I - MEDICAL</strong><br>
-            <p>Tel : (225) 27 21 59 38 82</p>
-            <p>E-MAIL : info@imboe.com</p>
-            <p>MARCORY BOULEVARD VGE</p>
-            <p>FACEBOOK: IMBOE I-MEDICAL</p>
-            <p>REPUBLIQUE DE COTE D'IVOIRE</p>
-
+            REPRESENTATION A ABIDJAN <br>
+                <strong>I - MEDICAL</strong><br>
+            Tel : (225) 27 21 59 38 82 <br>
+            E-MAIL : info@imboe.com <br>
+            MARCORY BOULEVARD VGE <br>
+            FACEBOOK: IMBOE I-MEDICAL <br>
+            REPUBLIQUE DE COTE D'IVOIRE
     </div>
 
 </div>
@@ -51,9 +50,8 @@
 
 <div class="client-box">
 
-<h3>DOIT :</h3>
-
-<strong>{{ proforma.client.nom_client }}</strong><br>
+<h4>DOIT : <strong class="client">{{ proforma.client.nom_client }}</strong></h4>
+<h4>ATTN : <strong>{{ attn or ""}}</strong></h4> <br>
 
 Tel : {{ proforma.client.telephone }} <br>
 Ville : {{ proforma.client.ville }}
@@ -92,90 +90,74 @@ Ville : {{ proforma.client.ville }}
 
 <table class="table-produits">
 
-<thead>
-<tr>
-<th>Produit</th>
-<th width="80">Qté</th>
-<th width="120">PU</th>
-<th width="150">Sous-total</th>
-</tr>
-</thead>
+    <thead>
+    <tr>
+    <th class="produit">Produit</th>
+    <th class="quantite">Qté</th>
+    <th class="prixu">PU</th>
+    <th class="soustotal">Sous-total</th>
+    </tr>
+    </thead>
 
-<tbody>
+    <tbody>
 
-{% for ligne in proforma.lignes %}
+    {% for ligne in proforma.lignes %}
 
-<tr>
+    <tr>
 
-<td>
-<strong>{{ ligne.produit.nom_produit }}</strong><br>
-{{ ligne.produit.description }}
-</td>
+    <td class="produit">
+    <strong>{{ ligne.produit.nom_produit}}</strong><br>
+    <span>{{ ligne.produit.description }}</span>
+    </td>
 
-<td>{{ ligne.quantite }}</td>
+    <td class="quantite">{{ ligne.quantite }}</td>
 
-<td>{{ ligne.prix_unitaire | money }} FCFA</td>
+    <td class="prixu">{{ ligne.prix_unitaire | money }}</td>
 
-<td>{{ ligne.sous_total | money }} FCFA</td>
+    <td class="soustotal">{{ ligne.sous_total | money }}</td>
 
-</tr>
+    </tr>
 
-{% endfor %}
+    {% endfor %}
 
-<tr class="total-row">
+    <tr class="total-row">
 
-<td colspan="3">
-Montant Total
-</td>
+        <td colspan="2">
+        Montant Total
+        </td>
 
-<td>
-<strong>{{ proforma.total | money }} FCFA</strong>
-</td>
+        <td class="total" colspan="2">
+        <strong>{{ proforma.total | money }}</strong>
+        </td>
 
-</tr>
+    </tr>
 
-</tbody>
+    </tbody>
 
 </table>
 
-
-
-<!-- IMAGES PRODUITS -->
-
-<div class="images-container">
-
-{% for ligne in proforma.lignes %}
-
-{% if ligne.produit.image %}
-
-<div class="produit-item">
-
-<p class="produit-nom">
-{{ ligne.produit.nom_produit }}
-</p>
-
-<img src="{{ ligne.produit.image }}" class="produit-img">
-
+<div class="montant-chiffre">
+    <p>
+        <strong>Arrêtée la présente proforma à la somme de :</strong><br>
+        <span>{{ total_lettre }} francs CFA</span>
+    </p>    
 </div>
-
-{% endif %}
-
-{% endfor %}
-
-</div>
-
-
 
 <!-- FOOTER -->
 
 <div class="footer-prof">
+    <div class="footer-left">
+            <h5>
+                SIGNATURE DU CLIENT
+            </h5>
+        </div>
 
-<p class="footer-note">
+        <div class="footer-right">
+            <h5>
+                LE RESPONSABLE COMMERCIAL
+            </h5>
 
-Ceci est une facture proforma, elle ne constitue pas une facture définitive.
-
-</p>
-
+        </div>
 </div>
 
 {% endblock %}

@@ -15,7 +15,7 @@
 
         <div class="img-style">
             {% if compagnie and compagnie.logo %}
-                <img src="{{ compagnie.logo }}" height="70" width="70">
+                <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}">
             {% endif %}
         </div>
 
@@ -97,9 +97,9 @@
 
                 <td>{{ ligne.quantite }}</td>
 
-                <td>{{ ligne.prix_unitaire | money }} FCFA</td>
+                <td>{{ ligne.prix_unitaire | money }}</td>
 
-                <td>{{ ligne.sous_total | money }} FCFA</td>
+                <td>{{ ligne.sous_total | money }}</td>
 
             </tr>
 
@@ -116,7 +116,7 @@
 
         <div class="bon-total">
 
-            TOTAL : {{ proforma.total | money }} FCFA
+            TOTAL : {{ proforma.total | money }}
 
         </div>
 

@@ -3,7 +3,7 @@
 ============================== */
 @page {
     size: A4;
-    margin: 5mm 20mm 15mm 20mm;
+    margin: 2mm 10mm 10mm 10mm;
     
 }
 
@@ -48,7 +48,7 @@
 }
 
 .first-header .info-style p {
-    font-size: 12px;
+    font-size: 10px;
     margin:0;
 }
 

@@ -22,6 +22,7 @@ from sqlalchemy.orm import joinedload
 import pandas as pd
 from flask import send_file
 import io
+from num2words import num2words
 
 
 def seed_compagnies():
@@ -40,7 +41,7 @@ def seed_compagnies():
 
 @app.template_filter('money')
 def montant_format(valeur):
-    return f"{valeur:,.2f}".replace(",", " ").replace(".", ",")
+    return f"{valeur:,.0f}".replace(",", " ").replace(".", ",")
 
 
 @app.after_request
@@ -1527,13 +1528,15 @@ def create_proforma():
     condition_paiement = request.form.get("condition_paiement")
     delai_livraison = request.form.get("delai_livraison")
     garantie = request.form.get("garantie")
+    attn = request.form.get("attn")
 
     proforma = Proforma(
         numero="TEMP",
         client_id=client_id,
         condition_paiement=condition_paiement,
         delai_livraison=delai_livraison,
-        garantie=garantie
+        garantie=garantie,
+        attn=attn
     )
 
 
@@ -1576,6 +1579,7 @@ def create_proforma():
     flash("Proforma créée avec succès", "success")
 
     return redirect(url_for("details_proforma", proforma_id=proforma.id))
+        
 
 
 @app.route("/proforma/<int:proforma_id>")
@@ -1599,10 +1603,14 @@ def proforma_pdf(proforma_id):
     proforma = Proforma.query.get_or_404(proforma_id)
     compagnie = Compagnie.query.first()
 
+    total_lettre = num2words(proforma.total, lang="fr").capitalize()
+
     html = render_template(
         "proforma_pdf.html",
         proforma=proforma,
-        compagnie=compagnie
+        compagnie=compagnie,
+        attn=proforma.attn,
+        total_lettre=total_lettre
     )
 
     pdf = HTML(string=html, base_url=request.root_url).write_pdf()
