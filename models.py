@@ -38,7 +38,7 @@ class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom_client = db.Column(db.String(100), nullable=False)
     telephone = db.Column(db.String(30))
-    adresse = db.Column(db.String(255))
+    adresse = db.Column(db.String(255), nullable=False)
     attn = db.Column(db.String(255))
 
     bons_commande = db.relationship(
