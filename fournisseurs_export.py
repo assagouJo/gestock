@@ -9,7 +9,7 @@ with app.app_context():
     for _, row in df.iterrows():
         fournisseur = Fournisseur(
             nom_fournisseur=row["nom_fournisseur"],
-            ville=row["ville"]
+            adresse=row["adresse"]
         )
         db.session.add(fournisseur)
 
