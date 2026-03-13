@@ -25,6 +25,26 @@ import io
 from num2words import num2words
 
 
+
+@app.route("/create-admin")
+def create_admin():
+    # éviter doublon
+    user = User.query.filter_by(username="admin").first()
+    if user:
+        return "Admin already exists"
+
+    user = User(
+        username="admin",
+        email="admin@gestock.com",
+        password_hash=generate_password_hash("admin123"),
+        role="admin"
+    )
+    db.session.add(user)
+    db.session.commit()
+    return "Admin created"
+
+
+
 def seed_compagnies():
 
     compagnies = ["Fuji", "I-Medical"]
