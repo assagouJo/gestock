@@ -39,23 +39,26 @@
 <!-- INFOS PROFORMA -->
 
 <div class="info-doc">
-
-<strong>Numéro :</strong> {{ proforma.numero }} <br>
-<strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') }}
-
+    <div class="info-date">
+        <strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') }}
+    </div>
+    <div class="info-numero-pf">
+        <strong>Numéro :</strong> {{ proforma.numero }} <br>
+    </div>
 </div>
 
 
 <!-- INFOS CLIENT -->
 
 <div class="client-box">
-
-<h4>DOIT : <strong class="client">{{ proforma.client.nom_client }}</strong></h4>
-<h4>ATTN : <strong>{{ attn or ""}}</strong></h4> <br>
-
-Tel : {{ proforma.client.telephone }} <br>
-Ville : {{ proforma.client.ville }}
-
+    <div class="info-nom">
+        <span>DOIT : <strong class="client">{{ proforma.client.nom_client }}</strong></span><br>
+        <span>ATTN : <strong>{{ attn or ""}}</strong></span>
+    </div>
+    <div class="info-contact">
+        Tel : {{ proforma.client.telephone }} <br>
+        Ville : {{ proforma.client.ville }}
+    </div>
 </div>
 
 
@@ -64,21 +67,26 @@ Ville : {{ proforma.client.ville }}
 <div class="conditions-box">
 
 <table class="conditions-table">
-
+{% if proforma.condition_paiement %}
 <tr>
 <td><strong>Condition de paiement</strong></td>
 <td>{{ proforma.condition_paiement }}</td>
 </tr>
+{% endif %}
 
+{% if proforma.delai_livraison %}
 <tr>
 <td><strong>Délai de livraison</strong></td>
 <td>{{ proforma.delai_livraison }}</td>
 </tr>
+{% endif %}
 
+{% if proforma.garantie %}
 <tr>
 <td><strong>Garantie</strong></td>
 <td>{{ proforma.garantie }}</td>
 </tr>
+{% endif %}
 
 </table>
 
@@ -92,7 +100,7 @@ Ville : {{ proforma.client.ville }}
 
     <thead>
     <tr>
-    <th class="produit">Produit</th>
+    <th class="produit">Designation</th>
     <th class="quantite">Qté</th>
     <th class="prixu">PU</th>
     <th class="soustotal">Sous-total</th>
@@ -105,16 +113,104 @@ Ville : {{ proforma.client.ville }}
 
     <tr>
 
-    <td class="produit">
-    <strong>{{ ligne.produit.nom_produit}}</strong><br>
-    <span>{{ ligne.produit.description }}</span>
-    </td>
+        <td class="produit">
 
-    <td class="quantite">{{ ligne.quantite }}</td>
+<ul class="kit-list">
 
-    <td class="prixu">{{ ligne.prix_unitaire | money }}</td>
+{% if ligne.designation %}
 
-    <td class="soustotal">{{ ligne.sous_total | money }}</td>
+    {% set ids = ligne.designation.split(',') %}
+
+    {% for pid in ids %}
+
+    {% set produit = produits_id_map.get(pid|int) %}
+
+    {% if produit %}
+
+    <li>
+
+        <strong>{{ produit.nom_produit }}</strong>
+
+        {% if produit.marque %}
+        <br><small>Marque : {{ produit.marque }}</small>
+        {% endif %}
+
+        {% if produit.model %}
+        <br><small>Modèle : {{ produit.model }}</small>
+        {% endif %}
+
+        {% if produit.description %}
+
+        <br><strong>Caractéristiques :</strong>
+
+        <ul class="mb-0">
+
+        {% for desc in produit.description.split(',') %}
+
+        {% if desc.strip() %}
+        <li>{{ desc.strip() }}</li>
+        {% endif %}
+
+        {% endfor %}
+
+        </ul>
+
+        {% endif %}
+
+    </li>
+
+    {% endif %}
+
+    {% endfor %}
+
+{% elif ligne.produit %}
+
+<li>
+
+<strong>{{ ligne.produit.nom_produit }}</strong>
+
+{% if ligne.produit.marque %}
+<br><small>Marque : {{ ligne.produit.marque }}</small>
+{% endif %}
+
+{% if ligne.produit.model %}
+<br><small>Modèle : {{ ligne.produit.model }}</small>
+{% endif %}
+
+{% if ligne.produit.origine %}
+<br><small>Origine : {{ ligne.produit.origine }}</small>
+{% endif %}
+
+{% if ligne.produit.description %}
+
+<br><strong>Caractéristiques :</strong>
+
+<ul>
+
+{% for desc in ligne.produit.description.split(',') %}
+
+{% if desc.strip() %}
+<li>{{ desc.strip() }}</li>
+{% endif %}
+
+{% endfor %}
+
+</ul>
+
+{% endif %}
+
+</li>
+
+{% endif %}
+
+</ul>
+
+</td>
+    <td class="quantite align-top">{{ ligne.quantite }}</td>
+
+    <td class="prixu align-top">{{ ligne.prix_unitaire | money }}</td>
+
+    <td class="soustotal align-top">{{ ligne.sous_total | money }}</td>
 
     </tr>
 

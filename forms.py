@@ -50,23 +50,25 @@ class ChangePasswordForm(FlaskForm):
 
 class ClientForm(FlaskForm):
     nom_client = StringField("Nom client", validators=[DataRequired()])
-    telephone = StringField("Telephone", validators=[DataRequired()])
-    adresse_email = StringField("Adresse")
-    ville = StringField("Ville", validators=[DataRequired()])
-    numero_rcc = StringField("RCC")
+    telephone = StringField("Telephone")
+    adresse = StringField("Adresse")
+    attn = StringField("ATTN")
     submit = SubmitField("Enregistrer")
 
 
 class FournisseurForm(FlaskForm):
     nom_fournisseur = StringField("Nom client", validators=[DataRequired()])
     telephone = StringField("Telephone")
-    adresse_email = StringField("Adresse")
-    ville = StringField("Ville", validators=[DataRequired()])
-    numero_rcc = StringField("RCC")
+    adresse = StringField("Adresse")
     submit = SubmitField("Enregistrer")
 
 
 class ProduitForm(FlaskForm):
+    marque = StringField('Marque')
+    model = StringField('Model')
+    origine = StringField('Origine')
+    nom_produit = StringField('Nom produit', validators=[DataRequired()])
+
     image = FileField(
             "Image du produit",
             validators=[
@@ -76,18 +78,11 @@ class ProduitForm(FlaskForm):
                 )
             ]
         )
+    
     description = TextAreaField(
-            "Description",
-            validators=[DataRequired()]
-        )
-    nom_produit = StringField('Nom produit', validators=[DataRequired()])
-    stock = IntegerField(
-        "Stock initial",
-        default=0,
-        validators=[
-            NumberRange(min=0)
-        ]
+            "Description"
     )
+
     submit = SubmitField('Enregistrer')
 
 

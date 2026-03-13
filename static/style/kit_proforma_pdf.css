@@ -1,0 +1,59 @@
+body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #333;
+}
+
+.proforma-container {
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    height: 70px;
+    margin-bottom: 10px;
+}
+
+.header h2 {
+    margin: 0;
+}
+
+.client-section {
+    margin-top: 20px;
+}
+
+.produits-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.produits-table th,
+.produits-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.produits-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+.total {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.total h3 {
+    border-top: 2px solid #000;
+    padding-top: 10px;
+}
+
+.conditions {
+    margin-top: 30px;
+    font-size: 12px;
+}

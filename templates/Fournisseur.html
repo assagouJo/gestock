@@ -28,9 +28,7 @@
           <th scope="col"></th>
           <th class="text-light" scope="col">Nom</th>
           <th class="text-light" scope="col">Telephone</th>
-          <th class="text-light" scope="col">Adresse_email</th>
-          <th class="text-light" scope="col">Ville</th>
-          <th class="text-light" scope="col">Numero_rcc</th>
+          <th class="text-light" scope="col">Adresse</th>
         </tr>
       </thead>
       <tbody>
@@ -39,9 +37,7 @@
             data-id="{{ fournisseur.id }}"
             data-nom="{{ fournisseur.nom_fournisseur }}"
             data-telephone="{{ fournisseur.telephone }}"
-            data-adresse="{{ fournisseur.adresse_email }}"
-            data-ville="{{ fournisseur.ville }}"
-            data-rcc="{{ fournisseur.numero_rcc }}"
+            data-adresse="{{ fournisseur.adresse }}"
             style="cursor:pointer">
           <td>
             <input class="form-check-input border-success fournisseur-checkbox" 
@@ -50,9 +46,7 @@
           </td>
           <td>{{fournisseur.nom_fournisseur.upper()}}</td>
           <td>{{fournisseur.telephone}}</td>
-          <td>{{fournisseur.adresse_email}}</td>
-          <td>{{fournisseur.ville}}</td>
-          <td>{{fournisseur.numero_rcc}}</td>
+          <td>{{fournisseur.adresse}}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -101,18 +95,8 @@
           </div>
 
           <div class="mb-3">
-            {{ form.adresse_email.label(class="form-label") }}
-            {{ form.adresse_email(class="form-control") }}
-          </div>
-
-          <div class="mb-3">
-            {{ form.ville.label(class="form-label") }}
-            {{ form.ville(class="form-control") }}
-          </div>
-
-          <div class="mb-3">
-            {{ form.numero_rcc.label(class="form-label") }}
-            {{ form.numero_rcc(class="form-control") }}
+            {{ form.adresse.label(class="form-label") }}
+            {{ form.adresse(class="form-control") }}
           </div>
 
           <div class="d-flex justify-content-end gap-2">
@@ -154,9 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     form.nom_client.value = row.dataset.nom || "";
     form.telephone.value = row.dataset.telephone || "";
-    form.adresse_email.value = row.dataset.adresse || "";
-    form.ville.value = row.dataset.ville || "";
-    form.numero_rcc.value = row.dataset.rcc || "";
+    form.adresse.value = row.dataset.adresse || "";
 
     modal.show();
   });

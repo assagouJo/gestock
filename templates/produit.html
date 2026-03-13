@@ -30,6 +30,9 @@
               <th scope="col">Image Produit</th>
               <th scope="col">Nom Produit</th>
               <th scope="col">Description</th>
+              <th scope="col">Marque</th>
+              <th scope="col">Model</th>
+              <th scope="col">Origine</th>
             </tr>
           </thead>
           <tbody>
@@ -38,7 +41,9 @@
                 data-id="{{ produit.id }}"
                 data-nom="{{ produit.nom_produit }}"
                 data-description="{{ produit.description }}"
-                data-stock="{{ produit.stock }}"
+                data-marque="{{produit.marque}}"
+                data-model="{{produit.model}}"
+                data-origine="{{produit.origine}}"
                 style="cursor:pointer">
               <td class="text-center align-middle">
                 <input class="form-check-input border-success produit-checkbox"
@@ -62,6 +67,15 @@
               </td>
               <td class="align-start">
                 <span>{{produit.description}}</span>
+              </td>
+              <td>
+                <span>{{produit.marque}}</span>
+              </td>
+              <td>
+                <span>{{produit.model}}</span>
+              </td>
+              <td>
+                <span>{{produit.origine}}</span>
               </td>
             </tr>
             {% endfor %}
@@ -103,21 +117,30 @@
 
             {{ form.hidden_tag() }}
             <div class="mb-3">
-              {{ form.image.label(class="form-label") }}
-              {{ form.image(class="form-control") }}
+              {{ form.nom_produit.label(class="form-label") }}
+              {{ form.nom_produit(class="form-control") }}
+            </div>
+            <div>
+              {{ form.marque.label(class="form-label") }}
+              {{ form.marque(class="form-control") }}
+            </div>
+            <div>
+              {{ form.model.label(class="form-label") }}
+              {{ form.model(class="form-control") }}
+            </div>
+            <div>
+              {{ form.origine.label(class="form-label") }}
+              {{ form.origine(class="form-control") }}
             </div>
             <div class="mb-3">
                 {{ form.description.label(class="form-label") }}
                 {{ form.description(class="form-control", rows="3") }}
               </div>
             <div class="mb-3">
-              {{ form.nom_produit.label(class="form-label") }}
-              {{ form.nom_produit(class="form-control") }}
+              {{ form.image.label(class="form-label") }}
+              {{ form.image(class="form-control") }}
             </div>
-            <div class="mb-3">
-              {{ form.stock.label(class="form-label") }}
-              {{ form.stock(class="form-control") }}
-            </div>
+
             <div class="d-flex justify-content-end gap-2">
               <button type="button"
                       class="btn btn-secondary"
@@ -153,7 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       form.nom_produit.value = this.dataset.nom;
       form.description.value = this.dataset.description;
-      form.stock.value = this.dataset.stock;
+      form.marque.value = this.dataset.marque
+      form.model.value = this.dataset.model
+      form.origine.value = this.dataset.origine
       modal.show();
     });
   });

@@ -209,6 +209,7 @@
                                     {% if is_active('liste_bons_livraison') 
                                     or is_active('liste_proformas') 
                                     or is_active('liste_bons_commandes')
+                                    or is_active('list_kit_proforma')
                                     %}show{% endif %}"
                                     id="menuBonLivraison">
 
@@ -224,6 +225,12 @@
                                             <a class="nav-link border-light text-black {% if is_active('liste_proformas') %}bg-nav2{% endif %}"
                                             href="{{ url_for('liste_proformas') }}">
                                                 Proforma
+                                            </a>
+                                        </li>
+                                        <li class="nav-item fw-bold border-2 border-top bg-transparent">
+                                            <a class="nav-link border-light text-black {% if is_active('list_kit_proforma') %}bg-nav2{% endif %}"
+                                            href="{{ url_for('list_kit_proforma') }}">
+                                                Kit Proforma
                                             </a>
                                         </li>
                                         <li class="nav-item fw-bold border-2 border-top bg-transparent">

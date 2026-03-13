@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Modifier Proforma{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style/new_proforma.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="container p-4">
+
+<h4 class="text-warning mb-3">
+✏ Modifier Proforma : {{ proforma.numero }}
+</h4>
+
+<form method="POST" action="{{ url_for('update_proforma', id=proforma.id) }}">
+
+
+<!-- CLIENT -->
+<div class="card mb-3">
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-6">
+
+<label class="fw-bold">Client</label>
+
+<select name="client_id" class="form-select" required>
+
+<option value="">Choisir client</option>
+
+{% for c in clients %}
+<option value="{{ c.id }}"
+{% if c.id == proforma.client_id %}selected{% endif %}>
+{{ c.nom_client }}
+</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="fw-bold">ATTN</label>
+
+<input type="text"
+name="attn"
+class="form-control"
+value="{{ proforma.attn or '' }}">
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+
+
+<!-- CONDITIONS -->
+
+<div class="card mb-3">
+<div class="card-body">
+
+<h6 class="text-secondary mb-3">Conditions de la Proforma</h6>
+
+<div class="row">
+
+<div class="col-md-4">
+<label class="fw-bold">Condition de paiement</label>
+<input type="text" name="condition_paiement" class="form-control"
+value="{{ proforma.condition_paiement }}">
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Délai de livraison</label>
+<input type="text" name="delai_livraison" class="form-control"
+value="{{ proforma.delai_livraison }}">
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Garantie</label>
+<input type="text" name="garantie" class="form-control"
+value="{{ proforma.garantie }}">
+</div>
+
+</div>
+
+</div>
+</div>
+
+
+
+<!-- PRODUITS -->
+
+<div class="card">
+<div class="card-body">
+
+<h6 class="text-secondary mb-3">Produits</h6>
+
+<table id="tableProduits" class="table table-bordered table-sm align-middle">
+
+<thead class="table-light">
+
+<tr>
+<th width="120">Type</th>
+<th>Produit(s)</th>
+<th width="120">Quantité</th>
+<th width="150">Prix</th>
+<th width="60"></th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for ligne in proforma.lignes %}
+{% set row_index = loop.index0 %}
+
+<tr>
+
+<td>
+
+<select class="form-select type-select">
+
+<option value="produit"
+{% if not ligne.designation %}selected{% endif %}>
+Produit
+</option>
+
+<option value="kit"
+{% if ligne.designation %}selected{% endif %}>
+Kit
+</option>
+
+</select>
+
+</td>
+
+
+<td>
+
+<!-- PRODUIT SIMPLE -->
+
+<div class="produit-simple"
+{% if ligne.designation %}style="display:none"{% endif %}>
+
+<select name="produit_id[]" class="form-select">
+
+<option value="">Choisir produit</option>
+
+{% for p in produits %}
+<option value="{{ p.id }}"
+{% if ligne.produit_id == p.id %}selected{% endif %}>
+{{ p.nom_produit }}
+</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<!-- PRODUIT KIT -->
+
+<div class="produit-kit mt-2"
+{% if not ligne.designation %}style="display:none"{% endif %}>
+
+<div class="border rounded p-2 kit-box"
+data-row="{{ row_index }}"
+style="max-height:150px; overflow:auto">
+
+{% set kit_produits = ligne.designation.split(',') if ligne.designation else [] %}
+
+{% for p in produits %}
+
+<div class="form-check">
+
+<input class="form-check-input"
+type="checkbox"
+name="produit_kit_{{ row_index }}[]"
+value="{{ p.id }}"
+{% if p.id|string in kit_produits %}checked{% endif %}>
+
+<label class="form-check-label">
+{{ p.nom_produit }}
+</label>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</td>
+
+
+
+<td>
+<input type="number"
+name="quantite[]"
+class="form-control"
+value="{{ ligne.quantite }}"
+required>
+</td>
+
+
+<td>
+<input type="number"
+step="0.01"
+name="prix[]"
+class="form-control"
+value="{{ ligne.prix_unitaire }}"
+required>
+</td>
+
+
+<td>
+
+<button type="button"
+class="btn btn-danger btn-sm"
+onclick="this.closest('tr').remove()">
+x
+</button>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+
+
+<button type="button"
+class="btn btn-success btn-sm mt-2"
+onclick="addRow()">
+
++ Ajouter ligne
+
+</button>
+
+
+
+<div class="d-flex gap-2 mt-3">
+
+<button class="btn btn-primary">
+💾 Enregistrer modifications
+</button>
+
+<a href="{{ url_for('liste_proformas') }}"
+class="btn btn-secondary">
+Retour
+</a>
+
+</div>
+
+</div>
+</div>
+
+</form>
+
+</div>
+
+
+
+<script>
+
+document.addEventListener("change", function(e){
+
+if(e.target.classList.contains("type-select")){
+
+let row = e.target.closest("tr");
+
+let simple = row.querySelector(".produit-simple");
+let kit = row.querySelector(".produit-kit");
+
+if(e.target.value === "kit"){
+
+simple.style.display = "none";
+kit.style.display = "block";
+
+}else{
+
+simple.style.display = "block";
+kit.style.display = "none";
+
+}
+
+}
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,174 +1,161 @@
-{% extends "base_print.html" %}
-
-{% block title %}Détail Proforma{% endblock %}
-
-{% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='style/detail_bon_livraison.css') }}">
-{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
 
-<div class="bon-wrapper">
+<div class="container mt-4">
 
-    <!-- Header -->
-    <div class="first-header d-flex justify-content-between align-items-center">
+<div class="card shadow">
 
-        <div class="img-style">
-            {% if compagnie and compagnie.logo %}
-                <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}">
-            {% endif %}
-        </div>
+<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
 
-        <div class="info-style">
+<h5 class="mb-0">Détails Proforma</h5>
 
-            <p><span class="text-danger fw-bold">TIME INTERNATIONAL CO. LTD</span></p>
-            <p class="fw-bold">REPRESENTATION A ABIDJAN</p>
-            <p><span class="text-danger fw-bold">I - MEDICAL</span></p>
-
-            <p>Tel : (225) 27 21 59 38 82</p>
-            <p>E-MAIL : info@imboe.com</p>
-            <p>MARCORY BOULEVARD VGE</p>
-            <p>FACEBOOK: IMBOE I-MEDICAL</p>
-            <p>REPUBLIQUE DE COTE D'IVOIRE</p>
-
-        </div>
-
-    </div>
-
-
-    <!-- Header document -->
-    <div class="bon-header d-flex justify-content-between align-items-center">
-
-        <div>
-            <div class="bon-title">PROFORMA</div>
-            <div class="bon-subtitle">N° {{ proforma.numero }}</div>
-        </div>
-
-        <div class="text-end">
-
-            <strong>Date :</strong><br>
-            {{ proforma.date.strftime('%d/%m/%Y') }}
-
-        </div>
-
-    </div>
-
-
-    <!-- Infos client -->
-
-    <div class="bon-info-box row">
-
-        <div class="col-md-12">
-
-            <strong>Client :</strong>
-
-            <span class="text-danger fw-bold">
-                {{ proforma.client.nom_client }}
-            </span>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- Table produits -->
-
-    <table class="bon-table">
-
-        <thead>
-
-            <tr>
-                <th>Produit</th>
-                <th>Quantité</th>
-                <th>Prix Unitaire</th>
-                <th>Sous-total</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            {% for ligne in proforma.lignes %}
-
-            <tr>
-
-                <td>{{ ligne.produit.nom_produit }}</td>
-
-                <td>{{ ligne.quantite }}</td>
-
-                <td>{{ ligne.prix_unitaire | money }}</td>
-
-                <td>{{ ligne.sous_total | money }}</td>
-
-            </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
-
-
-    <!-- Total -->
-
-    <div class="bon-total-box">
-
-        <div class="bon-total">
-
-            TOTAL : {{ proforma.total | money }}
-
-        </div>
-
-    </div>
-
-
-    <!-- Signatures -->
-
-    <div class="foot-page pdf-footer">
-
-        <div class="footer-left">
-            <p class="fw-bold fs-6 text-decoration-underline">
-                SIGNATURE DU CLIENT
-            </p>
-        </div>
-
-        <div class="d-flex flex-column footer-right">
-
-            <p class="fw-bold fs-6 text-decoration-underline mb-0">
-                LE RESPONSABLE COMMERCIAL
-            </p>
-
-        </div>
-
-    </div>
+<div>
+<a href="#" class="btn btn-light btn-sm">
+Imprimer
+</a>
+</div>
 
 </div>
 
 
+<div class="card-body">
 
-{% if not pdf_mode %}
+<!-- INFO PROFORMA -->
 
-<div class="p-2">
+<div class="row mb-4">
 
-    <a href="{{ url_for('liste_proformas') }}"
-       class="btn btn-outline-secondary">
+<div class="col-md-6">
 
-        ⬅ Retour
+<h6 class="text-muted">Proforma</h6>
 
-    </a>
+<ul class="list-unstyled">
 
+<li><strong>Numéro :</strong> {{ proforma.numero }}</li>
+<li><strong>Date :</strong> {{ proforma.date.strftime("%d/%m/%Y") }}</li>
+<li><strong>Condition paiement :</strong> {{ proforma.condition_paiement }}</li>
+<li><strong>Délai livraison :</strong> {{ proforma.delai_livraison }}</li>
+<li><strong>Garantie :</strong> {{ proforma.garantie }}</li>
+<li><strong>Attn :</strong> {{ proforma.attn }}</li>
 
-    <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}"
-       target="_blank"
-       class="btn btn-success">
-
-        🖨 Imprimer PDF
-
-    </a>
+</ul>
 
 </div>
 
-{% endif %}
+
+<div class="col-md-6">
+
+<h6 class="text-muted">Client</h6>
+
+<ul class="list-unstyled">
+
+<li><strong>Nom :</strong> {{ proforma.client.nom_client }}</li>
+<li><strong>Téléphone :</strong> {{ proforma.client.telephone }}</li>
+<li><strong>Email :</strong> {{ proforma.client.adresse_email }}</li>
+<li><strong>Ville :</strong> {{ proforma.client.ville }}</li>
+<li><strong>RCC :</strong> {{ proforma.client.numero_rcc }}</li>
+
+</ul>
+
+</div>
+
+</div>
+
+
+<!-- TABLE PRODUITS -->
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>#</th>
+<th>Produit</th>
+<th>Conditionnement</th>
+<th>Quantité</th>
+<th>Prix Unitaire</th>
+<th>Sous Total</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for ligne in proforma.lignes %}
+
+<tr>
+
+<td>{{ loop.index }}</td>
+
+<td>{{ ligne.produit.nom_produit }}</td>
+
+<td>{{ ligne.conditionnement }}</td>
+
+<td>{{ ligne.quantite }}</td>
+
+<td>{{ "{:,.2f}".format(ligne.prix_unitaire) }}</td>
+
+<td>{{ "{:,.2f}".format(ligne.sous_total) }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- TOTAL -->
+
+<div class="row mt-4">
+
+<div class="col-md-4 offset-md-8">
+
+<div class="card">
+
+<div class="card-body">
+
+<h5 class="d-flex justify-content-between">
+
+<span>Total :</span>
+
+<span class="text-success">
+
+{{ "{:,.2f}".format(proforma.total) }}
+
+</span>
+
+</h5>
+
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+<div class="d-flex align-left  gap-2 w-100">
+    <a href="{{ url_for('liste_proformas') }}" class="btn btn-secondary">
+    Retour
+    </a>
+    
+    <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}" class="btn btn-primary" target="_blank">
+    PDF
+    </a>
+</div>
+</div>
+
+</div>
+
+
+</div>
 
 {% endblock %}

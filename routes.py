@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma
 from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -13,7 +13,7 @@ from cloudinary.uploader import upload
 from decimal import Decimal
 from sqlalchemy import func, exists
 from sqlalchemy.exc import SQLAlchemyError
-from helper import generate_code_proforma, generate_numero_facture, generate_code_produit, generate_code_bon_commande
+from helper import generate_code_proforma, generate_numero_facture, generate_code_produit, generate_code_bon_commande, generate_code_bon_livraison
 from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
@@ -315,10 +315,14 @@ def produit():
 
         nouveau_produit = Produit(
         nom_produit = form.nom_produit.data,
+        marque = form.marque.data,
+        model = form.model.data,
+        origine = form.origine.data,
         description=form.description.data,
         code_produit=generate_code_produit(),
         image = image_url
         )
+        print("Origine envoyée :", form.origine.data)
         db.session.add(nouveau_produit)
         db.session.commit()
 
@@ -341,7 +345,6 @@ def edit_produit(id):
 
         produit.nom_produit = form.nom_produit.data
         produit.description = form.description.data
-        produit.stock = form.stock.data
 
         file = form.image.data
 
@@ -445,9 +448,7 @@ def client():
      nouveau_client = Client(
       nom_client = form.nom_client.data,
       telephone = form.telephone.data,
-      adresse_email = form.adresse_email.data,
-      ville = form.ville.data,
-      numero_rcc = form.numero_rcc.data        
+      adresse = form.adresse.data,      
      )
      db.session.add(nouveau_client)
      db.session.commit()
@@ -523,9 +524,7 @@ def fournisseur():
      nouveau_fournisseur = Fournisseur(
       nom_fournisseur = form.nom_fournisseur.data,
       telephone = form.telephone.data,
-      adresse_email = form.adresse_email.data,
-      ville = form.ville.data,
-      numero_rcc = form.numero_rcc.data    
+      adresse = form.adresse.data, 
      )
      db.session.add(nouveau_fournisseur)
      db.session.commit()
@@ -1135,95 +1134,321 @@ def ajouter_achat():
     return redirect(url_for("nouveau_achat"))
 
 
-@app.route("/bon-livraison/nouveau")
-def nouveau_bon_livraison():
-    clients = Client.query.all()
-    produits = Produit.query.all()
-    
+@app.route("/bon-livraison/nouveau/<int:commande_id>")
+@login_required
+def nouveau_bon_livraison(commande_id):
+
+    commande = BonCommande.query.get_or_404(commande_id)
+
     return render_template(
         "bon_livraison_nouveau.html",
-        clients=clients,
-        produits=produits,
-        
+        commande=commande
     )
 
 
 @app.route("/bon-livraison/create", methods=["POST"])
+@login_required
 def create_bon_livraison():
 
-    try:
-        client_id = request.form.get("client_id")
+    commande_id = request.form.get("commande_id")
+    commande = BonCommande.query.get_or_404(commande_id)
 
-        # 🔹 Création initiale du bon (sans numéro)
-        bon = BonLivraison(
-            client_id=client_id,
-            date_creation=datetime.utcnow(),
-            numero=""   # temporaire
-        )
+    # -----------------------
+    # Quantité commandée
+    # -----------------------
 
-        db.session.add(bon)
-        db.session.flush()   # 🔥 permet d'obtenir bon.id
+    quantite_commande = {}
 
-        # 🔹 Génération numéro basé sur ID
-        annee = datetime.utcnow().year
-        bon.numero = f"BL-{annee}-18{bon.id:05d}"
+    for ligne in commande.lignes:
+        quantite_commande[ligne.produit_id] = \
+            quantite_commande.get(ligne.produit_id, 0) + ligne.quantite
 
-        produits_ids = request.form.getlist("produit_id[]")
-        quantites = request.form.getlist("quantite[]")
-        prix_unitaires = request.form.getlist("prix_unitaire[]")
+    # -----------------------
+    # Quantité déjà livrée
+    # -----------------------
 
-        for i in range(len(produits_ids)):
+    quantite_livree = {}
 
-            produit = Produit.query.get(int(produits_ids[i]))
-            quantite = int(quantites[i])
-            prix = float(prix_unitaires[i])
+    livraisons = BonLivraison.query.filter_by(
+        commande_id=commande.id
+    ).all()
 
-            # ✅ Vérification stock
-            # if produit.stock_total < quantite:
-            #     db.session.rollback()
-            #     flash(f"Stock insuffisant pour {produit.nom_produit}", "danger")
-            #     return redirect(url_for("nouveau_bon_livraison"))
+    for bl in livraisons:
+        for ligne in bl.lignes:
+            quantite_livree[ligne.produit_id] = \
+                quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
 
-            # # ✅ Décrémentation du stock (si 1 seul stock)
-            # if produit.stocks:
-            #     produit.stocks[0].quantite -= quantite
+    # -----------------------
+    # Données formulaire
+    # -----------------------
 
-            # 🔹 Création ligne
-            ligne = LigneBonLivraison(
-                bon_id=bon.id,
-                produit_id=produit.id,
-                quantite=quantite,
-                prix_unitaire=prix
+    lignes_commande_ids = request.form.getlist("ligne_commande_id[]")
+    produits_ids = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    numeros_series = request.form.getlist("numero_serie[]")
+
+    # -----------------------
+    # Vérifier dépassement
+    # -----------------------
+
+    for pid, qte in zip(produits_ids, quantites):
+
+        pid = int(pid)
+        qte = int(qte or 0)
+
+        deja_livre = quantite_livree.get(pid, 0)
+        commande_qte = quantite_commande.get(pid, 0)
+
+        if deja_livre + qte > commande_qte:
+
+            flash(
+                "❌ Vous ne pouvez pas livrer plus que la quantité commandée",
+                "danger"
             )
 
-            db.session.add(ligne)
+            return redirect(
+                url_for("nouveau_bon_livraison", commande_id=commande.id)
+            )
 
-        db.session.commit()
+    # -----------------------
+    # Générer numéro BL
+    # -----------------------
 
-        flash("Bon de livraison créé avec succès", "success")
-        return redirect(url_for("detail_bon_livraison", id=bon.id))
+    numero = generate_code_bon_livraison(
+        commande,
+        produits_ids,
+        quantites
+    )
 
-    except SQLAlchemyError as e:
+    # -----------------------
+    # Création BL
+    # -----------------------
+
+    bon = BonLivraison(
+        numero=numero,
+        client_id=commande.client_id,
+        commande_id=commande.id
+    )
+
+    db.session.add(bon)
+    db.session.flush()
+
+    lignes_creees = 0
+
+    # -----------------------
+    # Ajouter lignes BL
+    # -----------------------
+
+    for ligne_commande_id, pid, qte, ns in zip(
+        lignes_commande_ids,
+        produits_ids,
+        quantites,
+        numeros_series
+    ):
+
+        qte = int(qte or 0)
+
+        if qte == 0:
+            continue
+
+        ligne_commande = LigneBonCommande.query.get(int(ligne_commande_id))
+
+        if not ligne_commande:
+            continue
+
+        ligne = LigneBonLivraison(
+            bon_id=bon.id,
+            produit_id=int(pid),
+            quantite=qte,
+            ligne_commande_id=ligne_commande.id,
+            numero_serie=ns
+        )
+
+        db.session.add(ligne)
+
+        lignes_creees += 1
+
+        quantite_livree[int(pid)] = \
+            quantite_livree.get(int(pid), 0) + qte
+
+    # -----------------------
+    # Empêcher BL vide
+    # -----------------------
+
+    if lignes_creees == 0:
+
         db.session.rollback()
-        flash("Erreur lors de la création du bon", "danger")
-        return redirect(url_for("nouveau_bon_livraison"))
+
+        flash("⚠ Aucun produit à livrer", "warning")
+
+        return redirect(
+            url_for("nouveau_bon_livraison", commande_id=commande.id)
+        )
+
+    # -----------------------
+    # Statut BL
+    # -----------------------
+
+    bl_complet = True
+
+    for pid, qte in quantite_commande.items():
+
+        if quantite_livree.get(pid, 0) < qte:
+            bl_complet = False
+            break
+
+    if bl_complet:
+        bon.status = "livree"
+    else:
+        bon.status = "partielle"
+
+    # -----------------------
+    # Statut commande
+    # -----------------------
+
+    commande_complete = True
+
+    for pid, qte in quantite_commande.items():
+
+        if quantite_livree.get(pid, 0) < qte:
+            commande_complete = False
+            break
+
+    if commande_complete:
+        commande.status = "livree"
+    else:
+        commande.status = "livraison_partielle"
+
+    db.session.commit()
+
+    flash("Bon de livraison créé avec succès", "success")
+
+    return redirect(
+        url_for("detail_bon_livraison", id=bon.id)
+    )
+
+
+@app.route("/bon-livraison/delete", methods=["POST"])
+@login_required
+def delete_bon_livraisons():
+
+    ids = request.form.getlist("bons_ids[]")
+
+    if not ids:
+        flash("Veuillez sélectionner au moins un bon", "warning")
+        return redirect(url_for("liste_bons_livraison"))
+
+    commandes_a_verifier = set()
+
+    for id in ids:
+
+        bon = BonLivraison.query.get(id)
+
+        if bon:
+
+            commandes_a_verifier.add(bon.commande_id)
+
+            # supprimer lignes
+            LigneBonLivraison.query.filter_by(
+                bon_id=bon.id
+            ).delete()
+
+            # supprimer BL
+            db.session.delete(bon)
+
+    db.session.commit()
+
+    # -----------------------------
+    # Recalcul du statut commande
+    # -----------------------------
+
+    for commande_id in commandes_a_verifier:
+
+        commande = BonCommande.query.get(commande_id)
+
+        if not commande:
+            continue
+
+        quantite_commande = {
+            l.produit_id: l.quantite
+            for l in commande.lignes
+        }
+
+        quantite_livree = {}
+
+        for bl in commande.livraisons:
+            for ligne in bl.lignes:
+                quantite_livree[ligne.produit_id] = \
+                    quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
+
+        if not quantite_livree:
+            commande.status = "confirmee"
+
+        else:
+            complete = True
+
+            for pid, qte in quantite_commande.items():
+
+                if quantite_livree.get(pid, 0) < qte:
+                    complete = False
+                    break
+
+            if complete:
+                commande.status = "livree"
+            else:
+                commande.status = "livraison_partielle"
+
+    db.session.commit()
+
+    flash("Bons de livraison supprimés avec succès", "success")
+
+    return redirect(url_for("liste_bons_livraison"))
 
 
 @app.route("/bon-livraison/<int:id>")
+@login_required
 def detail_bon_livraison(id):
-    compagnie = Compagnie.query.first()
-    bon = BonLivraison.query.get_or_404(id)
-    return render_template("bon_livraison_detail.html",compagnie=compagnie, bon=bon)
 
+    bon = BonLivraison.query.get_or_404(id)
+
+    return render_template(
+        "bon_livraison_detail.html",
+        bon=bon
+    )
 
 
 @app.route("/bon-livraison")
+@login_required
 def liste_bons_livraison():
-    bons = BonLivraison.query.order_by(
+
+    status = request.args.get("status")
+
+    query = BonLivraison.query
+
+    if status:
+        query = query.filter_by(status=status)
+
+    bons = query.order_by(
         BonLivraison.date_creation.desc()
     ).all()
 
-    return render_template("bon_livraison_liste.html", bons=bons)
+    return render_template(
+        "bon_livraison_liste.html",
+        bons=bons,
+        status=status
+    )
+
+
+@app.route("/bon-livraison/partiel/<int:commande_id>")
+@login_required
+def livraison_partielle(commande_id):
+
+    commande = BonCommande.query.get_or_404(commande_id)
+
+    return render_template(
+        "bon_livraison_partiel.html",
+        commande=commande
+    )
 
 
 @app.route("/bon-livraison/<int:id>/pdf")
@@ -1245,6 +1470,125 @@ def bon_livraison_pdf(id):
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = \
         f"inline; filename=bon_livraison_{bon.id}.pdf"
+
+    return response
+
+
+
+from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
+
+
+@app.route("/bon-livraison/edit/<int:id>", methods=["GET", "POST"])
+def modifier_bon_livraison(id):
+
+    bon = BonLivraison.query.get_or_404(id)
+
+    if request.method == "POST":
+
+        try:
+
+            bon.client_id = request.form.get("client_id")
+            bon.nota_bene = request.form.get("nota_bene")
+
+            # modifier la date
+            date_str = request.form.get("date_creation")
+            if date_str:
+                bon.date_creation = datetime.strptime(date_str, "%Y-%m-%d")
+
+            # supprimer les anciennes lignes
+            LigneBonLivraison.query.filter_by(bon_id=bon.id).delete()
+
+            produits_ids = request.form.getlist("produit_id[]")
+            lignes_commande_ids = request.form.getlist("ligne_commande_id[]")
+            quantites = request.form.getlist("quantite[]")
+            numeros_series = request.form.getlist("numero_serie[]")
+
+            for pid, ligne_commande_id, qte, ns in zip(
+                produits_ids,
+                lignes_commande_ids,
+                quantites,
+                numeros_series
+            ):
+
+                qte = int(qte or 0)
+
+                if qte == 0:
+                    continue
+
+                ligne = LigneBonLivraison(
+                    bon_id=bon.id,
+                    produit_id=int(pid),
+                    quantite=qte,
+                    ligne_commande_id=int(ligne_commande_id),
+                    numero_serie=ns
+                )
+
+                db.session.add(ligne)
+
+            db.session.commit()
+
+            flash("Bon de livraison modifié avec succès", "success")
+
+            return redirect(url_for("detail_bon_livraison", id=bon.id))
+
+        except SQLAlchemyError:
+
+            db.session.rollback()
+
+            flash("Erreur lors de la modification", "danger")
+
+    clients = Client.query.all()
+    produits = Produit.query.all()
+
+    return render_template(
+        "modifier_bon_livraison.html",
+        bon=bon,
+        clients=clients,
+        produits=produits
+    )
+
+
+
+
+@app.route("/certificat-installation/<int:id>")
+def certificat_installation(id):
+
+    bon = BonLivraison.query.get_or_404(id)
+    compagnie = Compagnie.query.first()
+
+    # transformer BL en CI
+    numero_ci = bon.numero.replace("BL", "CI")
+
+    return render_template(
+        "certificat_installation.html",
+        bon=bon,
+        numero_ci=numero_ci,
+        compagnie=compagnie
+    )
+
+
+@app.route("/certificat-installation/pdf/<int:id>")
+def certificat_installation_pdf(id):
+
+    bon = BonLivraison.query.get_or_404(id)
+    compagnie = Compagnie.query.first()
+
+    numero_ci = bon.numero.replace("BL", "CI")
+
+    html = render_template(
+        "certificat_installation.html",
+        bon=bon,
+        compagnie=compagnie,
+        numero_ci=numero_ci,
+        pdf_mode=True
+    )
+
+    pdf = HTML(string=html, base_url=request.root_url).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"inline; filename=CI_{bon.numero}.pdf"
 
     return response
 
@@ -1506,18 +1850,21 @@ def liste_proformas():
     )
 
 
-@app.route("/proforma/nouvelle")
+@app.route("/proforma/nouveau")
 @login_required
 def nouvelle_proforma():
 
-    clients = Client.query.order_by(Client.nom_client).all()
-    produits = Produit.query.order_by(Produit.nom_produit).all()
+    clients = Client.query.all()
+    produits = Produit.query.all()
+    conditionnements = TypeConditionnement
 
     return render_template(
         "nouvelle_proforma.html",
         clients=clients,
-        produits=produits
+        produits=produits,
+        conditionnements=conditionnements
     )
+
 
 
 @app.route("/proforma/create", methods=["POST"])
@@ -1530,8 +1877,17 @@ def create_proforma():
     garantie = request.form.get("garantie")
     attn = request.form.get("attn")
 
+    if not client_id:
+        flash("Veuillez choisir un client")
+        return redirect(url_for("nouvelle_proforma"))
+    
+    conditionnement = request.form.getlist("conditionnement[]")
+
+    numero = f"PRO-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+
     proforma = Proforma(
-        numero="TEMP",
+        numero=numero,
         client_id=client_id,
         condition_paiement=condition_paiement,
         delai_livraison=delai_livraison,
@@ -1539,34 +1895,30 @@ def create_proforma():
         attn=attn
     )
 
-
     db.session.add(proforma)
     db.session.flush()
 
-    proforma.numero = generate_code_proforma(proforma.id)
-
-    total = 0
-
-    produits_ids = request.form.getlist("produit_id[]")
+    produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     prix = request.form.getlist("prix[]")
 
-    for pid, qte, pu in zip(produits_ids, quantites, prix):
+    total = 0
 
-        if not pid or not qte or not pu:
-            continue
+    for i in range(len(produits)):
 
-        qte = int(qte)
-        pu = float(pu)
+        produit_id = produits[i]
+        quantite = int(quantites[i])
+        prix_unitaire = float(prix[i])
 
-        sous_total = qte * pu
+        sous_total = quantite * prix_unitaire
         total += sous_total
 
         ligne = LigneProforma(
             proforma_id=proforma.id,
-            produit_id=pid,
-            quantite=qte,
-            prix_unitaire=pu,
+            produit_id=produit_id,
+            conditionnement=conditionnement[i],   # AJOUT ICI
+            quantite=quantite,
+            prix_unitaire=prix_unitaire,
             sous_total=sous_total
         )
 
@@ -1576,24 +1928,19 @@ def create_proforma():
 
     db.session.commit()
 
-    flash("Proforma créée avec succès", "success")
-
     return redirect(url_for("details_proforma", proforma_id=proforma.id))
-        
-
+    
 
 @app.route("/proforma/<int:proforma_id>")
-@login_required
 def details_proforma(proforma_id):
 
     proforma = Proforma.query.get_or_404(proforma_id)
-    compagnie = Compagnie.query.first()
-
     return render_template(
         "details_proforma.html",
-        proforma=proforma,
-        compagnie=compagnie
+        proforma=proforma
     )
+    
+
 
 
 @app.route("/proforma/<int:proforma_id>/pdf")
@@ -1601,8 +1948,16 @@ def details_proforma(proforma_id):
 def proforma_pdf(proforma_id):
 
     proforma = Proforma.query.get_or_404(proforma_id)
+
     compagnie = Compagnie.query.first()
 
+    # récupérer tous les produits
+    produits = Produit.query.all()
+
+    # dictionnaire id -> produit (nécessaire pour les kits)
+    produits_id_map = {p.id: p for p in produits}
+
+    # total en lettres
     total_lettre = num2words(proforma.total, lang="fr").capitalize()
 
     html = render_template(
@@ -1610,12 +1965,17 @@ def proforma_pdf(proforma_id):
         proforma=proforma,
         compagnie=compagnie,
         attn=proforma.attn,
-        total_lettre=total_lettre
+        total_lettre=total_lettre,
+        produits_id_map=produits_id_map
     )
 
-    pdf = HTML(string=html, base_url=request.root_url).write_pdf()
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url
+    ).write_pdf()
 
     response = make_response(pdf)
+
     response.headers["Content-Type"] = "application/pdf"
     response.headers[
         "Content-Disposition"
@@ -1624,11 +1984,157 @@ def proforma_pdf(proforma_id):
     return response
 
 
-@app.route("/bons-commandes")
+@app.route("/kit-proforma/nouveau")
+@login_required
+def nouveau_kit_proforma():
+
+    clients = Client.query.all()
+    produits = Produit.query.all()
+
+    return render_template(
+        "nouveau_kit.html",
+        clients=clients,
+        produits=produits
+    )
+
+
+@app.route("/kit-proforma/create", methods=["POST"])
+@login_required
+def create_kit_proforma():
+
+    client_id = request.form.get("client_id")
+    prix_global = request.form.get("prix_global")
+
+    attn = request.form.get("attn")
+    condition_paiement = request.form.get("condition_paiement")
+    delai_livraison = request.form.get("delai_livraison")
+    garantie = request.form.get("garantie")
+
+    # quantité globale
+    quantite = request.form.get("quantite", 1)
+
+    numero = f"KIT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+    kit = KitProforma(
+        numero=numero,
+        client_id=client_id,
+        prix_global=prix_global,
+        attn=attn,
+        condition_paiement=condition_paiement,
+        delai_livraison=delai_livraison,
+        garantie=garantie
+    )
+
+    db.session.add(kit)
+    db.session.flush()
+
+    # produits cochés
+    produits = request.form.getlist("produit_id[]")
+
+    for i, produit_id in enumerate(produits):
+
+        if not produit_id:
+            continue
+
+        ligne = LigneKitProforma(
+            kit_id=kit.id,
+            produit_id=int(produit_id),
+            quantite=int(quantite)
+        )
+
+        db.session.add(ligne)
+        db.session.flush()
+
+        # accessoires sélectionnés pour ce produit
+        accessoires_ids = request.form.getlist(f"accessoires[{i}][]")
+
+        for acc_id in accessoires_ids:
+
+            accessoire = LigneKitAccessoire(
+                ligne_kit_id=ligne.id,
+                accessoire_id=int(acc_id)
+            )
+
+            db.session.add(accessoire)
+
+    db.session.commit()
+
+    return redirect(url_for("details_kit_proforma", kit_id=kit.id))
+
+
+@app.route("/kit-proforma")
+@login_required
+def list_kit_proforma():
+
+    kits = KitProforma.query.order_by(KitProforma.date.desc()).all()
+
+    return render_template(
+        "list_kit.html",
+        kits=kits
+    )
+
+
+@app.route("/kit-proforma/<int:kit_id>")
+@login_required
+def details_kit_proforma(kit_id):
+
+    kit = KitProforma.query.get_or_404(kit_id)
+
+    return render_template(
+        "details_kit.html",
+        kit=kit
+    )
+
+
+@app.route("/kit-proforma/<int:kit_id>/pdf")
+@login_required
+def kit_proforma_pdf(kit_id):
+
+    kit = KitProforma.query.get_or_404(kit_id)
+
+    compagnie = Compagnie.query.first()
+
+    # récupérer tous les produits
+    produits = Produit.query.all()
+
+    # dictionnaire id -> produit
+    produits_id_map = {p.id: p for p in produits}
+
+    # prix global en lettres
+    total_lettre = num2words(kit.prix_global, lang="fr").capitalize()
+
+    html = render_template(
+        "kit_proforma_pdf.html",
+        kit=kit,
+        compagnie=compagnie,
+        attn=kit.attn,
+        total_lettre=total_lettre,
+        produits_id_map=produits_id_map
+    )
+
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url
+    ).write_pdf()
+
+    response = make_response(pdf)
+
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers[
+        "Content-Disposition"
+    ] = f"inline; filename=kit_proforma_{kit.numero}.pdf"
+
+    return response
+
+
+
+@app.route("/bon-commande")
 @login_required
 def liste_bons_commandes():
 
-    bons = BonCommande.query.order_by(BonCommande.id.desc()).all()
+    bons = BonCommande.query.order_by(
+        BonCommande.date_creation.desc()
+    ).all()
 
     return render_template(
         "bon_commande_liste.html",
@@ -1640,13 +2146,14 @@ def liste_bons_commandes():
 @login_required
 def nouveau_bon_commande():
 
-    fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
+    clients = Client.query.order_by(Client.nom_client).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
 
     return render_template(
         "bon_commande_nouveau.html",
-        fournisseurs=fournisseurs,
-        produits=produits
+        clients=clients,
+        produits=produits,
+        TypeConditionnement=TypeConditionnement
     )
 
 
@@ -1654,11 +2161,12 @@ def nouveau_bon_commande():
 @login_required
 def create_bon_commande():
 
-    fournisseur_id = int(request.form.get("fournisseur_id"))
+    client_id = request.form.get("client_id")
 
     bon = BonCommande(
-        numero = "TEMP",
-        fournisseur_id=fournisseur_id
+        numero="TEMP",
+        client_id=client_id,
+        status="confirmee"
     )
 
     db.session.add(bon)
@@ -1671,8 +2179,9 @@ def create_bon_commande():
     produits_ids = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     prix = request.form.getlist("prix_unitaire[]")
+    conditionnements = request.form.getlist("type_conditionnement[]")
 
-    for pid, qte, pu in zip(produits_ids, quantites, prix):
+    for pid, qte, pu, cond in zip(produits_ids, quantites, prix, conditionnements):
 
         if not pid or not qte or not pu:
             continue
@@ -1685,10 +2194,11 @@ def create_bon_commande():
 
         ligne = LigneBonCommande(
             bon_id=bon.id,
-            produit_id=pid,
+            produit_id=int(pid),
             quantite=qte,
             prix_unitaire=pu,
-            sous_total=sous_total
+            sous_total=sous_total,
+            type_conditionnement=TypeConditionnement(cond)
         )
 
         db.session.add(ligne)
@@ -1697,10 +2207,9 @@ def create_bon_commande():
 
     db.session.commit()
 
-    flash("Bon de commande créé avec succès", "success")
+    flash("Bon de commande créé", "success")
 
     return redirect(url_for("details_bon_commande", bon_id=bon.id))
-
 
 
 @app.route("/bon-commande/<int:bon_id>")

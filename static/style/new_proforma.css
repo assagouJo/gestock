@@ -1,0 +1,164 @@
+/* CONTAINER */
+
+.container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.08);
+}
+
+
+/* TITRE */
+
+h3 {
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #2c3e50;
+}
+
+
+/* LABELS */
+
+label {
+    font-weight: 500;
+    color: #555;
+}
+
+
+/* INPUTS */
+
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #dcdcdc;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0px 0px 4px rgba(52,152,219,0.3);
+}
+
+
+/* TABLE */
+
+.table {
+    margin-top: 15px;
+    background: white;
+}
+
+.table thead {
+    background: #34495e;
+    color: white;
+}
+
+.table thead th {
+    font-weight: 500;
+    text-align: center;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table input,
+.table select {
+    border-radius: 5px;
+}
+
+
+/* LIGNES TABLE */
+
+#lignes_produit tr:hover {
+    background-color: #f8f9fa;
+}
+
+
+/* TOTAL */
+
+#total_general {
+    font-size: 18px;
+    font-weight: bold;
+    background: #f4f6f8;
+    text-align: right;
+}
+
+
+/* BOUTONS */
+
+.btn {
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-weight: 500;
+}
+
+
+/* AJOUT LIGNE */
+
+#add_ligne {
+    margin-top: 10px;
+    background: #3498db;
+    border: none;
+}
+
+#add_ligne:hover {
+    background: #2980b9;
+}
+
+
+/* SUPPRIMER */
+
+.supprimer {
+    background: #e74c3c;
+    border: none;
+}
+
+.supprimer:hover {
+    background: #c0392b;
+}
+
+
+/* BOUTON CREER */
+
+.btn-success {
+    background: #27ae60;
+    border: none;
+}
+
+.btn-success:hover {
+    background: #219150;
+}
+
+
+/* SECTION PRODUITS */
+
+h5 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+
+/* ESPACEMENT */
+
+hr {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    border-top: 1px solid #eee;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+    .table {
+        font-size: 14px;
+    }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+}

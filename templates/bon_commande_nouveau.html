@@ -1,90 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Nouveau Bon de Commande{% endblock %}
 
 {% block content %}
 
-<div class="container p-4">
+<div class="container mt-4">
 
-<h4 class="text-success mb-3">📦 Nouveau Bon de Commande</h4>
+<h4>Nouveau bon de commande</h4>
 
 <form method="POST" action="{{ url_for('create_bon_commande') }}">
 
-<div class="card mb-3">
-<div class="card-body">
+<div class="mb-3">
 
-<label class="fw-bold">Fournisseur</label>
+<label>Client</label>
 
-<select name="fournisseur_id"
-class="form-control"
-required>
+<select name="client_id" class="form-control">
 
-<option value="">Choisir fournisseur</option>
+{% for client in clients %}
 
-{% for f in fournisseurs %}
-<option value="{{ f.id }}">{{ f.nom_fournisseur }}</option>
+<option value="{{ client.id }}">
+{{ client.nom_client }}
+</option>
+
 {% endfor %}
 
 </select>
 
 </div>
-</div>
 
-
-<div class="card">
-<div class="card-body">
-
-<h6 class="text-secondary mb-3">Produits</h6>
-
-<table class="table table-bordered" id="tableProduits">
+<table class="table table-bordered">
 
 <thead class="table-light">
 <tr>
 <th>Produit</th>
-<th width="120">Quantité</th>
-<th width="150">Prix</th>
-<th width="60"></th>
+<th>Conditionnement</th>
+<th>Quantité</th>
+<th>Prix</th>
+<th></th>
 </tr>
 </thead>
 
-<tbody>
+<tbody id="table_lignes">
 
 <tr>
 
 <td>
+
 <select name="produit_id[]" class="form-control">
 
-<option value="">Choisir produit</option>
+{% for produit in produits %}
 
-{% for p in produits %}
-<option value="{{ p.id }}">{{ p.nom_produit }}</option>
+<option value="{{ produit.id }}">
+{{ produit.nom_produit }}
+</option>
+
 {% endfor %}
 
 </select>
+
 </td>
 
 <td>
-<input type="number"
-name="quantite[]"
-class="form-control"
-required>
+    <select name="type_conditionnement[]" class="form-control">
+
+    {% for c in TypeConditionnement %}
+
+    <option value="{{ c.value }}">
+    {{ c.value.capitalize() }}
+    </option>
+
+    {% endfor %}
+
+    </select>
 </td>
 
 <td>
-<input type="number"
-name="prix_unitaire[]"
-step="0.01"
-class="form-control"
-required>
+
+<input type="number" name="quantite[]" class="form-control">
+
 </td>
 
 <td>
 
-<button type="button"
-onclick="addRow()"
-class="btn btn-success">
+<input type="number" step="0.01" name="prix_unitaire[]" class="form-control">
 
-+
+</td>
 
+<td>
+
+<button type="button" class="btn btn-danger remove_row">
+X
 </button>
 
 </td>
@@ -95,81 +98,49 @@ class="btn btn-success">
 
 </table>
 
-
-<div class="d-flex justify-content-start align-items-center">
-
-<button class="btn btn-primary mt-2">
-
-Créer Bon
-
+<button type="button" id="add_row" class="btn btn-primary">
+➕ Ajouter produit
 </button>
 
-<a href="{{ url_for('liste_bons_commandes') }}"
-class="btn mt-2 btn-secondary ms-2">
+<br><br>
 
-Retour
-
-</a>
-
-</div>
-
-</div>
-</div>
+<button class="btn btn-success">
+Enregistrer
+</button>
 
 </form>
 
 </div>
 
-
 <script>
 
-function addRow(){
+document.getElementById("add_row").onclick = function(){
 
-let table = document.getElementById("tableProduits")
-.getElementsByTagName('tbody')[0];
+let table = document.getElementById("table_lignes")
 
-let row = table.insertRow();
+let row = table.rows[0].cloneNode(true)
 
-row.innerHTML = `
+row.querySelectorAll("input").forEach(input => input.value="")
 
-<td>
-<select name="produit_id[]" class="form-control">
-
-<option value="">Choisir produit</option>
-
-{% for p in produits %}
-<option value="{{ p.id }}">{{ p.nom_produit }}</option>
-{% endfor %}
-
-</select>
-</td>
-
-<td>
-<input type="number"
-name="quantite[]"
-class="form-control">
-</td>
-
-<td>
-<input type="number"
-name="prix_unitaire[]"
-step="0.01"
-class="form-control">
-</td>
-
-<td>
-<button type="button"
-onclick="this.closest('tr').remove()"
-class="btn btn-danger">
-
-x
-
-</button>
-</td>
-
-`;
+table.appendChild(row)
 
 }
+
+document.addEventListener("click", function(e){
+
+if(e.target.classList.contains("remove_row")){
+
+let row = e.target.closest("tr")
+
+if(document.querySelectorAll("#table_lignes tr").length > 1){
+
+row.remove()
+
+}
+
+}
+
+})
 
 </script>
 

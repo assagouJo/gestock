@@ -6,6 +6,7 @@ from decimal import Decimal
 import enum
 from sqlalchemy import event
 from helper import generate_code_produit, generate_code_proforma
+from sqlalchemy import Enum, func
 
 
 class User(UserMixin, db.Model):
@@ -32,12 +33,24 @@ class User(UserMixin, db.Model):
   
 
 class Client(db.Model):
+    __tablename__ = "client"
+
     id = db.Column(db.Integer, primary_key=True)
     nom_client = db.Column(db.String(100), nullable=False)
     telephone = db.Column(db.String(30))
-    adresse_email = db.Column(db.String(255))
-    ville = db.Column(db.String(100))
-    numero_rcc = db.Column(db.String(50))
+    adresse = db.Column(db.String(255))
+    attn = db.Column(db.String(255))
+
+    bons_commande = db.relationship(
+        "BonCommande",
+        back_populates="client",
+        cascade="all, delete-orphan"
+    )
+
+    bons_livraison = db.relationship(
+        "BonLivraison",
+        back_populates="client"
+    )
 
     def __repr__(self):
         return f"<Client {self.nom_client}>"
@@ -47,15 +60,7 @@ class Fournisseur(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom_fournisseur = db.Column(db.String(100), nullable=False)
     telephone = db.Column(db.String(30))
-    adresse_email = db.Column(db.String(255))
-    ville = db.Column(db.String(100))
-    numero_rcc = db.Column(db.String(50))
-
-    bons = db.relationship(
-        "BonCommande",
-        back_populates="fournisseur",
-        cascade="all, delete-orphan"
-    )
+    adresse = db.Column(db.String(255))
 
     # 🔥 NOUVELLE RELATION
     achats = db.relationship(
@@ -69,34 +74,41 @@ class Fournisseur(db.Model):
     
 
 class Produit(db.Model):
+    __tablename__ = "produit"
 
     id = db.Column(db.Integer, primary_key=True)
+
     nom_produit = db.Column(db.String(128), nullable=False, index=True)
-    code_produit = db.Column(db.String(256), nullable=False, unique=True)
-    description = db.Column(db.String(256), nullable=False)
-    image = db.Column(db.String(255), nullable=True)
+    model = db.Column(db.String(128), index=True)
+    marque = db.Column(db.String(128), index=True)
+
+    code_produit = db.Column(db.String(256), unique=True, nullable=False)
+
+    description = db.Column(db.String(256))
+    origine = db.Column(db.String(256))
+
+    image = db.Column(db.String(255))
 
     stocks = db.relationship("Stock", backref="produit", lazy=True)
 
-    lignes_bon = db.relationship(
+    lignes_bon_commande = db.relationship(
         "LigneBonCommande",
+        back_populates="produit"
+    )
+
+    lignes_bon_livraison = db.relationship(
+        "LigneBonLivraison",
+        back_populates="produit"
+    )
+
+    lignes_achat = db.relationship(
+        "LigneAchat",
         back_populates="produit",
         cascade="all, delete-orphan"
     )
 
-    # 🔥 NOUVELLE RELATION
-    lignes_achat = db.relationship(
-    "LigneAchat",
-    back_populates="produit",
-    cascade="all, delete-orphan"
-)
-
     def __repr__(self):
         return f"<Produit {self.nom_produit}>"
-
-    @property
-    def stock_total(self):
-        return sum(s.quantite for s in self.stocks)
   
 
 @event.listens_for(Produit, "before_insert")
@@ -403,6 +415,58 @@ class Facture(db.Model):
     )
 
 
+class KitProforma(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    numero = db.Column(db.String(50), unique=True, nullable=False)
+
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey("client.id"),
+        nullable=False
+    )
+
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    attn = db.Column(db.String(100))
+    condition_paiement = db.Column(db.String(200))
+    delai_livraison = db.Column(db.String(200))
+    garantie = db.Column(db.String(200))
+
+    prix_global = db.Column(db.Float)
+
+    client = db.relationship("Client")
+
+    lignes = db.relationship(
+        "LigneKitProforma",
+        backref="kit",
+        cascade="all, delete-orphan"
+    )
+
+
+
+class LigneKitProforma(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    kit_id = db.Column(
+        db.Integer,
+        db.ForeignKey("kit_proforma.id"),
+        nullable=False
+    )
+
+    produit_id = db.Column(
+        db.Integer,
+        db.ForeignKey("produit.id"),
+        nullable=False
+    )
+
+    quantite = db.Column(db.Integer, nullable=False, default=1)
+
+    produit = db.relationship("Produit")
+
+
 class Proforma(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     condition_paiement = db.Column(db.String(200))
@@ -424,11 +488,6 @@ class Proforma(db.Model):
 
     total = db.Column(db.Float, default=0)
 
-    statut = db.Column(
-        db.String(20),
-        default="PROFORMA"
-    )
-
     client = db.relationship(
         "Client",
         backref=db.backref("proformas", lazy=True)
@@ -446,6 +505,7 @@ class Proforma(db.Model):
 
 
 class LigneProforma(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
 
     proforma_id = db.Column(
@@ -457,48 +517,122 @@ class LigneProforma(db.Model):
     produit_id = db.Column(
         db.Integer,
         db.ForeignKey("produit.id"),
-        nullable=False
+        nullable=True
     )
 
+    conditionnement = db.Column(db.String(50))
     quantite = db.Column(db.Integer, nullable=False)
     prix_unitaire = db.Column(db.Float, nullable=False)
     sous_total = db.Column(db.Float, nullable=False)
-
     produit = db.relationship("Produit")
 
     def __repr__(self):
         return f"<LigneProforma {self.produit.nom_produit}>"
 
 
-class BonCommande(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
-    total = db.Column(db.Numeric(10,2), default=0)
-    numero = db.Column(db.String(30), unique=True, nullable=False)
 
-    fournisseur_id = db.Column(
-        db.Integer,
-        db.ForeignKey("fournisseur.id"),
+class BonCommande(db.Model):
+    __tablename__ = "bon_commande"
+
+    id = db.Column(db.Integer, primary_key=True)
+    numero = db.Column(db.String(30), unique=True, nullable=False)
+    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    total = db.Column(db.Numeric(12,2), default=0)
+
+    status = db.Column(
+        Enum(
+            "brouillon",
+            "confirmee",
+            "livraison_partielle",
+            "livree",
+            "facturee",
+            "annulee",
+            name="status_commande"
+        ),
+        default="brouillon",
         nullable=False
     )
 
-    fournisseur = db.relationship(
-        "Fournisseur",
-        back_populates="bons"
-    )    
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey("client.id"),
+        nullable=False
+    )
 
-    lignes = db.relationship("LigneBonCommande", backref="bon", cascade="all, delete-orphan")
+    client = db.relationship(
+        "Client",
+        back_populates="bons_commande"
+    )
+
+    lignes = db.relationship(
+        "LigneBonCommande",
+        back_populates="bon",
+        cascade="all, delete-orphan"
+    )
+
+    livraisons = db.relationship(
+        "BonLivraison",
+        back_populates="commande"
+    )
+
 
 
 class LigneBonCommande(db.Model):
+    __tablename__ = "ligne_bon_commande"
+
     id = db.Column(db.Integer, primary_key=True)
-    bon_id = db.Column(db.Integer, db.ForeignKey("bon_commande.id"), nullable=False)
-    produit_id = db.Column(db.Integer, db.ForeignKey("produit.id"), nullable=False)    
+
+    bon_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bon_commande.id"),
+        nullable=False
+    )
+
+    produit_id = db.Column(
+        db.Integer,
+        db.ForeignKey("produit.id"),
+        nullable=False
+    )
+
+    type_conditionnement = db.Column(
+        db.Enum(
+            TypeConditionnement,
+            values_callable=lambda x: [e.value for e in x],
+            name="typeconditionnement"
+        ),
+        nullable=False
+    )
+
     quantite = db.Column(db.Integer, nullable=False)
     prix_unitaire = db.Column(db.Numeric(10,2), nullable=False)
-    sous_total = db.Column(db.Numeric(10,2), nullable=False)
+    sous_total = db.Column(db.Numeric(12,2), nullable=False)
 
-    produit = db.relationship("Produit")
+    # relation avec les livraisons
+    livraisons = db.relationship(
+        "LigneBonLivraison",
+        back_populates="ligne_commande",
+        cascade="all, delete-orphan"
+    )
+
+    @property
+    def quantite_livree(self):
+        return sum(l.quantite for l in self.livraisons)
+
+    @property
+    def reste_a_livrer(self):
+        return self.quantite - self.quantite_livree
+
+    bon = db.relationship(
+        "BonCommande",
+        back_populates="lignes"
+    )
+
+    produit = db.relationship(
+        "Produit",
+        back_populates="lignes_bon_commande"
+    )
+
+
 
 # bon de livraison
 
@@ -506,21 +640,59 @@ class BonLivraison(db.Model):
     __tablename__ = "bon_livraison"
 
     id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
-    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
     numero = db.Column(db.String(30), unique=True, nullable=False)
+    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    nota_bene = db.Column(db.Text)
+
+    status = db.Column(
+        Enum(
+            "brouillon",
+            "confirmee",
+            "partielle",
+            "livree",
+            name="status_livraison"
+        ),
+        default="brouillon",
+        nullable=False
+    )
+
+    # client
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey("client.id"),
+        nullable=False
+    )
+
+    client = db.relationship(
+        "Client",
+        back_populates="bons_livraison"
+    )
+
+    # lien avec bon de commande
+    commande_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bon_commande.id")
+    )
+
+    commande = db.relationship(
+        "BonCommande",
+        back_populates="livraisons"
+    )
+
+    # parent pour livraison partielle
+    parent_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bon_livraison.id")
+    )
 
     lignes = db.relationship(
         "LigneBonLivraison",
-        backref="bon",
+        back_populates="bon",
         cascade="all, delete-orphan"
     )
+
+
     
-    client = db.relationship("Client", backref="bons_livraison")
-    
-    @property
-    def total(self):
-        return sum(ligne.sous_total for ligne in self.lignes)
     
 
 class LigneBonLivraison(db.Model):
@@ -530,7 +702,14 @@ class LigneBonLivraison(db.Model):
 
     bon_id = db.Column(
         db.Integer,
-        db.ForeignKey("bon_livraison.id"),   # ✅ CORRECTION ICI
+        db.ForeignKey("bon_livraison.id"),
+        nullable=False
+    )
+
+    # lien vers la ligne de commande
+    ligne_commande_id = db.Column(
+        db.Integer,
+        db.ForeignKey("ligne_bon_commande.id"),
         nullable=False
     )
 
@@ -541,13 +720,24 @@ class LigneBonLivraison(db.Model):
     )
 
     quantite = db.Column(db.Integer, nullable=False)
-    prix_unitaire = db.Column(db.Numeric(10,2), nullable=False)
 
-    produit = db.relationship("Produit")
+    numero_serie = db.Column(db.String(120))
 
-    @property
-    def sous_total(self):
-        return self.quantite * self.prix_unitaire
+    bon = db.relationship(
+        "BonLivraison",
+        back_populates="lignes"
+    )
+
+    produit = db.relationship(
+        "Produit",
+        back_populates="lignes_bon_livraison"
+    )
+
+    ligne_commande = db.relationship(
+        "LigneBonCommande",
+        back_populates="livraisons"
+    )
+
 # bon de livraison
 
 

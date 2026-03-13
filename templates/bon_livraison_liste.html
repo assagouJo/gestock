@@ -5,61 +5,117 @@
 
 <div class="container mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold text-success">🚚 Bons de Livraison</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h4 class="fw-bold text-success">🚚 Bons de Livraison</h4>
 
-        <a href="{{ url_for('nouveau_bon_livraison') }}" 
-           class="btn btn-success">
-            ➕ Nouveau Bon
-        </a>
-    </div>
-    {% if bons %}
-    <div class="card">
-        <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
-            <table class="table table-hover table-bordered align-middle">
-                <thead class="table-dark sticky-top">
-                    <tr>
-                        <th>#</th>
-                        <th>Client</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th width="150">Action</th>
-                    </tr>
-                </thead>
+<form method="POST" action="{{ url_for('delete_bon_livraisons') }}">
+<button type="submit" class="btn btn-danger btn-sm"
+onclick="return confirm('Supprimer les bons sélectionnés ?')">
+🗑 Supprimer
+</button>
+</div>
 
-                <tbody>
-                    {% for bon in bons %}
-                    <tr>
-                        <td>{{ bon.id }}</td>
-                        <td>{{ bon.client.nom_client }}</td>
-                        <td>{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ bon.total }}</td>
-                        <td>
-                            <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}"
-                               class="btn btn-sm btn-outline-success">
-                               👁 Voir
-                            </a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            Aucun bon de livraison
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+{% if bons %}
 
-            </table>
-        </div>
-        {% else %}
-        <div class="alert alert-warning text-center">
-        Aucun achat enregistré.
-        </div>
-        {% endif %}
-        </div>
-    </div>
+<div class="card">
+
+<div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+
+<table class="table table-hover table-bordered align-middle">
+
+<thead class="table-dark sticky-top">
+
+<tr>
+<th>
+<input type="checkbox" id="check_all">
+</th>
+<th>Date</th>
+<th>N°</th>
+<th>Client</th>
+<th>Status</th>
+<th width="200">Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for bon in bons %}
+
+<tr>
+
+<td>
+<input type="checkbox" name="bons_ids[]" value="{{ bon.id }}">
+</td>
+
+<td class="small fw-light">{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
+<td class="small fw-light">{{ bon.numero }}</td>
+<td class="small fw-light">{{ bon.client.nom_client }}</td>
+
+<td>
+    <span class="badge {% if bon.status == 'livree' %}
+    bg-success
+    {% elif bon.status == 'partielle' %}
+    bg-warning
+    {% elif bon.status == 'annule' %}
+    bg-danger
+    {% else %}
+    bg-secondary
+    {% endif %}">
+        {{bon.status}}
+    </span>
+</td>
+
+<td>
+
+<a href="{{ url_for('detail_bon_livraison', id=bon.id) }}"
+class="btn btn-sm btn-outline-success">
+👁 Voir
+</a>
+
+<a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}"
+class="btn btn-sm btn-outline-warning">
+Modifier
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
 
 </div>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-warning text-center">
+Aucun bon de livraison enregistré.
+</div>
+
+{% endif %}
+
+</form>
+
+</div>
+
+<script>
+
+document.getElementById("check_all").onclick = function() {
+
+let checkboxes = document.querySelectorAll('input[name="bons_ids[]"]');
+
+for (let cb of checkboxes) {
+cb.checked = this.checked;
+}
+
+};
+
+</script>
 
 {% endblock %}

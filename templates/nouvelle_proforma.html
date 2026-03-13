@@ -1,138 +1,126 @@
 {% extends "base.html" %}
-{% block title %}Nouvelle Proforma{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style/new_proforma.css') }}">
+{% endblock %}
 
 {% block content %}
 
-<div class="container p-4">
+<div class="container mt-4">
 
-<h4 class="text-success mb-3">Nouvelle Proforma</h4>
+<h3>Nouvelle Proforma</h3>
 
 <form method="POST" action="{{ url_for('create_proforma') }}">
 
-<!-- Client -->
-<div class="card mb-3">
-<div class="card-body">
-
 <div class="row">
 
-    <div class="col-md-6">
+<div class="col-md-6">
+<label>Client</label>
+<select name="client_id" class="form-control" required>
+<option value="">Choisir client</option>
 
-    <label class="fw-bold">Client</label>
+{% for client in clients %}
+<option value="{{ client.id }}">
+{{ client.nom_client }}
+</option>
+{% endfor %}
 
-    <select name="client_id" class="form-control" required>
-    <option value="">Choisir client</option>
+</select>
+</div>
 
-    {% for c in clients %}
-    <option value="{{ c.id }}">{{ c.nom_client }}</option>
-    {% endfor %}
-
-    </select>
-
-    </div>
-    <div class="col-md-6">
-        <label class="fw-bold">ATTN </label>
-        <input type="text"
-        name="attn"
-        class="form-control"
-        placeholder="Ex: attn">
-    </div>
-
+<div class="col-md-6">
+<label>Attention (Attn)</label>
+<input type="text" name="attn" class="form-control">
 </div>
 
 </div>
-</div>
 
-
-<!-- Termes de la proforma -->
-<div class="card mb-3">
-<div class="card-body">
-
-<h6 class="text-secondary mb-3">Conditions de la Proforma</h6>
+<br>
 
 <div class="row">
 
 <div class="col-md-4">
-
-<label class="fw-bold">Condition de paiement</label>
-
-<input type="text"
-name="condition_paiement"
-class="form-control"
-placeholder="Ex: 50% à la commande" required>
-
+<label>Condition de paiement</label>
+<input type="text" name="condition_paiement" class="form-control">
 </div>
 
 <div class="col-md-4">
-
-<label class="fw-bold">Délai de livraison</label>
-
-<input type="text"
-name="delai_livraison"
-class="form-control"
-placeholder="Ex: 7 jours" required>
-
+<label>Délai de livraison</label>
+<input type="text" name="delai_livraison" class="form-control">
 </div>
 
 <div class="col-md-4">
-
-<label class="fw-bold">Garantie</label>
-
-<input type="text"
-name="garantie"
-class="form-control"
-placeholder="Ex: 12 mois">
-
+<label>Garantie</label>
+<input type="text" name="garantie" class="form-control">
 </div>
 
 </div>
 
-</div>
-</div>
+<hr>
 
+<h5>Produits</h5>
 
-<!-- Produits -->
-<div class="card">
-<div class="card-body">
+<table class="table table-bordered" id="table_produits">
 
-<h6 class="text-secondary mb-3">Produits</h6>
-
-<table class="table table-bordered" id="tableProduits">
-
-<thead class="table-light">
+<thead>
 <tr>
+
 <th>Produit</th>
-<th width="120">Quantité</th>
-<th width="150">Prix</th>
-<th width="60"></th>
+<th>type</th>
+<th>Quantité</th>
+<th>Prix Unitaire</th>
+<th>Sous Total</th>
+<th></th>
+
 </tr>
 </thead>
 
-<tbody>
+<tbody id="lignes_produit">
 
 <tr>
 
 <td>
-<select name="produit_id[]" class="form-control">
 
-{% for p in produits %}
-<option value="{{ p.id }}">{{ p.nom_produit }}</option>
+<select name="produit_id[]" class="form-control" required>
+
+<option value="">Choisir produit</option>
+
+{% for produit in produits %}
+<option value="{{ produit.id }}" aria-required="true">
+{{ produit.nom_produit }}
+</option>
+{% endfor %}
+
+</select>
+
+</td>
+
+<td>
+<select name="conditionnement[]" class="form-control">
+
+{% for cond in conditionnements %}
+<option value="{{ cond.value }}">
+{{ cond.value }}
+</option>
 {% endfor %}
 
 </select>
 </td>
 
 <td>
-<input type="number" name="quantite[]" class="form-control" required>
+<input type="number" name="quantite[]" class="form-control quantite" value="1">
 </td>
 
 <td>
-<input type="number" step="0.01" name="prix[]" class="form-control" required>
+<input type="number" step="0.01" name="prix[]" class="form-control prix" required>
 </td>
 
 <td>
-<button type="button" onclick="addRow()" class="btn btn-success">
-+
-</button>
+<input type="text" class="form-control sous_total" readonly>
+</td>
+
+<td>
+<button type="button" class="btn btn-danger supprimer">X</button>
 </td>
 
 </tr>
@@ -140,62 +128,106 @@ placeholder="Ex: 12 mois">
 </tbody>
 
 </table>
-<div class="d-fless justify-content-start align-items-center">
-    <button class="btn btn-primary mt-2">
-    Créer Proforma
-    </button>
-    
-    <a href="{{ url_for('liste_proformas') }}"
-    class="btn mt-2 btn-secondary">
-    RETOUR
-    </a>
+
+<button type="button" class="btn btn-primary" id="add_ligne">
+Ajouter ligne
+</button>
+
+<hr>
+
+<div class="row">
+
+<div class="col-md-4 offset-md-8">
+
+<label>Total</label>
+
+<input type="text" id="total_general" class="form-control" readonly>
+
 </div>
 
 </div>
-</div>
+
+<br>
+
+<button type="submit" class="btn btn-success">
+Créer Proforma
+</button>
+
+<a href="{{ url_for('liste_proformas') }}"
+class="btn btn-sm btn-secondary">
+Retour
+</a>
 
 </form>
 
 </div>
 
-
 <script>
 
-function addRow(){
+function calculerTotal() {
 
-let table = document.getElementById("tableProduits").getElementsByTagName('tbody')[0];
+let total = 0
 
-let row = table.insertRow();
+document.querySelectorAll("#lignes_produit tr").forEach(function(row){
 
-row.innerHTML = `
+let qte = row.querySelector(".quantite").value
+let prix = row.querySelector(".prix").value
 
-<td>
-<select name="produit_id[]" class="form-control">
+let sous_total = qte * prix
 
-{% for p in produits %}
-<option value="{{ p.id }}">{{ p.nom_produit }}</option>
-{% endfor %}
+row.querySelector(".sous_total").value = sous_total.toFixed(2)
 
-</select>
-</td>
+total += sous_total
 
-<td>
-<input type="number" name="quantite[]" class="form-control" value="1">
-</td>
+})
 
-<td>
-<input type="number" step="0.01" name="prix[]" class="form-control">
-</td>
-
-<td>
-<button type="button" onclick="this.closest('tr').remove()" class="btn btn-danger">
-x
-</button>
-</td>
-
-`;
+document.getElementById("total_general").value = total.toFixed(2)
 
 }
+
+document.addEventListener("input", function(e){
+
+if(e.target.classList.contains("quantite") || e.target.classList.contains("prix")){
+
+calculerTotal()
+
+}
+
+})
+
+document.getElementById("add_ligne").addEventListener("click", function(){
+
+let table = document.getElementById("lignes_produit")
+
+let newRow = table.rows[0].cloneNode(true)
+
+newRow.querySelectorAll("input").forEach(function(input){
+
+input.value = ""
+
+})
+
+table.appendChild(newRow)
+
+})
+
+document.addEventListener("click", function(e){
+
+if(e.target.classList.contains("supprimer")){
+
+let rows = document.querySelectorAll("#lignes_produit tr")
+
+if(rows.length > 1){
+
+e.target.closest("tr").remove()
+
+calculerTotal()
+
+}
+
+}
+
+})
 
 </script>
 

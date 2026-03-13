@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<div class="card shadow">
+
+<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+
+<h5 class="mb-0">Liste des Kit Proformas</h5>
+
+<a href="{{ url_for('nouveau_kit_proforma') }}" class="btn btn-light btn-sm">
+Nouveau Kit Proforma
+</a>
+
+</div>
+
+
+<div class="card-body">
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped table-hover">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>#</th>
+<th>Numéro</th>
+<th>Client</th>
+<th>Date</th>
+<th>Prix Global</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for kit in kits %}
+
+<tr>
+
+<td>{{ loop.index }}</td>
+
+<td>
+<strong>{{ kit.numero }}</strong>
+</td>
+
+<td>
+{{ kit.client.nom_client }}
+</td>
+
+<td>
+{{ kit.date.strftime("%d/%m/%Y") }}
+</td>
+
+<td class="text-success">
+<strong>{{ "{:,.0f}".format(kit.prix_global) }}</strong>
+</td>
+
+<td>
+
+<a href="{{ url_for('details_kit_proforma', kit_id=kit.id) }}" 
+class="btn btn-sm btn-primary">
+Voir
+</a>
+
+<a href="#" class="btn btn-sm btn-warning">
+Modifier
+</a>
+
+<a href="#" class="btn btn-sm btn-danger">
+Supprimer
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -3,8 +3,17 @@
 ============================== */
 @page {
     size: A4;
-    margin: 2mm 10mm 10mm 10mm;
+    margin: 5mm 5mm 20mm 5mm;
     
+}
+
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color:#222;
+    margin:30px;
+    margin-bottom: 50mm;
 }
 
 .pdf-footer {
@@ -52,12 +61,13 @@
     margin:0;
 }
 
-.bon-info-box span {
-    color: red;
-}
 
 .first-header .info-style p span {
     color: red;
+}
+
+.nota-bene{
+    margin-top: 20px;
 }
 
 /* Header */
@@ -65,23 +75,44 @@
     border-bottom: 2px solid black;
     padding-bottom: 20px;
     margin-bottom: 10px;
+    text-align: right;
 }
 
 .bon-title {
-    font-size: 26px;
-    font-weight: 700;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    font-size: 20px;
+    text-decoration: underline;
+    text-align: center;
+    font-weight: 600;
     color: red;
 }
 
+.mention{
+    margin-top: 10px;
+    font-size: 12px;
+}
+
 .bon-subtitle {
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 600;
     color: black;
+}
+
+.nom-client{
+    color: red;
 }
 
 /* Info section */
 .bon-info-box {
-    padding: 5px;
-    margin-bottom: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+
+    border: 1px solid rgb(232, 232, 232);
+}
+
+.bon-info-box div{
+    padding: 2px;
 }
 
 .bon-info-box strong {
@@ -90,6 +121,7 @@
 
 /* Table */
 .bon-table {
+    margin-top: 30px;
     width: 100%;
     border-collapse: collapse;
 }
@@ -102,7 +134,7 @@
 
 .bon-table th,
 .bon-table td {
-    padding: 10px;
+    padding: 15px;
     text-align: left;
 }
 
@@ -137,6 +169,33 @@
 .bon-actions {
     margin-top: 30px;
     text-align: center;
+}
+
+
+/* ======================
+   FOOTER
+====================== */
+
+.footer-prof {
+    position: fixed;
+    bottom: 20mm;
+    left: 5mm;
+    right: 5mm;
+    display: flex;
+    justify-content: space-between;
+}
+
+
+.footer-prof .footer-right h5{
+    font-size: 12px;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.footer-prof .footer-left h5{
+    font-size: 12px;
+    text-decoration: underline;
+    font-weight: 600;
 }
 
 

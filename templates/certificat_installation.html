@@ -1,5 +1,5 @@
 {% extends "base_print.html" %}
-{% block title %}Détail Bon de Livraison{% endblock %}
+{% block title %}Certificat d'installation{% endblock %}
 {% block styles %}
  <link rel="stylesheet" href="{{ url_for('static', filename='style/detail_bon_livraison.css') }}">
 {% endblock %}
@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="bon-title">BON DE LIVRAISON</div>
+    <div class="bon-title">CERTIFICAT D'INSTALLATION</div>
 
     <div class="bon-header">
         
@@ -33,7 +33,7 @@
             <strong>Date : </strong>
             {{ bon.date_creation.strftime('%d/%m/%Y') }}
         </div>
-        <div class="bon-subtitle">N° {{ bon.numero }}</div>
+        <div class="bon-subtitle">N° {{ numero_ci }}</div>
     </div>
     
     <!-- Infos -->
@@ -61,7 +61,7 @@
         <thead>
             <tr>
                 <th>S/N</th>
-                <th>Designation</th>
+                <th>Designatio</th>
                 <th>Quantité</th>
                 <th>Marque</th>
                 <th>Model</th>
@@ -79,12 +79,7 @@
             {% endfor %}
         </tbody>
     </table><br>
-    <p class="mention"><strong>NB : Nous certifions avoir recu l'equipement et les accessoires ci-dessus mentionnes en bon etat.</strong></p>
-    {% if bon.nota_bene and bon.nota_bene|trim %}
-    <div class="nota-bene">
-        <h6><strong></strong>{{ bon.nota_bene }}</h6>
-    </div>
-    {% endif %}
+    <p class="mention"><strong>NOUS CERTIFIONS QUE LE MATERIEL CI-DESSUS  CITE A ETE INSTALLE ET EST EN ETAT DE BON FONCTIONNEMENT.</strong></p>
     <div class="footer-prof">
     <div class="footer-left">
             <h5>
@@ -106,17 +101,13 @@
     <a href="{{ url_for('liste_bons_livraison') }}" 
        class="btn btn-outline-secondary">
         ⬅ Retour
-    </a>   
-    <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}"
-    target="_blank"
-    class="btn btn-success">
-        🖨 Bon de Livraison pdf
     </a>
-    <a href="{{ url_for('certificat_installation', id=bon.id) }}"
-    target="_blank"
-    class="btn btn-primary">
-    📄 Certificat d'installation pdf
-    </a>
+
+    <a href="{{ url_for('certificat_installation_pdf', id=bon.id) }}"
+   target="_blank"
+   class="btn btn-success">
+    🖨 Imprimer PDF
+</a>
 </div>
 {% endif %}
 

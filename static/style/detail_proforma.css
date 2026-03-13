@@ -1,45 +1,24 @@
 /* ==============================
    BON DE LIVRAISON - DESIGN PRO
 ============================== */
-@page {
-    size: A4;
-    margin: 5mm 20mm 15mm 20mm;
-    
-}
-
-.pdf-footer {
-    position: fixed;
-    bottom: 30mm;
-    left: 5mm;
-    right: 5mm;
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-}
-
-.pdf-footer p {
-    margin: 0;
-}
-
-.footer-left {
-    text-align: left;
-}
-
-.footer-right {
-    text-align: right;
-}
-
-.foot-page{
-    margin-top: 60px;
-}
 
 .bon-wrapper {
     max-width: 950px;
     margin: 20px auto;
     background: #ffffff;
-    padding: 10px 30px 30px 30px;
+    padding: 20px;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.bon-table{
+    width:100%;
+    table-layout: fixed;
+}
+
+.bon-table td{
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .first-header .img-style img{
@@ -139,23 +118,4 @@
     text-align: center;
 }
 
-
-
-/* Print Style */
-@media print {
-    body {
-        background: white;
-    }
-
-    .no-print {
-        display: none !important;
-    }
-
-    .bon-wrapper {
-        box-shadow: none;
-        border: none;
-        margin: 0;
-        padding: 0;
-    }
-}
 

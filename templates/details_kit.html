@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<div class="card shadow">
+
+<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+
+<h5 class="mb-0">Détails Kit Proforma</h5>
+
+<div>
+<a href="{{ url_for('list_kit_proforma') }}" class="btn btn-light btn-sm">
+Retour
+</a>
+<a href="{{url_for('kit_proforma_pdf', kit_id=kit.id)}}" class="btn btn-success btn-sm" target="_blank">
+pdf
+</a>
+</div>
+
+</div>
+
+<div class="card-body">
+
+<!-- INFO KIT -->
+
+<div class="row mb-4">
+
+<div class="col-md-6">
+
+<h6 class="text-muted">Informations Kit</h6>
+
+<ul class="list-unstyled">
+
+<li><strong>Numéro :</strong> {{ kit.numero }}</li>
+<li><strong>Date :</strong> {{ kit.date.strftime("%d/%m/%Y") }}</li>
+<li><strong>Condition paiement :</strong> {{ kit.condition_paiement }}</li>
+<li><strong>Délai livraison :</strong> {{ kit.delai_livraison }}</li>
+<li><strong>Garantie :</strong> {{ kit.garantie }}</li>
+<li><strong>Attn :</strong> {{ kit.attn }}</li>
+
+</ul>
+
+</div>
+
+
+<div class="col-md-6">
+
+<h6 class="text-muted">Client</h6>
+
+<ul class="list-unstyled">
+
+<li><strong>Nom :</strong> {{ kit.client.nom_client }}</li>
+<li><strong>Téléphone :</strong> {{ kit.client.telephone }}</li>
+<li><strong>Email :</strong> {{ kit.client.adresse_email }}</li>
+<li><strong>Ville :</strong> {{ kit.client.ville }}</li>
+<li><strong>RCC :</strong> {{ kit.client.numero_rcc }}</li>
+
+</ul>
+
+</div>
+
+</div>
+
+<hr>
+
+<!-- PRODUITS DU KIT -->
+
+<h6 class="mb-3">Produits inclus dans le kit</h6>
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>#</th>
+<th>Produit</th>
+<th>Quantité</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td>1</td>
+
+<td>
+
+<ul class="mb-0">
+
+{% for ligne in kit.lignes %}
+
+<li>{{ ligne.produit.nom_produit }}</li>
+
+{% endfor %}
+
+</ul>
+
+</td>
+
+<td>
+
+{% if kit.lignes %}
+{{ kit.lignes[0].quantite }}
+{% endif %}
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<hr>
+
+<!-- PRIX GLOBAL -->
+
+<div class="row">
+
+<div class="col-md-4 offset-md-8">
+
+<div class="card border-success">
+
+<div class="card-body">
+
+<h5 class="d-flex justify-content-between">
+
+<span>Prix Global :</span>
+
+<span class="text-success">
+
+{{ "{:,.0f}".format(kit.prix_global) }}
+
+</span>
+
+</h5>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

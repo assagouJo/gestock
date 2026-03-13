@@ -1,0 +1,252 @@
+{% extends "base_print.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER ENTREPRISE -->
+<div class="header">
+
+    <div class="left">
+        {% if compagnie and compagnie.logo %}
+        <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}">
+        {% endif %}
+    </div>
+
+    <div class="right">
+        <strong>TIME INTERNATIONAL CO. LTD</strong><br>
+        REPRESENTATION A ABIDJAN <br>
+        <strong>I - MEDICAL</strong><br>
+        Tel : (225) 27 21 59 38 82 <br>
+        E-MAIL : info@imboe.com <br>
+        MARCORY BOULEVARD VGE <br>
+        FACEBOOK: IMBOE I-MEDICAL <br>
+        REPUBLIQUE DE COTE D'IVOIRE
+    </div>
+
+</div>
+
+
+<!-- TITRE DOCUMENT -->
+
+<div class="entete">
+    <h2>FACTURE PROFORMA</h2>
+</div>
+
+
+<!-- INFOS KIT -->
+
+<div class="info-doc">
+    <div class="info-date">
+        <strong>Date :</strong> {{ kit.date.strftime('%d/%m/%Y') }}
+    </div>
+
+    <div class="info-numero-pf">
+        <strong>Numéro :</strong> {{ kit.numero }}
+    </div>
+</div>
+
+
+<!-- INFOS CLIENT -->
+
+<div class="client-box">
+
+    <div class="info-nom">
+
+        <span>
+        DOIT :
+        <strong class="client">{{ kit.client.nom_client }}</strong>
+        </span>
+
+        <br>
+
+        <span>
+        ATTN :
+        <strong>{{ attn or "" }}</strong>
+        </span>
+
+    </div>
+
+    <div class="info-contact">
+
+        Tel : {{ kit.client.telephone }} <br>
+        Ville : {{ kit.client.ville }}
+
+    </div>
+
+</div>
+
+
+<!-- CONDITIONS COMMERCIALES -->
+
+<div class="conditions-box">
+
+<table class="conditions-table">
+
+{% if kit.condition_paiement %}
+<tr>
+<td><strong>Condition de paiement</strong></td>
+<td>{{ kit.condition_paiement }}</td>
+</tr>
+{% endif %}
+
+{% if kit.delai_livraison %}
+<tr>
+<td><strong>Délai de livraison</strong></td>
+<td>{{ kit.delai_livraison }}</td>
+</tr>
+{% endif %}
+
+{% if kit.garantie %}
+<tr>
+<td><strong>Garantie</strong></td>
+<td>{{ kit.garantie }}</td>
+</tr>
+{% endif %}
+
+</table>
+
+</div>
+
+
+<!-- TABLE PRODUITS KIT -->
+
+<table class="table-produits">
+
+<thead>
+
+<tr>
+<th class="produit">Designation</th>
+<th class="quantite">Qté</th>
+<th class="montant">Montant</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td class="produit">
+
+<ul class="kit-list">
+
+{% for ligne in kit.lignes %}
+
+<li>
+
+<strong>{{ ligne.produit.nom_produit }}</strong>
+
+{% if ligne.produit.marque %}
+<br><small>Marque : {{ ligne.produit.marque }}</small>
+{% endif %}
+
+{% if ligne.produit.model %}
+<br><small>Modèle : {{ ligne.produit.model }}</small>
+{% endif %}
+
+{% if ligne.produit.origine %}
+<br><small>Origine : {{ ligne.produit.origine }}</small>
+{% endif %}
+
+{% if ligne.produit.description %}
+
+<br><strong>Caractéristiques :</strong>
+
+<ul>
+
+{% for desc in ligne.produit.description.split(',') %}
+
+{% if desc.strip() %}
+<li>{{ desc.strip() }}</li>
+{% endif %}
+
+{% endfor %}
+
+</ul>
+
+{% endif %}
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+</td>
+
+<td class="quantite align-top">
+
+{% if kit.lignes %}
+{{ kit.lignes[0].quantite }}
+{% endif %}
+
+</td>
+<td class="s-total">
+    {{ (kit.prix_global * kit.lignes[0].quantite) | money }}
+</td>
+
+</tr>
+
+
+<tr class="total-row">
+
+<td>
+<strong>Montant Total </strong>
+</td>
+
+<td class="" colspan="2" >
+<strong>{{ kit.prix_global | money }}</strong>
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+
+<div class="montant-chiffre">
+
+<p>
+
+<strong>
+Arrêtée la présente proforma à la somme de :
+</strong>
+
+<br>
+
+<span>
+{{ total_lettre }} francs CFA
+</span>
+
+</p>
+
+</div>
+
+
+<!-- FOOTER -->
+
+<div class="footer-prof">
+
+<div class="footer-left">
+
+<h5>
+SIGNATURE DU CLIENT
+</h5>
+
+</div>
+
+<div class="footer-right">
+
+<h5>
+LE RESPONSABLE COMMERCIAL
+</h5>
+
+</div>
+
+</div>
+
+{% endblock %}

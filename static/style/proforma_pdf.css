@@ -3,7 +3,7 @@
 ====================== */
 @page {
     size: A4;
-    margin: 2mm 2mm 2mm 2mm;
+    margin: 0 5mm 20mm 5mm;
     
 }
 
@@ -13,6 +13,7 @@ body{
     font-size: 12px;
     color:#222;
     margin:30px;
+    margin-bottom: 50mm;
 }
 
 /* ======================
@@ -75,6 +76,9 @@ body{
 ====================== */
 
 .info-doc{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom:15px;
     font-size:13px;
 }
@@ -85,6 +89,9 @@ body{
 ====================== */
 
 .client-box{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-top:10px;
     margin-bottom:10px;
     padding:5px;
@@ -150,6 +157,7 @@ body{
 }
 
 .table-produits .quantite{
+    text-align: center;
     width: 40px;
 }
 
@@ -177,6 +185,10 @@ body{
 
 .total-row .total strong{
     text-align: right;
+}
+
+.s-total{
+    vertical-align: top;
 }
 
 
@@ -223,6 +235,13 @@ body{
     font-size: 15px;
 }
 
+.quantite,
+.prixu,
+.soustotal {
+    white-space: nowrap;
+    text-align: right;
+}
+
 
 /* ======================
    FOOTER
@@ -230,12 +249,11 @@ body{
 
 .footer-prof {
     position: fixed;
-    bottom: 30mm;
+    bottom: 20mm;
     left: 5mm;
     right: 5mm;
     display: flex;
     justify-content: space-between;
-    align-items: end;
 }
 
 
