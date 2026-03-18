@@ -357,50 +357,71 @@ def produit():
 @login_required
 def edit_produit(id):
     produit = Produit.query.get_or_404(id)
-    form = ProduitForm()
     
-    if form.validate_on_submit():
-        try:
-            # Mise à jour des champs
-            produit.nom_produit = form.nom_produit.data
-            produit.description = form.description.data
-            produit.marque = form.marque.data
-            produit.model = form.model.data
-            produit.origine = form.origine.data
-            
-            # Gestion de l'image
-            file = form.image.data
+    try:
+        # Récupération et nettoyage des données
+        nom_produit = request.form.get('nom_produit', '').strip()
+        description = request.form.get('description', '').strip()
+        marque = request.form.get('marque', '').strip()
+        model = request.form.get('model', '').strip()
+        origine = request.form.get('origine', '').strip()
+        
+        # Validation
+        if not nom_produit:
+            flash("Le nom du produit est obligatoire", "danger")
+            return redirect(url_for('produit'))
+        
+        # Vérifier si un autre produit avec le même nom existe (sauf celui-ci)
+        existing = Produit.query.filter(
+            Produit.nom_produit == nom_produit,
+            Produit.id != id
+        ).first()
+        
+        if existing:
+            flash(f"Un produit avec le nom '{nom_produit}' existe déjà", "danger")
+            return redirect(url_for('produit'))
+        
+        # Mise à jour
+        produit.nom_produit = nom_produit
+        produit.description = description if description else None
+        produit.marque = marque if marque else None
+        produit.model = model if model else None
+        produit.origine = origine if origine else None
+        
+        # Gestion de l'image
+        if 'image' in request.files:
+            file = request.files['image']
             if file and file.filename:
-                # Supprimer l'ancienne image
-                if produit.image:
-                    try:
-                        delete_cloudinary_image(produit.image)
-                    except Exception as e:
-                        print(f"Erreur suppression ancienne image: {e}")
+                # Vérifier le type de fichier
+                allowed = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+                ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
                 
-                # Upload nouvelle image
-                try:
+                if ext in allowed:
+                    # Supprimer l'ancienne image
+                    if produit.image:
+                        try:
+                            delete_cloudinary_image(produit.image)
+                        except Exception as e:
+                            print(f"Erreur suppression: {e}")
+                    
+                    # Upload nouvelle image
                     result = upload(
                         file,
                         folder="gestock/produits",
-                        resource_type="auto"
+                        public_id=f"produit_{id}_{int(time.time())}"
                     )
                     produit.image = result["secure_url"]
-                except Exception as e:
-                    flash(f"Erreur lors de l'upload de l'image: {str(e)}", "warning")
-                    # Continuer sans changer l'image
-            
-            db.session.commit()
-            flash("Produit modifié avec succès", "success")
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Erreur lors de la modification: {str(e)}", "danger")
-    else:
-        # Afficher les erreurs de validation
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{getattr(form, field).label.text}: {error}", "danger")
+                    flash("Image mise à jour", "success")
+                else:
+                    flash("Format d'image non supporté", "warning")
+        
+        db.session.commit()
+        flash(f"✅ Produit '{produit.nom_produit}' modifié avec succès", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur: {str(e)}", "danger")
+        print(f"Erreur edit_produit: {e}")
     
     return redirect(url_for('produit'))
 

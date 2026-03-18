@@ -2,209 +2,554 @@
 {% block title %}Gestion Produits | gestock{% endblock %}
 
 {% block styles %}
+<style>
+    /* Layout de la table - Fixed pour contrôler les largeurs */
+    .table {
+        table-layout: fixed;
+        width: 100%;
+    }
     
+    /* Largeurs des colonnes optimisées */
+    .table th:nth-child(1) { width: 5%; }   /* # */
+    .table th:nth-child(2) { width: 12%; }  /* Code Produit */
+    .table th:nth-child(3) { width: 12%; }  /* Image Produit */
+    .table th:nth-child(4) { width: 15%; }  /* Nom Produit */
+    .table th:nth-child(5) { 
+        width: 20%;        /* Description - réduite */
+        min-width: 180px;
+        max-width: 250px;
+    }
+    .table th:nth-child(6) { width: 10%; }  /* Marque */
+    .table th:nth-child(7) { width: 10%; }  /* Model */
+    .table th:nth-child(8) { width: 8%; }   /* Origine */
+    
+    /* Style pour toutes les cellules */
+    .table td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 8px 4px;
+        vertical-align: middle;
+    }
+    
+    /* Style spécifique pour la colonne description */
+    .table td:nth-child(5) {
+        white-space: normal;
+        padding: 5px !important;
+        vertical-align: top;
+    }
+    
+    .table td:nth-child(5) span {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;  /* Limite à 3 lignes */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-wrap: break-word;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        max-height: 60px;
+        padding: 3px 5px;
+        background: #f8f9fa;
+        border-radius: 3px;
+        border: 1px solid #eee;
+        transition: all 0.2s;
+        cursor: help;  /* Indique qu'il y a plus d'info au survol */
+    }
+    
+    /* Agrandissement de la description au survol */
+    .table td:nth-child(5) span:hover {
+        -webkit-line-clamp: unset;
+        max-height: 200px;
+        overflow-y: auto;
+        background: #fff;
+        border-color: #0d6efd;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+        position: relative;
+        z-index: 10;
+        cursor: text;
+    }
+    
+    /* Barre de scroll personnalisée pour la description */
+    .table td:nth-child(5) span::-webkit-scrollbar {
+        width: 4px;
+    }
+    .table td:nth-child(5) span::-webkit-scrollbar-thumb {
+        background: #0d6efd;
+        border-radius: 2px;
+    }
+    
+    /* Style pour les images */
+    .table td:nth-child(3) img {
+        max-width: 60px;
+        max-height: 60px;
+        object-fit: contain;
+        transition: transform 0.2s;
+    }
+    
+    .table td:nth-child(3) img:hover {
+        transform: scale(1.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        position: relative;
+        z-index: 20;
+    }
+    
+    /* Style pour les autres colonnes */
+    .table td:nth-child(2) span {  /* Code Produit */
+        font-family: monospace;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #0d6efd;
+    }
+    
+    .table td:nth-child(4) span {  /* Nom Produit */
+        font-weight: 500;
+    }
+    
+    .table td:nth-child(6) span,  /* Marque */
+    .table td:nth-child(7) span,  /* Model */
+    .table td:nth-child(8) span {  /* Origine */
+        font-size: 0.9rem;
+        color: #495057;
+        background: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 12px;
+        display: inline-block;
+    }
+    
+    /* Checkbox styling */
+    .produit-checkbox {
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .produit-checkbox:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    /* Ligne au survol */
+    .produit-row:hover {
+        background-color: rgba(13, 110, 253, 0.05) !important;
+    }
+    
+    /* Style pour les cellules vides */
+    .text-muted {
+        font-style: italic;
+        opacity: 0.7;
+    }
+    
+    /* En-tête sticky */
+    .sticky-top {
+        top: 0;
+        z-index: 5;
+    }
+    
+    /* Responsive pour petits écrans */
+    @media (max-width: 1400px) {
+        .table th:nth-child(5) { width: 18%; }
+        .table td:nth-child(5) span { font-size: 0.8rem; }
+    }
+    
+    @media (max-width: 1200px) {
+        .table th:nth-child(2) { width: 10%; }
+        .table th:nth-child(3) { width: 10%; }
+        .table th:nth-child(4) { width: 12%; }
+        .table th:nth-child(5) { width: 22%; }
+    }
+    
+    /* Animation pour le modal */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        border-radius: 12px 12px 0 0;
+    }
+    
+    /* Style pour le formulaire */
+    #produitForm {
+        border: 1px solid rgba(25, 135, 84, 0.3);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #198754;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Badge pour les infos */
+    .info-badge {
+        background-color: #e7f5ff;
+        color: #0d6efd;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-left: 5px;
+    }
+</style>
 {% endblock %}
+
 {% block content %}
 <div class="py-2">
     <div class="row">
         <div class="col">
             <a class="btn btn-outline-success" data-bs-toggle="modal" 
-            data-bs-target="#addproduitmodal">Ajouter Produit</a>        
+               data-bs-target="#addproduitmodal">
+                <i class="fas fa-plus-circle me-1"></i>Ajouter Produit
+            </a>        
+        </div>
+        <div class="col-auto">
+            <span class="badge bg-info text-dark p-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Double-cliquez sur une ligne pour modifier
+            </span>
         </div>
     </div>
-  <hr>
-  {% if produits %}
-    <!-- <div class=""> -->
-        <form action="{{ url_for('delete_produits') }}" method="post">
-          {{ form.hidden_tag() }}
-      <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
-        <caption class="fs-3 fw-semibold">
-          Liste des Produits
-      </caption>
-            <table class="table w-100 caption-top table-bordered px-1 align-middle
-                  table-responsive my-2">
-          <thead class="table-dark sticky-top">
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Code Produit</th>
-              <th scope="col">Image Produit</th>
-              <th scope="col">Nom Produit</th>
-              <th scope="col">Description</th>
-              <th scope="col">Marque</th>
-              <th scope="col">Model</th>
-              <th scope="col">Origine</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for produit in produits %}
-            <tr class="produit-row"
-                data-id="{{ produit.id }}"
-                data-nom="{{ produit.nom_produit }}"
-                data-description="{{ produit.description }}"
-                data-marque="{{produit.marque}}"
-                data-model="{{produit.model}}"
-                data-origine="{{produit.origine}}"
-                style="cursor:pointer">
-              <td class="text-center align-middle">
-                <input class="form-check-input border-success produit-checkbox"
-                name="produit_ids"
-                type="checkbox" value="{{produit.id}}">
-              </td>
-              <td>
-                <span class="align-middle">{{produit.code_produit}}</span>
-              </td>
-              <td class="text-center">
-                {% if produit.image %}
-                <img src="{{ produit.image }}"
-                    style="max-height: 100px; object-fit: contain;"
-                    class="img-fluid rounded border">
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </td>
-              <td class="align-middle">
-                <span>{{produit.nom_produit}}</span>
-              </td>
-              <td class="align-start">
-                <span>{{produit.description}}</span>
-              </td>
-              <td>
-                <span>{{produit.marque}}</span>
-              </td>
-              <td>
-                <span>{{produit.model}}</span>
-              </td>
-              <td>
-                <span>{{produit.origine}}</span>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <button type="submit" class="btn btn-outline-danger" 
-        onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">Suprimer Produit
-      </button>
-      </form>
-    <!-- </div> -->
-  </div>
-  {% else %}
-  <div class="alert alert-warning text-center">
-          Aucun Produit enregistré pour le moment.
-      </div>
-  {% endif %}
-
-  <!-- Ajouter produit modal -->
-
-  <div class="modal fade" id="addproduitmodal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-
-        <!-- HEADER -->
-        <div class="modal-header">
-          <h5 class="modal-title text-success fw-bold" id="modalTitle">
-            Ajouter un produit
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <hr>
+    
+    {% if produits %}
+    <form action="{{ url_for('delete_produits') }}" method="post">
+        {{ form.hidden_tag() }}
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #dee2e6;">
+            <caption class="fs-3 fw-semibold p-2 bg-light">
+                Liste des Produits
+                <span class="info-badge">{{ produits|length }} produit(s)</span>
+            </caption>
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th scope="col" class="text-center">#</th>
+                        <th scope="col">Code Produit</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Nom Produit</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Marque</th>
+                        <th scope="col">Modèle</th>
+                        <th scope="col">Origine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produit in produits %}
+                    <tr class="produit-row"
+                        data-id="{{ produit.id }}"
+                        data-nom="{{ produit.nom_produit }}"
+                        data-description="{{ produit.description }}"
+                        data-marque="{{ produit.marque or '' }}"
+                        data-model="{{ produit.model or '' }}"
+                        data-origine="{{ produit.origine or '' }}"
+                        style="cursor:pointer">
+                        
+                        <td class="text-center">
+                            <input class="form-check-input border-success produit-checkbox"
+                                   name="produit_ids"
+                                   type="checkbox" 
+                                   value="{{ produit.id }}"
+                                   id="check-{{ produit.id }}">
+                        </td>
+                        
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ produit.code_produit }}</span>
+                        </td>
+                        
+                        <td class="text-center">
+                            {% if produit.image %}
+                            <img src="{{ produit.image }}"
+                                 alt="{{ produit.nom_produit }}"
+                                 class="img-fluid rounded border"
+                                 style="max-height: 60px; object-fit: contain;">
+                            {% else %}
+                                <span class="text-muted">
+                                    <i class="fas fa-image fa-2x opacity-50"></i>
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <span class="">{{ produit.nom_produit }}</span>
+                        </td>
+                        
+                        <td>
+                            <span title="Double-cliquez pour modifier la description complète">
+                                {% if produit.description %}
+                                    {{ produit.description }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">—</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        
+                        <td>
+                            {% if produit.marque %}
+                                <span>{{ produit.marque }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            {% if produit.model %}
+                                <span>{{ produit.model }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            {% if produit.origine %}
+                                <span>{{ produit.origine }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <!-- BODY -->
-        <div class="modal-body">
-          <form method="post"
-                id = "produitForm"
-                action="{{ url_for('produit') }}"
-                enctype="multipart/form-data"
-                class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
-
-            {{ form.hidden_tag() }}
-            <div class="mb-3">
-              {{ form.nom_produit.label(class="form-label") }}
-              {{ form.nom_produit(class="form-control") }}
-            </div>
+        
+        <div class="mt-3 d-flex justify-content-between align-items-center">
             <div>
-              {{ form.marque.label(class="form-label") }}
-              {{ form.marque(class="form-control") }}
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="selectAll">
+                    <i class="fas fa-check-double me-1"></i>Tout sélectionner
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAll">
+                    <i class="fas fa-times me-1"></i>Tout désélectionner
+                </button>
             </div>
-            <div>
-              {{ form.model.label(class="form-label") }}
-              {{ form.model(class="form-control") }}
-            </div>
-            <div>
-              {{ form.origine.label(class="form-label") }}
-              {{ form.origine(class="form-control") }}
-            </div>
-            <div class="mb-3">
-                {{ form.description.label(class="form-label") }}
-                {{ form.description(class="form-control", rows="3") }}
-              </div>
-            <div class="mb-3">
-              {{ form.image.label(class="form-label") }}
-              {{ form.image(class="form-control") }}
-            </div>
-
-            <div class="d-flex justify-content-end gap-2">
-              <button type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal">
-                Annuler
-              </button>
-              {{ form.submit(class="btn btn-success") }}
-            </div>
-
-          </form>
-
+            <button type="submit" class="btn btn-outline-danger" 
+                    onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">
+                <i class="fas fa-trash-alt me-1"></i>Supprimer Produit(s)
+            </button>
         </div>
-
-      </div>
+    </form>
+    
+    {% else %}
+    <div class="alert alert-warning text-center py-5">
+        <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
+        <h5>Aucun Produit enregistré pour le moment</h5>
+        <p class="mb-0">Cliquez sur "Ajouter Produit" pour commencer</p>
     </div>
-  </div>
+    {% endif %}
+
+    <!-- Modal Ajouter/Modifier Produit -->
+    <div class="modal fade" id="addproduitmodal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <!-- HEADER -->
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="modalTitle">
+                        <i class="fas fa-plus-circle me-2"></i>Ajouter un produit
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <!-- BODY -->
+                <div class="modal-body">
+                    <form method="post"
+                          id="produitForm"
+                          action="{{ url_for('produit') }}"
+                          enctype="multipart/form-data"
+                          class="p-4 rounded">
+                        
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.nom_produit.label(class="form-label") }}
+                                {{ form.nom_produit(class="form-control", placeholder="Ex: Échographe portable") }}
+                                {% if form.nom_produit.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.nom_produit.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.marque.label(class="form-label") }}
+                                {{ form.marque(class="form-control", placeholder="Ex: Siemens") }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.model.label(class="form-label") }}
+                                {{ form.model(class="form-control", placeholder="Ex: ACUSON X300") }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.origine.label(class="form-label") }}
+                                {{ form.origine(class="form-control", placeholder="Ex: Allemagne") }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="4", 
+                                placeholder="Description détaillée du produit...") }}
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                Maximum 1000 caractères
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.image.label(class="form-label") }}
+                            {{ form.image(class="form-control", accept="image/*") }}
+                            <small class="text-muted">
+                                <i class="fas fa-image"></i> 
+                                Formats acceptés: JPG, PNG, GIF, WEBP
+                            </small>
+                            <div id="imagePreview" class="mt-2 text-center" style="display: none;">
+                                <img src="" alt="Aperçu" style="max-height: 100px; border-radius: 4px;">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>Annuler
+                            </button>
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Ajouter Font Awesome pour les icônes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-
-  const modalEl = document.getElementById("addproduitmodal");
-  const modal = new bootstrap.Modal(modalEl);
-  const form = document.getElementById("produitForm");
-  const title = document.getElementById("modalTitle");
-
-  // 👉 MODE MODIFICATION (double clic)
-  document.querySelectorAll(".produit-row").forEach(row => {
-    row.addEventListener("dblclick", function () {
-
-      title.textContent = "Modifier le produit";
-      form.action = `/gestion_materiel/produit/edit/${this.dataset.id}`;
-
-      form.nom_produit.value = this.dataset.nom;
-      form.description.value = this.dataset.description;
-      form.marque.value = this.dataset.marque
-      form.model.value = this.dataset.model
-      form.origine.value = this.dataset.origine
-      modal.show();
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Script chargé - Version finale");
+    
+    // Récupérer les éléments de base
+    const modalEl = document.getElementById("addproduitmodal");
+    if (!modalEl) {
+        console.error("Modal non trouvé!");
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById("produitForm");
+    const title = document.getElementById("modalTitle");
+    
+    // Attendre que tout soit chargé
+    setTimeout(function() {
+        // Attacher les événements double-clic à chaque ligne
+        const rows = document.querySelectorAll(".produit-row");
+        console.log("Lignes trouvées:", rows.length);
+        
+        rows.forEach(row => {
+            // Utiliser onclick au lieu de dblclick pour tester
+            row.addEventListener("dblclick", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Récupérer l'ID
+                const id = this.dataset.id;
+                console.log("Double-clic sur produit ID:", id);
+                
+                if (!id) {
+                    alert("Erreur: ID produit non trouvé");
+                    return;
+                }
+                
+                // Changer le titre
+                if (title) {
+                    title.innerHTML = '<i class="fas fa-edit me-2"></i>Modifier le produit';
+                }
+                
+                // Changer l'action du formulaire
+                if (form) {
+                    form.action = `/gestion_materiel/produit/edit/${id}`;
+                    
+                    // Remplir les champs
+                    form.nom_produit.value = this.dataset.nom || '';
+                    form.description.value = this.dataset.description || '';
+                    form.marque.value = this.dataset.marque || '';
+                    form.model.value = this.dataset.model || '';
+                    form.origine.value = this.dataset.origine || '';
+                    
+                    // CHANGER LE BOUTON SUBMIT - recherche directe au moment du clic
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.classList.remove('btn-success');
+                        submitBtn.classList.add('btn-warning');
+                        submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
+                        console.log("Bouton modifié avec succès");
+                    } else {
+                        console.warn("Bouton submit non trouvé dans le formulaire");
+                        // Alternative: chercher dans tout le document
+                        const altBtn = document.querySelector('#produitForm button[type="submit"]');
+                        if (altBtn) {
+                            altBtn.classList.remove('btn-success');
+                            altBtn.classList.add('btn-warning');
+                            altBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
+                        }
+                    }
+                }
+                
+                // Ajouter message pour l'image
+                const imageField = document.querySelector('.mb-3:has(input[type="file"])');
+                if (imageField) {
+                    let msg = imageField.querySelector('.image-info');
+                    if (!msg) {
+                        msg = document.createElement('small');
+                        msg.className = 'text-info d-block mt-1 image-info';
+                        msg.innerHTML = '<i class="fas fa-info-circle"></i> Laissez vide pour conserver l\'image actuelle';
+                        imageField.appendChild(msg);
+                    }
+                }
+                
+                // Ouvrir le modal
+                modal.show();
+            });
+            
+            // Ajouter un style visuel
+            row.style.cursor = 'pointer';
+            row.title = 'Double-cliquez pour modifier';
+        });
+    }, 500);
+    
+    // Réinitialisation à la fermeture du modal
+    modalEl.addEventListener("hidden.bs.modal", function() {
+        console.log("Modal fermé - réinitialisation");
+        
+        if (title) {
+            title.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Ajouter un produit';
+        }
+        
+        if (form) {
+            form.action = "{{ url_for('produit') }}";
+            form.reset();
+            
+            // Remettre le bouton en mode ajout
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.classList.remove('btn-warning');
+                submitBtn.classList.add('btn-success');
+                submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Ajouter';
+            }
+            
+            // Supprimer le message d'info image
+            const infoMsg = form.querySelector('.image-info');
+            if (infoMsg) infoMsg.remove();
+        }
+        
+        // Masquer la prévisualisation
+        const imagePreview = document.getElementById('imagePreview');
+        if (imagePreview) {
+            imagePreview.style.display = 'none';
+            const previewImg = imagePreview.querySelector('img');
+            if (previewImg) previewImg.src = '';
+        }
     });
-  });
-
-  // 👉 MODE AJOUT (bouton Ajouter Client)
-  modalEl.addEventListener("hidden.bs.modal", function () {
-    title.textContent = "Ajouter un produit";
-    form.action = "{{ url_for('produit') }}";
-    form.reset();
-  });
-
-    /* ===============================
-   BOUTON SUPPRESSION CHECKBOX
-  ================================ */
-  const btn = document.querySelector(".btn-outline-danger");
-  const checkboxes = document.querySelectorAll(".produit-checkbox");
-
-  // bouton désactivé au départ
-  if (btn) btn.disabled = true;
-
-  checkboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      btn.disabled = !document.querySelector(".produit-checkbox:checked");
-    });
-  });
-
+    
 });
 </script>
 {% endblock %}
