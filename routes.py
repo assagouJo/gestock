@@ -294,41 +294,59 @@ def dashboard():
 @app.route('/gestion_materiel/produit', methods=['GET', 'POST'])
 @login_required
 def produit():
-    form = ProduitForm(csrf_enabled=False)
+    form = ProduitForm()
     produits = Produit.query.order_by(Produit.nom_produit).all()
     
     if form.validate_on_submit():
-        file = form.image.data
-        image_url = None
-        if file and file.filename:
-            result = upload(
-                file,
-                folder="gestock/produits"
+        try:
+            # ✅ Vérifier si le produit existe déjà
+            exist_produit = Produit.query.filter(
+                Produit.nom_produit == form.nom_produit.data,
+                Produit.marque == form.marque.data,
+                Produit.model == form.model.data
+            ).first()
+
+            if exist_produit:
+                flash(f"Ce produit existe déjà avec le code {exist_produit.code_produit}", "danger")
+                return redirect(url_for("produit"))
+
+            # ✅ Gestion de l'image
+            image_url = None
+            file = form.image.data
+            
+            if file and file.filename:
+                try:
+                    # Upload vers Cloudinary
+                    result = upload(
+                        file,
+                        folder="gestock/produits",
+                        resource_type="auto"
+                    )
+                    image_url = result["secure_url"]
+                except Exception as e:
+                    flash(f"Erreur lors de l'upload de l'image: {str(e)}", "warning")
+                    # Continuer sans image
+
+            # ✅ Création du produit
+            nouveau_produit = Produit(
+                nom_produit=form.nom_produit.data.strip(),
+                marque=form.marque.data.strip() if form.marque.data else None,
+                model=form.model.data.strip() if form.model.data else None,
+                origine=form.origine.data.strip() if form.origine.data else None,
+                description=form.description.data.strip() if form.description.data else None,
+                code_produit=generate_code_produit(),
+                image=image_url
             )
-            image_url = result["secure_url"]
+            
+            db.session.add(nouveau_produit)
+            db.session.commit()
 
-        exist_produit = Produit.query.filter_by(
-        nom_produit=form.nom_produit.data
-        ).first()
-
-        if exist_produit:
-            flash("Ce nom de produit existe déjà","danger")
-            return redirect(url_for("produit"))
-
-        nouveau_produit = Produit(
-        nom_produit = form.nom_produit.data,
-        marque = form.marque.data,
-        model = form.model.data,
-        origine = form.origine.data,
-        description=form.description.data,
-        code_produit=generate_code_produit(),
-        image = image_url
-        )
-        print("Origine envoyée :", form.origine.data)
-        db.session.add(nouveau_produit)
-        db.session.commit()
-
-        flash("Produit ajouter avec succes", "success")
+            flash(f"✅ Produit {nouveau_produit.nom_produit} ajouté avec succès", "success")
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f"❌ Erreur: {str(e)}", "danger")
+        
         return redirect(url_for("produit"))
     
     return render_template('produit.html', form=form, produits=produits)
@@ -338,30 +356,52 @@ def produit():
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
 def edit_produit(id):
-
     produit = Produit.query.get_or_404(id)
     form = ProduitForm()
-
-    # ⚠️ On enlève validate_on_submit() ici
-    if request.method == "POST":
-
-        produit.nom_produit = form.nom_produit.data
-        produit.description = form.description.data
-
-        file = form.image.data
-
-        if file and file.filename:
-            delete_cloudinary_image(produit.image)
-
-            result = upload(
-                file,
-                folder="gestock/produits"
-            )
-            produit.image = result["secure_url"]
-
-        db.session.commit()
-        flash("Produit modifié avec succès", "success")
-
+    
+    if form.validate_on_submit():
+        try:
+            # Mise à jour des champs
+            produit.nom_produit = form.nom_produit.data
+            produit.description = form.description.data
+            produit.marque = form.marque.data
+            produit.model = form.model.data
+            produit.origine = form.origine.data
+            
+            # Gestion de l'image
+            file = form.image.data
+            if file and file.filename:
+                # Supprimer l'ancienne image
+                if produit.image:
+                    try:
+                        delete_cloudinary_image(produit.image)
+                    except Exception as e:
+                        print(f"Erreur suppression ancienne image: {e}")
+                
+                # Upload nouvelle image
+                try:
+                    result = upload(
+                        file,
+                        folder="gestock/produits",
+                        resource_type="auto"
+                    )
+                    produit.image = result["secure_url"]
+                except Exception as e:
+                    flash(f"Erreur lors de l'upload de l'image: {str(e)}", "warning")
+                    # Continuer sans changer l'image
+            
+            db.session.commit()
+            flash("Produit modifié avec succès", "success")
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erreur lors de la modification: {str(e)}", "danger")
+    else:
+        # Afficher les erreurs de validation
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", "danger")
+    
     return redirect(url_for('produit'))
 
 
