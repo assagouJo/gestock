@@ -1,162 +1,249 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-file-invoice me-2"></i>Détails du Kit Proforma
+            </h5>
+            <div>
+                <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+                <a href="{{ url_for('kit_proforma_pdf', kit_id=kit.id) }}" class="btn btn-success btn-sm" target="_blank">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+            </div>
+        </div>
 
-<div class="card shadow">
+        <div class="card-body">
+            <!-- INFO KIT -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title text-primary">
+                                <i class="fas fa-info-circle me-2"></i>Informations du kit
+                            </h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td><strong>Numéro :</strong></td>
+                                    <td>{{ kit.numero }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date :</strong></td>
+                                    <td>{{ kit.date.strftime("%d/%m/%Y") if kit.date else '' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ATTN :</strong></td>
+                                    <td>{{ kit.attn or 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Condition paiement :</strong></td>
+                                    <td>{{ kit.condition_paiement or 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Délai livraison :</strong></td>
+                                    <td>{{ kit.delai_livraison or 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Garantie :</strong></td>
+                                    <td>{{ kit.garantie or 'Non spécifié' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title text-primary">
+                                <i class="fas fa-user me-2"></i>Informations client
+                            </h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td><strong>Nom :</strong></td>
+                                    <td>{{ kit.client.nom_client if kit.client else 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Téléphone :</strong></td>
+                                    <td>{{ kit.client.telephone if kit.client and kit.client.telephone else 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email :</strong></td>
+                                    <td>{{ kit.client.adresse_email if kit.client and kit.client.adresse_email else 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ville :</strong></td>
+                                    <td>{{ kit.client.ville if kit.client and kit.client.ville else 'Non spécifié' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>RCC :</strong></td>
+                                    <td>{{ kit.client.numero_rcc if kit.client and kit.client.numero_rcc else 'Non spécifié' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<h5 class="mb-0">Détails Kit Proforma</h5>
+            <hr>
 
-<div>
-<a href="{{ url_for('list_kit_proforma') }}" class="btn btn-light btn-sm">
-Retour
-</a>
-<a href="{{url_for('kit_proforma_pdf', kit_id=kit.id)}}" class="btn btn-success btn-sm" target="_blank">
-pdf
-</a>
+            <!-- PRODUITS DU KIT PAR BLOC -->
+            <h6 class="mb-3">
+                <i class="fas fa-cubes me-2"></i>Composition du kit
+            </h6>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 70%">Produit</th>
+                            <th style="width: 30%">Quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if kit.blocs and kit.blocs|length > 0 %}
+                            {% for bloc in kit.blocs %}
+                                {% if bloc.lignes and bloc.lignes|length > 0 %}
+                                    <!-- Le premier produit est le produit principal -->
+                                    {% set first_ligne = bloc.lignes[0] %}
+                                    <tr class="table-primary fw-bold">
+                                        <td>
+                                            <i class="fas fa-cube me-2"></i>
+                                            {{ first_ligne.produit.nom_produit if first_ligne.produit else 'Produit inconnu' }}
+                                        </td>
+                                        <td>{{ first_ligne.quantite }}</td>
+                                    </tr>
+
+                                    <!-- Les produits suivants sont les accessoires -->
+                                    {% for ligne in bloc.lignes[1:] %}
+                                    <tr>
+                                        <td style="padding-left: 40px;">
+                                            <i class="fas fa-angle-right me-2 text-muted"></i>
+                                            {{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}
+                                        </td>
+                                        <td>{{ ligne.quantite }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    
+                                    <!-- Ligne de séparation entre blocs -->
+                                    {% if not loop.last %}
+                                    <tr>
+                                        <td colspan="2" style="padding: 0;">
+                                            <hr style="margin: 0; border-top: 2px solid #dee2e6;">
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Produits hors bloc -->
+                        {% if kit.lignes %}
+                            {% set produits_hors_bloc = [] %}
+                            {% for ligne in kit.lignes %}
+                                {% if not ligne.bloc_id %}
+                                    {% set produits_hors_bloc = produits_hors_bloc.append(ligne) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if produits_hors_bloc|length > 0 %}
+                                <tr class="table-info">
+                                    <td colspan="2">
+                                        <strong>
+                                            <i class="fas fa-puzzle-piece me-2"></i>Produits supplémentaires
+                                        </strong>
+                                    </td>
+                                </tr>
+                                {% for ligne in produits_hors_bloc %}
+                                <tr>
+                                    <td style="padding-left: 40px;">
+                                        <i class="fas fa-angle-right me-2 text-muted"></i>
+                                        {{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}
+                                    </td>
+                                    <td>{{ ligne.quantite }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Message si aucun produit -->
+                        {% if (not kit.blocs or kit.blocs|length == 0) and (not kit.lignes or kit.lignes|length == 0) %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>Aucun produit dans ce kit
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- RÉCAPITULATIF PAR BLOC -->
+            {% if kit.blocs and kit.blocs|length > 0 %}
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title text-primary">
+                                <i class="fas fa-calculator me-2"></i>Récapitulatif par bloc
+                            </h6>
+                            <table class="table table-sm">
+                                {% for bloc in kit.blocs %}
+                                {% if bloc.lignes and bloc.lignes|length > 0 %}
+                                {% set first_ligne = bloc.lignes[0] %}
+                                <tr>
+                                    <td>
+                                        <strong>
+                                            {{ first_ligne.produit.nom_produit if first_ligne.produit else 'Bloc' }}
+                                        </strong>
+                                    </td>
+                                    <td>{{ bloc.lignes|length - 1 }} accessoire(s)</td>
+                                    <td>
+                                        {% set total_qte = namespace(value=0) %}
+                                        {% for ligne in bloc.lignes %}
+                                            {% set total_qte.value = total_qte.value + ligne.quantite %}
+                                        {% endfor %}
+                                        {{ total_qte.value }} unité(s)
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <!-- PRIX GLOBAL -->
+            <div class="row mt-4">
+                <div class="col-md-4 offset-md-8">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h5 class="d-flex justify-content-between align-items-center mb-0">
+                                <span>Prix Global :</span>
+                                <span class="text-success fs-4">
+                                    {% if kit.prix_global %}
+                                        {{ "{:,.0f}".format(kit.prix_global) }} F CFA
+                                    {% else %}
+                                        0 F CFA
+                                    {% endif %}
+                                </span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-</div>
-
-<div class="card-body">
-
-<!-- INFO KIT -->
-
-<div class="row mb-4">
-
-<div class="col-md-6">
-
-<h6 class="text-muted">Informations Kit</h6>
-
-<ul class="list-unstyled">
-
-<li><strong>Numéro :</strong> {{ kit.numero }}</li>
-<li><strong>Date :</strong> {{ kit.date.strftime("%d/%m/%Y") }}</li>
-<li><strong>Condition paiement :</strong> {{ kit.condition_paiement }}</li>
-<li><strong>Délai livraison :</strong> {{ kit.delai_livraison }}</li>
-<li><strong>Garantie :</strong> {{ kit.garantie }}</li>
-<li><strong>Attn :</strong> {{ kit.attn }}</li>
-
-</ul>
-
-</div>
-
-
-<div class="col-md-6">
-
-<h6 class="text-muted">Client</h6>
-
-<ul class="list-unstyled">
-
-<li><strong>Nom :</strong> {{ kit.client.nom_client }}</li>
-<li><strong>Téléphone :</strong> {{ kit.client.telephone }}</li>
-<li><strong>Email :</strong> {{ kit.client.adresse_email }}</li>
-<li><strong>Ville :</strong> {{ kit.client.ville }}</li>
-<li><strong>RCC :</strong> {{ kit.client.numero_rcc }}</li>
-
-</ul>
-
-</div>
-
-</div>
-
-<hr>
-
-<!-- PRODUITS DU KIT -->
-
-<h6 class="mb-3">Produits inclus dans le kit</h6>
-
-<div class="table-responsive">
-
-<table class="table table-bordered table-striped">
-
-<thead class="table-dark">
-
-<tr>
-
-<th>#</th>
-<th>Produit</th>
-<th>Quantité</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td>1</td>
-
-<td>
-
-<ul class="mb-0">
-
-{% for ligne in kit.lignes %}
-
-<li>{{ ligne.produit.nom_produit }}</li>
-
-{% endfor %}
-
-</ul>
-
-</td>
-
-<td>
-
-{% if kit.lignes %}
-{{ kit.lignes[0].quantite }}
-{% endif %}
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-<hr>
-
-<!-- PRIX GLOBAL -->
-
-<div class="row">
-
-<div class="col-md-4 offset-md-8">
-
-<div class="card border-success">
-
-<div class="card-body">
-
-<h5 class="d-flex justify-content-between">
-
-<span>Prix Global :</span>
-
-<span class="text-success">
-
-{{ "{:,.0f}".format(kit.prix_global) }}
-
-</span>
-
-</h5>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+<!-- Font Awesome pour les icônes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

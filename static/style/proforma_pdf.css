@@ -3,17 +3,14 @@
 ====================== */
 @page {
     size: A4;
-    margin: 0 5mm 20mm 5mm;
+    margin: 5mm 10mm 20mm 10mm;
     
 }
 
 
 body{
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 12px;
-    color:#222;
-    margin:30px;
-    margin-bottom: 50mm;
+    font-size: 10px;
 }
 
 /* ======================
@@ -131,6 +128,12 @@ body{
    TABLE PRODUITS
 ====================== */
 
+
+
+.kit-list li{
+    border-bottom: 1px solid #000;
+}
+
 .table-produits{
     width:100%;
     border-collapse:collapse;
@@ -227,6 +230,7 @@ body{
 
 .montant-chiffre p strong{
     margin-top: 4px;
+    margin-bottom: 30px;
 
 }
 
@@ -248,10 +252,11 @@ body{
 ====================== */
 
 .footer-prof {
-    position: fixed;
-    bottom: 20mm;
-    left: 5mm;
-    right: 5mm;
+    /* position: fixed; */
+    margin-top: 40px;
+    margin-bottom: 15mm;
+    margin-left: 5mm;
+    margin-right: 5mm;
     display: flex;
     justify-content: space-between;
 }

@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma, BlocKit
 from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -395,11 +395,6 @@ def delete_produits():
     produits_supprimes = 0
 
     for p in produits:
-
-        # 🔒 1️⃣ Stock non nul
-        if p.stock_total > 0:
-            produits_bloques.append(f"{p.nom_produit} (stock non nul)")
-            continue
 
         # 🔒 2️⃣ Produit déjà vendu (via Stock → LigneVente)
         vente_existante = (
@@ -1963,7 +1958,7 @@ def proforma_pdf(proforma_id):
     total_lettre = num2words(proforma.total, lang="fr").capitalize()
 
     html = render_template(
-        "proforma_pdf.html",
+        "kit_proforma_pdf.html",
         proforma=proforma,
         compagnie=compagnie,
         attn=proforma.attn,
@@ -2000,68 +1995,146 @@ def nouveau_kit_proforma():
     )
 
 
+
+# Route pour modifier un kit
+@app.route('/modifier-kit-proforma/<int:kit_id>', methods=['GET', 'POST'])
+def modifier_kit_proforma(kit_id):
+    kit = KitProforma.query.get_or_404(kit_id)
+    
+    if request.method == 'POST':
+        # Récupérer les données du formulaire
+        kit.client_id = request.form.get('client_id')
+        kit.attn = request.form.get('attn')
+        kit.date = datetime.strptime(request.form.get('date_proforma'), '%Y-%m-%d').date()
+        kit.condition_paiement = request.form.get('condition_paiement')
+        kit.delai_livraison = request.form.get('delai_livraison')
+        kit.garantie = request.form.get('garantie')
+        kit.prix_global = float(request.form.get('prix_global'))
+        
+        try:
+            db.session.commit()
+            flash('Kit modifié avec succès', 'success')
+            return redirect(url_for('list_kit_proforma'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erreur lors de la modification: {str(e)}', 'danger')
+    
+    # Récupérer les clients et produits pour le formulaire
+    clients = Client.query.all()
+    produits = Produit.query.all()
+    
+    return render_template('modifier_kit_proforma.html', 
+                         kit=kit, 
+                         clients=clients, 
+                         produits=produits)
+
+# Route pour supprimer un kit
+@app.route('/supprimer-kit-proforma/<int:kit_id>')
+def supprimer_kit_proforma(kit_id):
+    kit = KitProforma.query.get_or_404(kit_id)
+    
+    try:
+        # Supprimer d'abord les lignes associées
+        for ligne in kit.lignes:
+            db.session.delete(ligne)
+        
+        # Supprimer le kit
+        db.session.delete(kit)
+        db.session.commit()
+        
+        flash('Kit supprimé avec succès', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'danger')
+    
+    return redirect(url_for('list_kit_proforma'))
+
+
+
 @app.route("/kit-proforma/create", methods=["POST"])
 @login_required
 def create_kit_proforma():
+    try:
+        client_id = request.form.get("client_id")
+        prix_global = request.form.get("prix_global")
+        attn = request.form.get("attn")
+        condition_paiement = request.form.get("condition_paiement")
+        delai_livraison = request.form.get("delai_livraison")
+        garantie = request.form.get("garantie")
 
-    client_id = request.form.get("client_id")
-    prix_global = request.form.get("prix_global")
+        numero = f"{datetime.now().strftime('%Y%m%M%S')}"
 
-    attn = request.form.get("attn")
-    condition_paiement = request.form.get("condition_paiement")
-    delai_livraison = request.form.get("delai_livraison")
-    garantie = request.form.get("garantie")
-
-    # quantité globale
-    quantite = request.form.get("quantite", 1)
-
-    numero = f"KIT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-
-    kit = KitProforma(
-        numero=numero,
-        client_id=client_id,
-        prix_global=prix_global,
-        attn=attn,
-        condition_paiement=condition_paiement,
-        delai_livraison=delai_livraison,
-        garantie=garantie
-    )
-
-    db.session.add(kit)
-    db.session.flush()
-
-    # produits cochés
-    produits = request.form.getlist("produit_id[]")
-
-    for i, produit_id in enumerate(produits):
-
-        if not produit_id:
-            continue
-
-        ligne = LigneKitProforma(
-            kit_id=kit.id,
-            produit_id=int(produit_id),
-            quantite=int(quantite)
+        # Création du kit
+        kit = KitProforma(
+            numero=numero,
+            client_id=client_id,
+            prix_global=prix_global,
+            attn=attn,
+            condition_paiement=condition_paiement,
+            delai_livraison=delai_livraison,
+            garantie=garantie
         )
-
-        db.session.add(ligne)
+        db.session.add(kit)
         db.session.flush()
 
-        # accessoires sélectionnés pour ce produit
-        accessoires_ids = request.form.getlist(f"accessoires[{i}][]")
+        # Récupérer le nombre de blocs
+        bloc_indices = set()
+        for key in request.form.keys():
+            if key.startswith('produit_principal_'):
+                bloc_indices.add(int(key.split('_')[2]))
+        
+        # Pour chaque bloc
+        for i in sorted(bloc_indices):
+            # Récupérer le produit principal et sa quantité
+            produit_principal_id = request.form.get(f"produit_principal_{i}")
+            quantite_principale = request.form.get(f"quantite_principale_{i}", 1)
+            
+            if produit_principal_id and produit_principal_id.strip():
+                # Créer un nom de bloc basé sur le produit principal
+                produit = Produit.query.get(int(produit_principal_id))
+                nom_bloc = produit.nom_produit if produit else f"Bloc {i+1}"
+                
+                # Créer le bloc
+                bloc = BlocKit(
+                    kit_id=kit.id,
+                    nom=nom_bloc
+                )
+                db.session.add(bloc)
+                db.session.flush()
+                
+                # Ajouter la ligne pour le produit principal
+                ligne_principale = LigneKitProforma(
+                    kit_id=kit.id,
+                    bloc_id=bloc.id,
+                    produit_id=int(produit_principal_id),
+                    quantite=int(quantite_principale) if quantite_principale else 1
+                )
+                db.session.add(ligne_principale)
+                
+                # Récupérer les produits secondaires
+                produits_secondaires = request.form.getlist(f"produit_secondaire_{i}[]")
+                quantites_secondaires = request.form.getlist(f"quantite_secondaire_{i}[]")
+                
+                # Ajouter les produits secondaires
+                for j, produit_id in enumerate(produits_secondaires):
+                    if produit_id and produit_id.strip():
+                        quantite = quantites_secondaires[j] if j < len(quantites_secondaires) else 1
+                        ligne_secondaire = LigneKitProforma(
+                            kit_id=kit.id,
+                            bloc_id=bloc.id,
+                            produit_id=int(produit_id),
+                            quantite=int(quantite) if quantite else 1
+                        )
+                        db.session.add(ligne_secondaire)
 
-        for acc_id in accessoires_ids:
-
-            accessoire = LigneKitAccessoire(
-                ligne_kit_id=ligne.id,
-                accessoire_id=int(acc_id)
-            )
-
-            db.session.add(accessoire)
-
-    db.session.commit()
-
-    return redirect(url_for("details_kit_proforma", kit_id=kit.id))
+        db.session.commit()
+        flash(f"Kit proforma {kit.numero} créé avec succès!", "success")
+        return redirect(url_for("details_kit_proforma", kit_id=kit.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la création du kit: {str(e)}", "danger")
+        return redirect(url_for("nouveau_kit_proforma"))
 
 
 @app.route("/kit-proforma")
@@ -2091,44 +2164,94 @@ def details_kit_proforma(kit_id):
 @app.route("/kit-proforma/<int:kit_id>/pdf")
 @login_required
 def kit_proforma_pdf(kit_id):
-
-    kit = KitProforma.query.get_or_404(kit_id)
-
+    # Charger le kit avec toutes ses relations
+    kit = KitProforma.query.options(
+        db.joinedload(KitProforma.client),
+        db.joinedload(KitProforma.blocs)
+            .joinedload(BlocKit.lignes)
+            .joinedload(LigneKitProforma.produit),
+        db.joinedload(KitProforma.lignes)
+            .joinedload(LigneKitProforma.produit)
+    ).get_or_404(kit_id)
+    
     compagnie = Compagnie.query.first()
-
-    # récupérer tous les produits
-    produits = Produit.query.all()
-
-    # dictionnaire id -> produit
-    produits_id_map = {p.id: p for p in produits}
-
-    # prix global en lettres
-    total_lettre = num2words(kit.prix_global, lang="fr").capitalize()
-
+    
+    # Vérifier si le prix_global existe
+    prix = kit.prix_global if kit.prix_global else 0
+    
+    # Convertir en lettres
+    try:
+        from num2words import num2words
+        total_lettre = num2words(prix, lang='fr').capitalize() + " francs CFA"
+    except:
+        total_lettre = str(prix) + " francs CFA"
+    
+    # ===== DÉBOGAGE DES IMAGES =====
+    # Ajoutez ce bloc ici pour voir les URLs des images
+    print("\n=== DÉBOGAGE DES IMAGES CLOUDINARY ===")
+    for bloc in kit.blocs:
+        if bloc.lignes and len(bloc.lignes) > 0:
+            produit = bloc.lignes[0].produit
+            if produit:
+                print(f"Bloc: {bloc.nom}")
+                print(f"  Produit: {produit.nom_produit}")
+                print(f"  Image URL: {produit.image if produit.image else 'AUCUNE IMAGE'}")
+                
+                # Vérifier si l'URL commence bien par http
+                if produit.image:
+                    if produit.image.startswith('http'):
+                        print(f"  ✅ URL valide (commence par http)")
+                    else:
+                        print(f"  ⚠️ URL peut-être invalide: {produit.image[:50]}...")
+    
+    # Aussi pour les produits hors bloc
+    if kit.lignes:
+        for ligne in kit.lignes:
+            if ligne.produit and ligne.produit.image and not ligne.bloc_id:
+                print(f"Produit hors bloc: {ligne.produit.nom_produit}")
+                print(f"  Image URL: {ligne.produit.image}")
+    print("===============================\n")
+    
+    # Réorganiser les lignes de chaque bloc
+    for bloc in kit.blocs:
+        if bloc.lignes and len(bloc.lignes) > 1:
+            lignes_liste = list(bloc.lignes)
+            
+            produit_principal = None
+            autres_produits = []
+            
+            for ligne in lignes_liste:
+                if ligne.produit and ligne.produit.nom_produit == bloc.nom:
+                    produit_principal = ligne
+                else:
+                    autres_produits.append(ligne)
+            
+            if not produit_principal and lignes_liste:
+                produit_principal = lignes_liste[0]
+                autres_produits = lignes_liste[1:]
+            
+            if produit_principal:
+                nouvelles_lignes = [produit_principal] + autres_produits
+                bloc.lignes = nouvelles_lignes
+    
     html = render_template(
         "kit_proforma_pdf.html",
         kit=kit,
         compagnie=compagnie,
-        attn=kit.attn,
-        total_lettre=total_lettre,
-        produits_id_map=produits_id_map
+        total_lettre=total_lettre
     )
-
+    
+    # Générer le PDF
     pdf = HTML(
         string=html,
         base_url=request.root_url
     ).write_pdf()
-
+    
     response = make_response(pdf)
-
     response.headers["Content-Type"] = "application/pdf"
-    response.headers[
-        "Content-Disposition"
-    ] = f"inline; filename=kit_proforma_{kit.numero}.pdf"
-
+    response.headers["Content-Disposition"] = f"inline; filename=kit_proforma_{kit.numero}.pdf"
+    
     return response
-
-
 
 @app.route("/bon-commande")
 @login_required

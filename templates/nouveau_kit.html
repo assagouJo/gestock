@@ -1,214 +1,308 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <div class="container mt-4">
-
-<div class="card shadow">
-
-<div class="card-header bg-dark text-white">
-<h5 class="mb-0">Nouveau Kit Proforma</h5>
-</div>
-
-<div class="card-body">
-
-<form method="POST" action="{{ url_for('create_kit_proforma') }}">
-
-<!-- CLIENT -->
-
-<div class="row mb-3">
-
-<div class="col-md-6">
-<label class="form-label">Client</label>
-
-<select name="client_id" class="form-control" required>
-
-<option value="">Choisir client</option>
-
-{% for client in clients %}
-<option value="{{ client.id }}">
-{{ client.nom_client }}
-</option>
-{% endfor %}
-
-</select>
-</div>
-
-<div class="col-md-6">
-<label class="form-label">Attn</label>
-<input type="text" name="attn" class="form-control">
-</div>
-
-</div>
-
-
-<!-- CONDITIONS -->
-
-<div class="row mb-3">
-
-<div class="col-md-4">
-<label class="form-label">Condition paiement</label>
-<input type="text" name="condition_paiement" class="form-control">
-</div>
-
-<div class="col-md-4">
-<label class="form-label">Délai livraison</label>
-<input type="text" name="delai_livraison" class="form-control">
-</div>
-
-<div class="col-md-4">
-<label class="form-label">Garantie</label>
-<input type="text" name="garantie" class="form-control">
-</div>
-
-</div>
-
-<hr>
-
-<h6>Produits du kit</h6>
-
-<div class="table-responsive">
-
-<table class="table table-bordered" id="table_produits">
-
-<thead class="table-dark">
-
-<tr>
-<th>Produit</th>
-<th>Quantité</th>
-<th></th>
-</tr>
-
-</thead>
-
-<tbody id="lignes_produits">
-
-<tr>
-
-<td>
-
-    <div class="produits-checkbox">
-
-    {% for produit in produits %}
-
-    <div class="form-check">
-
-    <input class="form-check-input"
-        type="checkbox"
-        name="produit_id[]"
-        value="{{ produit.id }}"
-        id="prod_{{ produit.id }}">
-
-    <label class="form-check-label" for="prod_{{ produit.id }}">
-    {{ produit.nom_produit }}
-    </label>
-
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-file-invoice me-2"></i>Nouveau Kit Proforma
+            </h4>
+        </div>
+        
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('create_kit_proforma') }}" id="kitForm">
+                <!-- Informations client -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Client <span class="text-danger">*</span></label>
+                        <select name="client_id" class="form-select" required>
+                            <option value="">Sélectionnez un client</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">
+                                {{ client.nom_client }} - {{ client.ville }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ATTN (À l'attention de)</label>
+                        <input type="text" name="attn" class="form-control" placeholder="Nom du contact">
+                    </div>
+                    <div class="col-md-3">
+        <label class="form-label fw-bold">Date de la proforma <span class="text-danger">*</span></label>
+        <input type="date" name="date_proforma" class="form-control" 
+               value="{{ today_date }}" required>
+        <small class="text-muted">Choisissez la date souhaitée</small>
     </div>
+                </div>
 
-    {% endfor %}
+                <!-- Conditions -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Condition de paiement</label>
+                        <input type="text" name="condition_paiement" class="form-control" 
+                               placeholder="Ex: 50% à la commande">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Délai de livraison</label>
+                        <input type="text" name="delai_livraison" class="form-control" 
+                               placeholder="Ex: 2 semaines">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Garantie</label>
+                        <input type="text" name="garantie" class="form-control" 
+                               placeholder="Ex: 1 an">
+                    </div>
+                </div>
 
+                <hr class="my-4">
+
+                <!-- Blocs de produits -->
+                <h5 class="mb-3">
+                    <i class="fas fa-cubes me-2"></i>Blocs de produits
+                    <button type="button" class="btn btn-sm btn-success ms-3" id="addBloc">
+                        <i class="fas fa-plus"></i> Ajouter un bloc
+                    </button>
+                </h5>
+
+                <div id="blocsContainer">
+                    <!-- Premier bloc -->
+                    <div class="bloc-item card mb-3 border-primary" data-index="0">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="fas fa-cube me-2"></i>
+                                <strong>Bloc <span class="bloc-number">1</span></strong>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-light remove-bloc" style="display: none;">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Produit principal du bloc (ex: Échographe) -->
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold">Produit principal du bloc <span class="text-danger">*</span></label>
+                                    <select name="produit_principal_0" class="form-select produit-principal" required>
+                                        <option value="">Choisir le produit principal</option>
+                                        {% for produit in produits %}
+                                        <option value="{{ produit.id }}">
+                                            {{ produit.nom_produit }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Quantité <span class="text-danger">*</span></label>
+                                    <input type="number" name="quantite_principale_0" class="form-control quantite-principale" 
+                                           value="1" min="1" required>
+                                </div>
+                            </div>
+
+                            <!-- Produits secondaires (accessoires) -->
+                            <label class="form-label fw-bold mt-2">Accessoires / Sondes</label>
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Produit</th>
+                                        <th style="width: 150px;">Quantité</th>
+                                        <th style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="produits-secondaires-body">
+                                    <tr class="produit-secondaire-row">
+                                        <td>
+                                            <select name="produit_secondaire_0[]" class="form-select produit-secondaire">
+                                                <option value="">Choisir un accessoire</option>
+                                                {% for produit in produits %}
+                                                <option value="{{ produit.id }}">
+                                                    {{ produit.nom_produit }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="quantite_secondaire_0[]" class="form-control quantite-secondaire" 
+                                                   value="1" min="1">
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm remove-produit-secondaire" disabled>
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <button type="button" class="btn btn-sm btn-outline-success add-produit-secondaire">
+                                <i class="fas fa-plus"></i> Ajouter un accessoire
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Prix global -->
+                <div class="row mb-4">
+                    <div class="col-md-4 offset-md-8">
+                        <label class="form-label fw-bold">Prix global du kit (F CFA) <span class="text-danger">*</span></label>
+                        <input type="number" name="prix_global" class="form-control form-control-lg" 
+                               step="0.01" min="0" required placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Créer le kit
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
-</td>
-
-<td>
-    <input type="number" name="quantite[]" class="form-control" value="1">
-</td>
-
-<td>
-<button type="button" class="btn btn-danger supprimer">
-X
-</button>
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-<button type="button" class="btn btn-primary mb-3" id="add_ligne">
-Ajouter produit
-</button>
-
-<hr>
-
-<!-- PRIX GLOBAL -->
-
-<div class="row">
-
-<div class="col-md-4 offset-md-8">
-
-<label class="form-label">Prix Global du Kit</label>
-
-<input type="number" step="0.01" name="prix_global" class="form-control" required>
-
-</div>
-
-</div>
-
-<br>
-
-<button type="submit" class="btn btn-success">
-Créer Kit Proforma
-</button>
-
-<a href="{{ url_for('list_kit_proforma') }}" class="btn btn-secondary">
-Annuler
-</a>
-
-</form>
-
-</div>
-
-</div>
-
 </div>
 
 <script>
+let blocIndex = 1;
 
-let index = 1;
-
-document.getElementById("add_ligne").addEventListener("click", function(){
-
-let table = document.getElementById("lignes_produits")
-let newRow = table.rows[0].cloneNode(true)
-
-newRow.querySelectorAll("input").forEach(function(input){
-input.value = 1
-})
-
-newRow.querySelectorAll("select").forEach(function(select){
-
-if(select.classList.contains("accessoires-select")){
-select.name = "accessoires[" + index + "][]"
+// Fonction pour mettre à jour les indices des blocs
+function updateBlocIndices() {
+    const blocs = document.querySelectorAll('.bloc-item');
+    blocs.forEach((bloc, index) => {
+        bloc.dataset.index = index;
+        bloc.querySelector('.bloc-number').textContent = index + 1;
+        
+        // Mettre à jour les noms des champs du produit principal
+        const produitPrincipal = bloc.querySelector('.produit-principal');
+        if (produitPrincipal) {
+            produitPrincipal.name = `produit_principal_${index}`;
+        }
+        
+        const quantitePrincipale = bloc.querySelector('.quantite-principale');
+        if (quantitePrincipale) {
+            quantitePrincipale.name = `quantite_principale_${index}`;
+        }
+        
+        // Mettre à jour les noms des champs des produits secondaires
+        const selectsSecondaires = bloc.querySelectorAll('select[name^="produit_secondaire_"]');
+        const inputsSecondaires = bloc.querySelectorAll('input[name^="quantite_secondaire_"]');
+        
+        selectsSecondaires.forEach(select => {
+            select.name = `produit_secondaire_${index}[]`;
+        });
+        
+        inputsSecondaires.forEach(input => {
+            input.name = `quantite_secondaire_${index}[]`;
+        });
+        
+        // Gérer l'affichage du bouton supprimer
+        const removeBtn = bloc.querySelector('.remove-bloc');
+        if (removeBtn) {
+            removeBtn.style.display = blocs.length > 1 ? 'inline-block' : 'none';
+        }
+    });
 }
 
-select.value = ""
-})
+// Ajouter un nouveau bloc
+document.getElementById('addBloc').addEventListener('click', function() {
+    const container = document.getElementById('blocsContainer');
+    const firstBloc = container.children[0];
+    const newBloc = firstBloc.cloneNode(true);
+    
+    // Réinitialiser les valeurs
+    newBloc.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    
+    newBloc.querySelectorAll('input[type="number"]').forEach(input => {
+        input.value = '1';
+    });
+    
+    // Vider les produits secondaires (garder une ligne)
+    const tbody = newBloc.querySelector('.produits-secondaires-body');
+    tbody.innerHTML = '';
+    
+    // Ajouter une première ligne de produit secondaire
+    addProduitSecondaireRow(tbody, blocIndex);
+    
+    container.appendChild(newBloc);
+    blocIndex++;
+    
+    updateBlocIndices();
+    attachEvents();
+});
 
-table.appendChild(newRow)
-
-index++
-
-})
-
-document.addEventListener("click", function(e){
-
-if(e.target.classList.contains("supprimer")){
-
-let rows = document.querySelectorAll("#lignes_produits tr")
-
-if(rows.length > 1){
-e.target.closest("tr").remove()
+// Fonction pour ajouter une ligne de produit secondaire
+function addProduitSecondaireRow(tbody, index) {
+    const newRow = document.createElement('tr');
+    newRow.className = 'produit-secondaire-row';
+    newRow.innerHTML = `
+        <td>
+            <select name="produit_secondaire_${index}[]" class="form-select produit-secondaire">
+                <option value="">Choisir un accessoire</option>
+                {% for produit in produits %}
+                <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>
+            <input type="number" name="quantite_secondaire_${index}[]" class="form-control quantite-secondaire" 
+                   value="1" min="1">
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm remove-produit-secondaire">
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(newRow);
 }
 
+// Attacher les événements
+function attachEvents() {
+    // Ajouter un produit secondaire
+    document.querySelectorAll('.add-produit-secondaire').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const bloc = this.closest('.bloc-item');
+            const tbody = bloc.querySelector('.produits-secondaires-body');
+            const blocIdx = bloc.dataset.index;
+            addProduitSecondaireRow(tbody, blocIdx);
+        });
+    });
+    
+    // Supprimer un produit secondaire
+    document.querySelectorAll('.remove-produit-secondaire').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const tbody = row.closest('tbody');
+            if (tbody.children.length > 1) {
+                row.remove();
+            }
+        });
+    });
+    
+    // Supprimer un bloc
+    document.querySelectorAll('.remove-bloc').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const bloc = this.closest('.bloc-item');
+            const container = document.getElementById('blocsContainer');
+            if (container.children.length > 1) {
+                bloc.remove();
+                updateBlocIndices();
+            }
+        });
+    });
 }
 
-})
-
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    attachEvents();
+});
 </script>
 
+<!-- Font Awesome pour les icônes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

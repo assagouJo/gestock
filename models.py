@@ -418,13 +418,18 @@ class Facture(db.Model):
 class KitProforma(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-
     numero = db.Column(db.String(50), unique=True, nullable=False)
 
     client_id = db.Column(
         db.Integer,
         db.ForeignKey("client.id"),
         nullable=False
+    )
+
+    blocs = db.relationship(
+    "BlocKit",
+    backref="kit",
+    cascade="all, delete-orphan"
     )
 
     date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -445,15 +450,34 @@ class KitProforma(db.Model):
     )
 
 
-
-class LigneKitProforma(db.Model):
-
+class BlocKit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     kit_id = db.Column(
         db.Integer,
         db.ForeignKey("kit_proforma.id"),
         nullable=False
+    )
+
+    nom = db.Column(db.String(100))  # ex: "Échographe complet"
+
+    lignes = db.relationship(
+        "LigneKitProforma",
+        backref="bloc",
+        cascade="all, delete-orphan"
+    )
+
+
+
+class LigneKitProforma(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    kit_id = db.Column(db.Integer, db.ForeignKey("kit_proforma.id"), nullable=False)
+
+    bloc_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bloc_kit.id", name="fk_lkp_bloc_id"),
+        nullable=True
     )
 
     produit_id = db.Column(
@@ -463,7 +487,6 @@ class LigneKitProforma(db.Model):
     )
 
     quantite = db.Column(db.Integer, nullable=False, default=1)
-
     produit = db.relationship("Produit")
 
 
