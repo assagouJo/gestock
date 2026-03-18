@@ -84,7 +84,7 @@ class Produit(db.Model):
 
     code_produit = db.Column(db.String(256), unique=True, nullable=False)
 
-    description = db.Column(db.String(256))
+    description = db.Column(db.Text)
     origine = db.Column(db.String(256))
 
     image = db.Column(db.String(255))
