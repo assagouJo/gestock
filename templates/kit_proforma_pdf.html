@@ -13,6 +13,9 @@
         margin: 0;
         padding: 0;
     }
+    @page{
+        margin: 5mm 8mm 10mm 8mm;
+    }
     
     body {
         font-family: Arial, Helvetica, sans-serif;
@@ -167,33 +170,41 @@
     }
     
     /* Conteneur d'image - OPTIMISÉ */
-    .produit-image-container {
-        width: 160px;
-        height: 160px;
-        overflow: hidden;
-        background-color: white;
-        padding: 3px;
-        margin: 0 auto; /* Centré */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid #eee;
-        border-radius: 4px;
-    }
+   .produit-image-container {
+    background-color: #f9f9f9;
+    /* border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 5px auto; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     
-    .produit-image {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-    }
-    
-    /* Cellule image centrée */
-    .img {
-        text-align: center;
-        vertical-align: middle;
-    }
+    /* Dimensions flexibles */
+    width: fit-content;
+    max-width: 180px;
+    min-width: 100px;
+    height: fit-content;
+    max-height: 160px;
+    min-height: 80px;
+}
+
+/* L'image garde ses proportions */
+.produit-image {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: scale-down;
+    display: block;
+}
+
+/* Cellule centrée */
+.img {
+    text-align: center;
+    vertical-align: middle;
+    width: 200px; /* Largeur fixe pour la colonne */
+}
     
     /* Total row */
     .total-row td {
@@ -204,9 +215,9 @@
     
     /* Montant en lettres */
     .montant-chiffre {
-        margin-top: 20px;
-        margin-bottom: 30px;
-        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        padding: 3px;
         border: 1px solid #333;
         background-color: #f9f9f9;
         font-style: italic;
@@ -480,11 +491,7 @@
             {% endfor %}
             
             {% if produits_hors_bloc|length > 0 %}
-                <tr><td colspan="3" style="border-top: 2px solid #000;"></td></tr>
-                <tr><td colspan="3" style="height: 3px;"></td></tr>
-                <tr>
-                    <td colspan="3"><strong>AUTRES PRODUITS</strong></td>
-                </tr>
+
                 {% for ligne in produits_hors_bloc %}
                 {% set has_hors_image = ligne.produit and ligne.produit.image %}
                 <tr>
@@ -557,14 +564,14 @@
 <div class="montant-chiffre">
     <p>
         <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <span>{{ total_lettre }} francs CFA</span>
+        <span style="color: red;font-size: 12px;">{{ total_lettre }} francs CFA</span>
     </p>
 </div>
 
 <div class="main-content">
     <div class="footer-prof">
-        <div class="footer-left"><h5>SIGNATURE DU CLIENT</h5></div>
-        <div class="footer-right"><h5>LE RESPONSABLE COMMERCIAL</h5></div>
+        <div class="footer-left"><span style="font-size: 14px; text-decoration: underline;">SIGNATURE DU CLIENT</span></div>
+        <div class="footer-right"><span style="font-size: 14px; text-decoration: underline;">LE RESPONSABLE COMMERCIAL</span></div>
     </div>
 </div>
 {% endblock %}
