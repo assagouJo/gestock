@@ -318,7 +318,9 @@
     </div>
     <div>
         Tel : {{ kit.client.telephone if kit.client else '' }}<br>
-        Ville : {{ kit.client.adresse if kit.client else '' }}
+        {% if kit.client and kit.client.adresse %}
+            Ville : {{ kit.client.adresse if kit.client else '' }}
+        {% endif %}
     </div>
 </div>
 
