@@ -2,258 +2,437 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
+<style>
+    /* Styles simples et propres */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #333;
+        padding: 20px;
+    }
+    
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        margin-bottom: 20px;
+    }
+    
+    .left img {
+        max-height: 70px;
+        width: auto;
+    }
+    
+    .right {
+        text-align: right;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+    
+    .right strong {
+        font-size: 13px;
+    }
+    
+    .entete {
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .entete h2 {
+        font-size: 22px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .info-doc {
+        display: flex;
+        justify-content: space-between;
+        background: #f2f2f2;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .client-box {
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid #999;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .client-box div {
+        line-height: 1.6;
+    }
+    
+    .conditions-box {
+        margin-bottom: 20px;
+    }
+    
+    .conditions-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .conditions-table td {
+        padding: 8px 10px;
+        border: 1px solid #999;
+    }
+    
+    .conditions-table td:first-child {
+        background: #f2f2f2;
+        width: 180px;
+        font-weight: bold;
+    }
+    
+    .table-produits {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px;
+        table-layout: fixed;
+    }
+    
+    .table-produits th {
+        background: #333;
+        color: white;
+        padding: 10px;
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+    
+    .table-produits td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: top;
+    }
+    
+    .col-photo {
+        width: 100px;
+        text-align: center;
+    }
+    
+    .col-produit {
+        width: 30%;
+    }
+    
+    .col-quantite, .col-prix {
+        width: 5%;
+        text-align:center;
+    }
+    
+    .col-soustotal {
+        width: 12%;
+        text-align: right;
+    }
+    
+    .produit-photo {
+        width: 130px;
+        height: 180px;
+        object-fit: cover;
+       
+    }
+    
+    .no-photo {
+        width: 60px;
+        height: 60px;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #999;
+        margin: 0 auto;
+    }
+    
+    .produit-info {
+        margin-bottom: 5px;
+    }
+    
+    .produit-nom {
+        font-weight: bold;
+        font-size: 13px;
+    }
+    
+    .produit-details {
+        display: flex; 
+        justify-content: start; 
+        align-items: center;
+        font-size: 11px;
+        color: #555;
+        margin-top: 3px;
+    }
+    
+    /* .produit-details span {
+        display: inline-block;
+        margin-right: 10px;
+    } */
+    
+    .produit-caracs {
+        margin-top: 5px;
+        padding-left: 15px;
+        font-size: 10px;
+    }
+    
+    .produit-caracs li {
+        margin-bottom: 2px;
+    }
+    
+    .total-row {
+        background: #f2f2f2;
+        font-weight: bold;
+    }
+    
+    .total-row td {
+        padding: 12px 8px !important;
+    }
+    
+    .total-row .total {
+        font-size: 14px;
+        color: #000;
+    }
+    
+    .montant-lettre {
+        background: #f9f9f9;
+        padding: 15px;
+        margin-bottom: 30px;
+        border-left: 4px solid #333;
+        font-size: 13px;
+    }
+    
+    .montant-lettre p {
+        margin: 0;
+    }
+    
+    .montant-lettre span {
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px dashed #999;
+    }
+    
+    .signature-box {
+        width: 45%;
+    }
+    
+    .signature-box strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    
+    .signature-line {
+        margin-top: 30px;
+        font-size: 10px;
+        color: #666;
+    }
+    
+    .mention {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 9px;
+        color: #777;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
+    
+    @media print {
+        body {
+            padding: 0;
+        }
+        .table-produits th {
+            background: #333 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .produit-photo {
+            border: 1px solid #ddd;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
 <!-- HEADER ENTREPRISE -->
 <div class="header">
-
     <div class="left">
         {% if compagnie and compagnie.logo %}
-        <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}">
+        <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}" alt="Logo I-MEDICAL">
+        {% else %}
+        <div style="font-size: 18px; font-weight: bold;">I-MEDICAL</div>
         {% endif %}
     </div>
-
     <div class="right">
-        <strong>TIME INTERNATIONAL CO. LTD</strong><br>
-            REPRESENTATION A ABIDJAN <br>
-                <strong>I - MEDICAL</strong><br>
-            Tel : (225) 27 21 59 38 82 <br>
-            E-MAIL : info@imboe.com <br>
-            MARCORY BOULEVARD VGE <br>
-            FACEBOOK: IMBOE I-MEDICAL <br>
-            REPUBLIQUE DE COTE D'IVOIRE
+        <span style="color: red; font-weight: 700;">TIME INTERNATIONAL CO. LTD</span><br>
+        REPRESENTATION A ABIDJAN<br>
+        <span style="color: red; font-weight: 700;">I - MEDICAL</span><br>
+        Tél : (225) 27 21 59 38 82<br>
+        E-mail : info@imboe.com<br>
+        MARCORY BOULEVARD VGE<br>
+        RÉPUBLIQUE DE CÔTE D'IVOIRE
     </div>
-
 </div>
 
-
-<!-- TITRE DOCUMENT -->
-
+<!-- TITRE -->
 <div class="entete">
     <h2>FACTURE PROFORMA</h2>
 </div>
 
-
 <!-- INFOS PROFORMA -->
-
 <div class="info-doc">
-    <div class="info-date">
-        <strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') }}
-    </div>
-    <div class="info-numero-pf">
-        <strong>Numéro :</strong> {{ proforma.numero }} <br>
-    </div>
+    <div><strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') if proforma.date else '' }}</div>
+    <div><strong>N° :</strong> {{ proforma.numero }}</div>
 </div>
-
 
 <!-- INFOS CLIENT -->
-
 <div class="client-box">
-    <div class="info-nom">
-        <span>DOIT : <strong class="client">{{ proforma.client.nom_client }}</strong></span><br>
-        <span>ATTN : <strong>{{ attn or ""}}</strong></span>
+    <div>
+        <strong>DOIT :</strong> {{ proforma.client.nom_client if proforma.client else '' }}<br>
+        <strong>ATTN :</strong> {{ proforma.attn or '' }}
     </div>
-    <div class="info-contact">
-        Tel : {{ proforma.client.telephone }} <br>
-        Ville : {{ proforma.client.ville }}
+    <div>
+        <strong>Tél :</strong> {{ proforma.client.telephone if proforma.client else '' }}<br>
+        <strong>Ville :</strong> {{ proforma.client.adresse if proforma.client else '' }}
     </div>
 </div>
-
 
 <!-- CONDITIONS COMMERCIALES -->
-
+{% if proforma.condition_paiement or proforma.delai_livraison or proforma.garantie %}
 <div class="conditions-box">
-
-<table class="conditions-table">
-{% if proforma.condition_paiement %}
-<tr>
-<td><strong>Condition de paiement</strong></td>
-<td>{{ proforma.condition_paiement }}</td>
-</tr>
-{% endif %}
-
-{% if proforma.delai_livraison %}
-<tr>
-<td><strong>Délai de livraison</strong></td>
-<td>{{ proforma.delai_livraison }}</td>
-</tr>
-{% endif %}
-
-{% if proforma.garantie %}
-<tr>
-<td><strong>Garantie</strong></td>
-<td>{{ proforma.garantie }}</td>
-</tr>
-{% endif %}
-
-</table>
-
+    <table class="conditions-table">
+        {% if proforma.condition_paiement %}
+        <tr>
+            <td>Condition de paiement</td>
+            <td>{{ proforma.condition_paiement }}</td>
+        </tr>
+        {% endif %}
+        
+        {% if proforma.delai_livraison %}
+        <tr>
+            <td>Délai de livraison</td>
+            <td>{{ proforma.delai_livraison }}</td>
+        </tr>
+        {% endif %}
+        
+        {% if proforma.garantie %}
+        <tr>
+            <td>Garantie</td>
+            <td>{{ proforma.garantie }}</td>
+        </tr>
+        {% endif %}
+    </table>
 </div>
+{% endif %}
 
-
-
-<!-- TABLE PRODUITS -->
-
+<!-- TABLEAU DES PRODUITS AVEC PHOTO -->
 <table class="table-produits">
-
     <thead>
-    <tr>
-    <th class="produit">Designation</th>
-    <th class="quantite">Qté</th>
-    <th class="prixu">PU</th>
-    <th class="soustotal">Sous-total</th>
-    </tr>
+        <tr>
+            <th class="col-produit">DÉSIGNATION</th>
+            <th class="col-quantite">QTÉ</th>
+            <th class="col-prix">P.U (F CFA)</th>
+            <th class="col-soustotal">SOUS-TOTAL (F CFA)</th>
+            <th class="col-photo">IMAGE</th>
+        </tr>
     </thead>
-
     <tbody>
-
-    {% for ligne in proforma.lignes %}
-
-    <tr>
-
-        <td class="produit">
-
-<ul class="kit-list">
-
-{% if ligne.designation %}
-
-    {% set ids = ligne.designation.split(',') %}
-
-    {% for pid in ids %}
-
-    {% set produit = produits_id_map.get(pid|int) %}
-
-    {% if produit %}
-
-    <li>
-
-        <strong>{{ produit.nom_produit }}</strong>
-
-        {% if produit.marque %}
-        <br><small>Marque : {{ produit.marque }}</small>
-        {% endif %}
-
-        {% if produit.model %}
-        <br><small>Modèle : {{ produit.model }}</small>
-        {% endif %}
-
-        {% if produit.description %}
-
-        <br><strong>Caractéristiques :</strong>
-
-        <ul class="mb-0">
-
-        {% for desc in produit.description.split(',') %}
-
-        {% if desc.strip() %}
-        <li>{{ desc.strip() }}</li>
-        {% endif %}
-
+        {% for ligne in proforma.lignes %}
+        <tr>                       
+            <!-- COLONNE PRODUIT -->
+            <td class="col-produit">
+                <div class="produit-info">
+                    <span class="produit-nom">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</span>                                    
+                    {% if ligne.produit %}
+                        {% if ligne.produit.marque or ligne.produit.model or ligne.produit.origine %}
+                        <div class="produit-details" >
+                            {% if ligne.produit.marque %}<span><strong>Marque: </strong>{{ ligne.produit.marque }}</span>{% endif %}
+                            {% if ligne.produit.model %}<span><strong>Modèle: </strong>{{ ligne.produit.model }}</span>{% endif %}
+                            {% if ligne.produit.origine %}<span><strong>Origine: </strong>{{ ligne.produit.origine }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if ligne.produit.description %}
+                        <div class="produit-caracs">
+                            <strong>Caractéristiques:</strong>
+                            <ul>
+                                {% for desc in ligne.produit.description.split(',') %}
+                                    {% if desc.strip() %}
+                                    <li>{{ desc.strip() }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </td>
+            
+            <!-- QUANTITÉ -->
+            <td class="col-quantite">{{ ligne.quantite }}</td>
+            
+            <!-- PRIX UNITAIRE -->
+            <td class="col-prix">{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }}</td>
+            
+            <!-- SOUS-TOTAL -->
+            <td class="col-soustotal">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }}</td>
+             <!-- COLONNE PHOTO -->
+            <td class="col-photo">
+                {% if ligne.produit and ligne.produit.image %}
+                    <img src="{{ ligne.produit.image }}" 
+                         alt="{{ ligne.produit.nom_produit }}"
+                         class="produit-photo"
+                         onerror="this.onerror=null; this.style.display='none'; this.parentNode.innerHTML='<div class=\'no-photo\'>Pas d\'image</div>';">
+                {% else %}
+                    <p></p>
+                {% endif %}
+            </td>
+        </tr>
         {% endfor %}
-
-        </ul>
-
-        {% endif %}
-
-    </li>
-
-    {% endif %}
-
-    {% endfor %}
-
-{% elif ligne.produit %}
-
-<li>
-
-<strong>{{ ligne.produit.nom_produit }}</strong>
-
-{% if ligne.produit.marque %}
-<br><small>Marque : {{ ligne.produit.marque }}</small>
-{% endif %}
-
-{% if ligne.produit.model %}
-<br><small>Modèle : {{ ligne.produit.model }}</small>
-{% endif %}
-
-{% if ligne.produit.origine %}
-<br><small>Origine : {{ ligne.produit.origine }}</small>
-{% endif %}
-
-{% if ligne.produit.description %}
-
-<br><strong>Caractéristiques :</strong>
-
-<ul>
-
-{% for desc in ligne.produit.description.split(',') %}
-
-{% if desc.strip() %}
-<li>{{ desc.strip() }}</li>
-{% endif %}
-
-{% endfor %}
-
-</ul>
-
-{% endif %}
-
-</li>
-
-{% endif %}
-
-</ul>
-
-</td>
-    <td class="quantite align-top">{{ ligne.quantite }}</td>
-
-    <td class="prixu align-top">{{ ligne.prix_unitaire | money }}</td>
-
-    <td class="soustotal align-top">{{ ligne.sous_total | money }}</td>
-
-    </tr>
-
-    {% endfor %}
-
-    <tr class="total-row">
-
-        <td colspan="2">
-        Montant Total HT/HD
-        </td>
-
-        <td class="total" colspan="2">
-        <strong>{{ proforma.total | money }}</strong>
-        </td>
-
-    </tr>
-
+        
+        <!-- LIGNE TOTAL -->
+        <tr class="total-row">
+            <td colspan="3"><strong>TOTAL</strong></td>
+            <td colspan="2" class="total"><strong>{{ "{:,.0f}".format(proforma.total).replace(',', ' ') }} F CFA</strong></td>
+        </tr>
     </tbody>
-
 </table>
 
-<div class="montant-chiffre">
+<!-- MONTANT EN LETTRES -->
+<div class="montant-lettre">
     <p>
         <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <span>{{ total_lettre }} francs CFA</span>
-    </p>    
+        <span style="font-style: italic; color: red;">{{ total_lettre }} francs CFA</span>
+    </p>
 </div>
 
-<!-- FOOTER -->
-
-<div class="footer-prof">
-    <div class="footer-left">
-            <h5>
-                SIGNATURE DU CLIENT
-            </h5>
-        </div>
-
-        <div class="footer-right">
-            <h5>
-                LE RESPONSABLE COMMERCIAL
-            </h5>
-
-        </div>
+<!-- SIGNATURES -->
+<div class="footer">
+    <div class="signature-box">
+        <strong>SIGNATURE DU CLIENT</strong>
+    </div>
+    <div class="signature-box" style="text-align: right;">
+        <strong>LE RESPONSABLE COMMERCIAL</strong>
+    </div>
 </div>
+
 
 {% endblock %}

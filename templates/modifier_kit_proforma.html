@@ -26,12 +26,12 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">ATTN</label>
-                        <input type="text" name="attn" class="form-control" value="{{ kit.attn or '' }}">
+                        <input type="text" name="attn" class="form-control" value="{{ kit.attn or '' }}" placeholder="À l'attention de">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Date <span class="text-danger">*</span></label>
                         <input type="date" name="date_proforma" class="form-control" 
-                               value="{{ kit.date.strftime('%Y-%m-%d') }}" required>
+                               value="{{ kit.date.strftime('%Y-%m-%d') if kit.date else '' }}" required>
                     </div>
                 </div>
 
@@ -40,17 +40,17 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Condition de paiement</label>
                         <input type="text" name="condition_paiement" class="form-control" 
-                               value="{{ kit.condition_paiement or '' }}">
+                               value="{{ kit.condition_paiement or '' }}" placeholder="Ex: 100% à la commande">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Délai de livraison</label>
                         <input type="text" name="delai_livraison" class="form-control" 
-                               value="{{ kit.delai_livraison or '' }}">
+                               value="{{ kit.delai_livraison or '' }}" placeholder="Ex: 4-5 semaines">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Garantie</label>
                         <input type="text" name="garantie" class="form-control" 
-                               value="{{ kit.garantie or '' }}">
+                               value="{{ kit.garantie or '' }}" placeholder="Ex: 1 an">
                     </div>
                 </div>
 
@@ -71,67 +71,59 @@
                     {% set blocs_dict = {} %}
                     {% for ligne in kit.lignes %}
                         {% if ligne.bloc_id %}
-                            {% set bloc_id = ligne.bloc_id %}
-                            {% if bloc_id not in blocs_dict %}
-                                {% set _ = blocs_dict.update({bloc_id: {'titre': ligne.bloc.titre, 'lignes': []}}) %}
+                            {% if ligne.bloc_id not in blocs_dict %}
+                                {% set _ = blocs_dict.update({ligne.bloc_id: {'titre': ligne.bloc.titre if ligne.bloc else 'Bloc', 'lignes': []}}) %}
                             {% endif %}
-                            {% set _ = blocs_dict[bloc_id]['lignes'].append(ligne) %}
+                            {% set _ = blocs_dict[ligne.bloc_id]['lignes'].append(ligne) %}
                         {% endif %}
                     {% endfor %}
 
                     {% for bloc_id, bloc_data in blocs_dict.items() %}
                     <div class="bloc-item card mb-3 border-primary" data-bloc-id="{{ bloc_id }}">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
                             <span>
                                 <i class="fas fa-cube me-2"></i>
                                 <strong>Bloc {{ loop.index }}</strong>
-                                <small class="ms-2">{{ bloc_data.titre or '' }}</small>
+                                <input type="text" name="bloc_titre_{{ bloc_id }}" class="form-control form-control-sm d-inline-block ms-2" style="width: auto; min-width: 200px;" value="{{ bloc_data.titre }}" placeholder="Titre du bloc">
                             </span>
                             <button type="button" class="btn btn-sm btn-light remove-bloc">
-                                <i class="fas fa-trash"></i> Supprimer le bloc
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                         <div class="card-body">
-                            <!-- Produits du bloc -->
-                            <table class="table table-bordered">
+                            <!-- Tableau des produits du bloc -->
+                            <table class="table table-bordered table-sm">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Produit</th>
-                                        <th style="width: 150px;">Quantité</th>
+                                        <th style="width: 100px;">Quantité</th>
                                         <th style="width: 100px;">Type</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
-                                <tbody class="bloc-lignes">
+                                <tbody class="bloc-lignes" data-bloc-id="{{ bloc_id }}">
                                     {% for ligne in bloc_data.lignes %}
-                                    <tr class="ligne-produit" data-ligne-id="{{ ligne.id }}">
+                                    <tr class="ligne-produit">
                                         <td>
-                                            <select name="produit_{{ bloc_id }}[]" class="form-select produit-select" required>
-                                                <option value="">Choisir un produit</option>
+                                            <select name="produit_{{ bloc_id }}[]" class="form-select form-select-sm" required>
+                                                <option value="">Choisir</option>
                                                 {% for produit in produits %}
-                                                <option value="{{ produit.id }}" 
-                                                        {% if produit.id == ligne.produit_id %}selected{% endif %}>
+                                                <option value="{{ produit.id }}" {% if produit.id == ligne.produit_id %}selected{% endif %}>
                                                     {{ produit.nom_produit }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="quantite_{{ bloc_id }}[]" 
-                                                   class="form-control quantite-input" 
-                                                   value="{{ ligne.quantite }}" min="1" required>
+                                            <input type="number" name="quantite_{{ bloc_id }}[]" class="form-control form-control-sm" value="{{ ligne.quantite }}" min="1" required>
                                         </td>
                                         <td>
-                                            <select name="type_{{ bloc_id }}[]" class="form-select type-select">
-                                                <option value="principal" {% if ligne.est_principal %}selected{% endif %}>
-                                                    Principal
-                                                </option>
-                                                <option value="secondaire" {% if not ligne.est_principal %}selected{% endif %}>
-                                                    Accessoire
-                                                </option>
+                                            <select name="type_{{ bloc_id }}[]" class="form-select form-select-sm">
+                                                <option value="principal" {% if ligne.est_principal %}selected{% endif %}>Principal</option>
+                                                <option value="secondaire" {% if not ligne.est_principal %}selected{% endif %}>Accessoire</option>
                                             </select>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <button type="button" class="btn btn-danger btn-sm remove-ligne">
                                                 <i class="fas fa-times"></i>
                                             </button>
@@ -142,7 +134,7 @@
                             </table>
                             
                             <button type="button" class="btn btn-sm btn-outline-success add-produit" data-bloc-id="{{ bloc_id }}">
-                                <i class="fas fa-plus"></i> Ajouter un produit à ce bloc
+                                <i class="fas fa-plus"></i> Ajouter un produit
                             </button>
                         </div>
                     </div>
@@ -151,38 +143,36 @@
                     <!-- Produits hors bloc -->
                     {% set produits_hors_bloc = kit.lignes|selectattr('bloc_id', 'none')|list %}
                     {% if produits_hors_bloc %}
-                    <div class="bloc-item card mb-3 border-secondary" id="produits-hors-bloc">
-                        <div class="card-header bg-secondary text-white">
+                    <div class="card mb-3 border-secondary">
+                        <div class="card-header bg-secondary text-white py-2">
                             <strong>Produits hors bloc</strong>
                         </div>
                         <div class="card-body">
-                            <table class="table table-bordered">
+                            <table class="table table-bordered table-sm">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Produit</th>
-                                        <th style="width: 150px;">Quantité</th>
+                                        <th style="width: 100px;">Quantité</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="hors-bloc-lignes">
                                     {% for ligne in produits_hors_bloc %}
-                                    <tr class="ligne-produit" data-ligne-id="{{ ligne.id }}">
+                                    <tr class="ligne-produit">
                                         <td>
-                                            <select name="produit_hors_bloc[]" class="form-select" required>
-                                                <option value="">Choisir un produit</option>
+                                            <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
+                                                <option value="">Choisir</option>
                                                 {% for produit in produits %}
-                                                <option value="{{ produit.id }}" 
-                                                        {% if produit.id == ligne.produit_id %}selected{% endif %}>
+                                                <option value="{{ produit.id }}" {% if produit.id == ligne.produit_id %}selected{% endif %}>
                                                     {{ produit.nom_produit }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="quantite_hors_bloc[]" 
-                                                   class="form-control" value="{{ ligne.quantite }}" min="1" required>
+                                            <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="{{ ligne.quantite }}" min="1" required>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <button type="button" class="btn btn-danger btn-sm remove-ligne">
                                                 <i class="fas fa-times"></i>
                                             </button>
@@ -193,7 +183,7 @@
                             </table>
                             
                             <button type="button" class="btn btn-sm btn-outline-success" id="addProduitHorsBloc">
-                                <i class="fas fa-plus"></i> Ajouter un produit hors bloc
+                                <i class="fas fa-plus"></i> Ajouter un produit
                             </button>
                         </div>
                     </div>
@@ -207,7 +197,7 @@
                     <div class="col-md-4 offset-md-8">
                         <label class="form-label fw-bold">Prix global (F CFA) <span class="text-danger">*</span></label>
                         <input type="number" name="prix_global" class="form-control form-control-lg" 
-                               step="0.01" min="0" required value="{{ kit.prix_global }}">
+                               step="0.01" min="0" value="{{ kit.prix_global }}" required>
                     </div>
                 </div>
 
@@ -221,7 +211,7 @@
                             <i class="fas fa-eye"></i> Voir détails
                         </a>
                         <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-save"></i> Enregistrer les modifications
+                            <i class="fas fa-save"></i> Enregistrer
                         </button>
                     </div>
                 </div>
@@ -235,54 +225,57 @@
 document.addEventListener('DOMContentLoaded', function() {
     let blocCounter = {{ blocs_dict|length }};
     
-    // Ajouter un nouveau bloc
-    document.getElementById('addBloc')?.addEventListener('click', function() {
+    // Fonction pour créer un nouveau bloc
+    function createNewBloc() {
         blocCounter++;
+        const newBlocId = 'new_' + Date.now();
         const container = document.getElementById('blocsContainer');
-        const newBloc = document.createElement('div');
-        newBloc.className = 'bloc-item card mb-3 border-primary';
-        newBloc.dataset.blocId = 'new_' + Date.now();
-        newBloc.innerHTML = `
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        
+        const blocDiv = document.createElement('div');
+        blocDiv.className = 'bloc-item card mb-3 border-primary';
+        blocDiv.dataset.blocId = newBlocId;
+        
+        blocDiv.innerHTML = `
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
                 <span>
                     <i class="fas fa-cube me-2"></i>
-                    <strong>Nouveau Bloc ${blocCounter}</strong>
+                    <strong>Nouveau Bloc</strong>
+                    <input type="text" name="bloc_titre_${newBlocId}" class="form-control form-control-sm d-inline-block ms-2" style="width: auto; min-width: 200px;" placeholder="Titre du bloc">
                 </span>
                 <button type="button" class="btn btn-sm btn-light remove-bloc">
-                    <i class="fas fa-trash"></i> Supprimer
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
             <div class="card-body">
-                <table class="table table-bordered">
+                <table class="table table-bordered table-sm">
                     <thead class="table-light">
                         <tr>
                             <th>Produit</th>
-                            <th style="width: 150px;">Quantité</th>
+                            <th style="width: 100px;">Quantité</th>
                             <th style="width: 100px;">Type</th>
                             <th style="width: 50px;"></th>
                         </tr>
                     </thead>
-                    <tbody class="bloc-lignes">
+                    <tbody class="bloc-lignes" data-bloc-id="${newBlocId}">
                         <tr class="ligne-produit">
                             <td>
-                                <select name="produit_new_${blocCounter}[]" class="form-select" required>
-                                    <option value="">Choisir un produit</option>
+                                <select name="produit_${newBlocId}[]" class="form-select form-select-sm" required>
+                                    <option value="">Choisir</option>
                                     {% for produit in produits %}
                                     <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
                             <td>
-                                <input type="number" name="quantite_new_${blocCounter}[]" 
-                                       class="form-control" value="1" min="1" required>
+                                <input type="number" name="quantite_${newBlocId}[]" class="form-control form-control-sm" value="1" min="1" required>
                             </td>
                             <td>
-                                <select name="type_new_${blocCounter}[]" class="form-select">
+                                <select name="type_${newBlocId}[]" class="form-select form-select-sm">
                                     <option value="principal">Principal</option>
                                     <option value="secondaire" selected>Accessoire</option>
                                 </select>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <button type="button" class="btn btn-danger btn-sm remove-ligne">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -290,74 +283,85 @@ document.addEventListener('DOMContentLoaded', function() {
                         </tr>
                     </tbody>
                 </table>
-                <button type="button" class="btn btn-sm btn-outline-success add-produit" data-bloc-id="new_${blocCounter}">
+                <button type="button" class="btn btn-sm btn-outline-success add-produit" data-bloc-id="${newBlocId}">
                     <i class="fas fa-plus"></i> Ajouter un produit
                 </button>
             </div>
         `;
-        container.appendChild(newBloc);
-        attachEvents(newBloc);
-    });
+        
+        // Insérer avant la section des produits hors bloc ou à la fin
+        const horsBlocSection = document.querySelector('.card.border-secondary');
+        if (horsBlocSection) {
+            container.insertBefore(blocDiv, horsBlocSection);
+        } else {
+            container.appendChild(blocDiv);
+        }
+        
+        attachBlocEvents(blocDiv);
+    }
     
-    // Fonction pour attacher les événements
-    function attachEvents(element) {
-        // Supprimer un bloc
-        element.querySelectorAll('.remove-bloc').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if(confirm('Supprimer ce bloc ?')) {
-                    this.closest('.bloc-item').remove();
+    // Fonction pour attacher les événements à un bloc
+    function attachBlocEvents(bloc) {
+        // Supprimer le bloc
+        const removeBlocBtn = bloc.querySelector('.remove-bloc');
+        if (removeBlocBtn) {
+            removeBlocBtn.addEventListener('click', function() {
+                if (confirm('Supprimer ce bloc ?')) {
+                    bloc.remove();
                 }
             });
-        });
+        }
         
-        // Ajouter un produit à un bloc
-        element.querySelectorAll('.add-produit').forEach(btn => {
-            btn.addEventListener('click', function() {
+        // Ajouter un produit au bloc
+        const addProduitBtn = bloc.querySelector('.add-produit');
+        if (addProduitBtn) {
+            addProduitBtn.addEventListener('click', function() {
                 const blocId = this.dataset.blocId;
-                const tbody = this.closest('.card-body').querySelector('.bloc-lignes');
+                const tbody = bloc.querySelector('.bloc-lignes');
                 const newRow = document.createElement('tr');
                 newRow.className = 'ligne-produit';
                 newRow.innerHTML = `
                     <td>
-                        <select name="produit_${blocId}[]" class="form-select" required>
-                            <option value="">Choisir un produit</option>
+                        <select name="produit_${blocId}[]" class="form-select form-select-sm" required>
+                            <option value="">Choisir</option>
                             {% for produit in produits %}
                             <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
                             {% endfor %}
                         </select>
                     </td>
                     <td>
-                        <input type="number" name="quantite_${blocId}[]" class="form-control" value="1" min="1" required>
+                        <input type="number" name="quantite_${blocId}[]" class="form-control form-control-sm" value="1" min="1" required>
                     </td>
                     <td>
-                        <select name="type_${blocId}[]" class="form-select">
+                        <select name="type_${blocId}[]" class="form-select form-select-sm">
                             <option value="principal">Principal</option>
                             <option value="secondaire" selected>Accessoire</option>
                         </select>
                     </td>
-                    <td>
+                    <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm remove-ligne">
                             <i class="fas fa-times"></i>
                         </button>
                     </td>
                 `;
                 tbody.appendChild(newRow);
-                attachRowEvents(newRow);
+                attachLigneEvents(newRow);
             });
-        });
+        }
         
-        // Supprimer une ligne
-        element.querySelectorAll('.remove-ligne').forEach(btn => {
-            attachRowEvents(btn.closest('tr'));
+        // Attacher les événements aux lignes existantes
+        bloc.querySelectorAll('.ligne-produit').forEach(row => {
+            attachLigneEvents(row);
         });
     }
     
-    function attachRowEvents(row) {
+    // Fonction pour attacher les événements à une ligne
+    function attachLigneEvents(row) {
         const removeBtn = row.querySelector('.remove-ligne');
-        if(removeBtn) {
+        if (removeBtn) {
             removeBtn.addEventListener('click', function() {
-                const tbody = this.closest('tbody');
-                if(tbody.children.length > 1) {
+                const tbody = row.closest('tbody');
+                if (tbody && tbody.children.length > 1) {
                     row.remove();
                 } else {
                     alert('Un bloc doit avoir au moins un produit');
@@ -366,11 +370,99 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Attacher les événements aux éléments existants
-    attachEvents(document);
+    // Attacher les événements aux blocs existants
+    document.querySelectorAll('.bloc-item').forEach(bloc => {
+        attachBlocEvents(bloc);
+    });
+    
+    // Attacher les événements aux lignes hors bloc
+    document.querySelectorAll('#hors-bloc-lignes .ligne-produit').forEach(row => {
+        const removeBtn = row.querySelector('.remove-ligne');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                const tbody = row.closest('tbody');
+                if (tbody && tbody.children.length > 1) {
+                    row.remove();
+                } else {
+                    alert('Ajoutez d\'abord un autre produit');
+                }
+            });
+        }
+    });
+    
+    // Ajouter un nouveau bloc
+    document.getElementById('addBloc')?.addEventListener('click', createNewBloc);
+    
+    // Ajouter un produit hors bloc
+    document.getElementById('addProduitHorsBloc')?.addEventListener('click', function() {
+        const tbody = document.getElementById('hors-bloc-lignes');
+        if (!tbody) {
+            // Créer la section hors bloc si elle n'existe pas
+            const container = document.getElementById('blocsContainer');
+            const newSection = document.createElement('div');
+            newSection.className = 'card mb-3 border-secondary';
+            newSection.innerHTML = `
+                <div class="card-header bg-secondary text-white py-2">
+                    <strong>Produits hors bloc</strong>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produit</th>
+                                <th style="width: 100px;">Quantité</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="hors-bloc-lignes"></tbody>
+                    </table>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="addProduitHorsBloc">
+                        <i class="fas fa-plus"></i> Ajouter un produit
+                    </button>
+                </div>
+            `;
+            container.appendChild(newSection);
+            
+            // Réattacher l'événement
+            document.getElementById('addProduitHorsBloc').addEventListener('click', arguments.callee);
+        }
+        
+        const newTbody = document.getElementById('hors-bloc-lignes');
+        const newRow = document.createElement('tr');
+        newRow.className = 'ligne-produit';
+        newRow.innerHTML = `
+            <td>
+                <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
+                    <option value="">Choisir</option>
+                    {% for produit in produits %}
+                    <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="1" min="1" required>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        `;
+        newTbody.appendChild(newRow);
+        
+        // Attacher l'événement de suppression
+        const removeBtn = newRow.querySelector('.remove-ligne');
+        removeBtn.addEventListener('click', function() {
+            if (newTbody.children.length > 1) {
+                newRow.remove();
+            } else {
+                alert('Ajoutez d\'abord un autre produit');
+            }
+        });
+    });
 });
 </script>
 
-<!-- Inclure Font Awesome -->
+<!-- Inclure Font Awesome si pas déjà dans base.html -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

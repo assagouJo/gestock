@@ -2020,7 +2020,7 @@ def proforma_pdf(proforma_id):
     total_lettre = num2words(proforma.total, lang="fr").capitalize()
 
     html = render_template(
-        "kit_proforma_pdf.html",
+        "proforma_pdf.html",
         proforma=proforma,
         compagnie=compagnie,
         attn=proforma.attn,
@@ -2064,24 +2064,112 @@ def modifier_kit_proforma(kit_id):
     kit = KitProforma.query.get_or_404(kit_id)
     
     if request.method == 'POST':
-        # Récupérer les données du formulaire
-        kit.client_id = request.form.get('client_id')
-        kit.attn = request.form.get('attn')
-        kit.date = datetime.strptime(request.form.get('date_proforma'), '%Y-%m-%d').date()
-        kit.condition_paiement = request.form.get('condition_paiement')
-        kit.delai_livraison = request.form.get('delai_livraison')
-        kit.garantie = request.form.get('garantie')
-        kit.prix_global = float(request.form.get('prix_global'))
-        
         try:
+            # Mise à jour des informations de base du kit
+            kit.client_id = request.form.get('client_id')
+            kit.attn = request.form.get('attn')
+            kit.date = datetime.strptime(request.form.get('date_proforma'), '%Y-%m-%d').date()
+            kit.condition_paiement = request.form.get('condition_paiement')
+            kit.delai_livraison = request.form.get('delai_livraison')
+            kit.garantie = request.form.get('garantie')
+            kit.prix_global = float(request.form.get('prix_global', 0))
+            
+            # SUPPRIMER toutes les lignes existantes (elles seront recréées)
+            for ligne in kit.lignes:
+                db.session.delete(ligne)
+            
+            # SUPPRIMER tous les blocs existants (ils seront recréés)
+            for bloc in kit.blocs:
+                db.session.delete(bloc)
+            
+            # Récupérer tous les noms de champs du formulaire
+            form_fields = request.form.keys()
+            
+            # Identifier tous les blocs uniques
+            bloc_ids = set()
+            for field in form_fields:
+                if field.startswith('produit_'):
+                    # Format: produit_123[] ou produit_new_123[]
+                    bloc_id = field.replace('produit_', '').replace('[]', '')
+                    bloc_ids.add(bloc_id)
+            
+            # Dictionnaire pour stocker les blocs créés
+            blocs_crees = {}
+            
+            # Traiter chaque bloc
+            for bloc_id in bloc_ids:
+                # Récupérer le titre du bloc
+                bloc_titre = request.form.get(f'bloc_titre_{bloc_id}', '')
+                
+                # Récupérer les listes pour ce bloc
+                produits = request.form.getlist(f'produit_{bloc_id}[]')
+                quantites = request.form.getlist(f'quantite_{bloc_id}[]')
+                types = request.form.getlist(f'type_{bloc_id}[]')
+                
+                # Vérifier si ce bloc a au moins un produit valide
+                a_produits_valides = False
+                for i in range(len(produits)):
+                    if produits[i] and quantites[i]:
+                        a_produits_valides = True
+                        break
+                
+                if not a_produits_valides:
+                    continue  # Ignorer les blocs vides
+                
+                # Créer un nouveau bloc
+                nouveau_bloc = BlocKit(
+                    kit_id=kit.id,
+                    nom=bloc_titre or f"Bloc"
+                )
+                db.session.add(nouveau_bloc)
+                db.session.flush()  # Pour obtenir l'ID
+                
+                # Stocker l'association entre l'ID temporaire et le vrai ID
+                blocs_crees[bloc_id] = nouveau_bloc.id
+                
+                # Créer les lignes pour ce bloc
+                for i in range(len(produits)):
+                    if produits[i] and quantites[i]:
+                        # Déterminer si c'est un produit principal
+                        est_principal = (types[i] == 'principal' if i < len(types) else False)
+                        
+                        ligne = LigneKitProforma(
+                            kit_id=kit.id,
+                            bloc_id=nouveau_bloc.id,
+                            produit_id=int(produits[i]),
+                            quantite=int(quantites[i])
+                        )
+                        db.session.add(ligne)
+                        
+                        # Note: Si vous voulez stocker est_principal, ajoutez ce champ à LigneKitProforma
+                        # Sinon, vous pouvez l'ignorer ou l'utiliser pour d'autres traitements
+            
+            # Traiter les produits hors bloc
+            produits_hors_bloc = request.form.getlist('produit_hors_bloc[]')
+            quantites_hors_bloc = request.form.getlist('quantite_hors_bloc[]')
+            
+            for i in range(len(produits_hors_bloc)):
+                if produits_hors_bloc[i] and quantites_hors_bloc[i]:
+                    ligne = LigneKitProforma(
+                        kit_id=kit.id,
+                        bloc_id=None,  # Pas de bloc
+                        produit_id=int(produits_hors_bloc[i]),
+                        quantite=int(quantites_hors_bloc[i])
+                    )
+                    db.session.add(ligne)
+            
             db.session.commit()
             flash('Kit modifié avec succès', 'success')
             return redirect(url_for('list_kit_proforma'))
+            
         except Exception as e:
             db.session.rollback()
             flash(f'Erreur lors de la modification: {str(e)}', 'danger')
+            print(f"Erreur: {str(e)}")
+            import traceback
+            traceback.print_exc()
     
-    # Récupérer les clients et produits pour le formulaire
+    # GET request - Récupérer les données pour le formulaire
     clients = Client.query.all()
     produits = Produit.query.all()
     
