@@ -56,7 +56,7 @@
         font-size: 18px;
         text-transform: uppercase;
         letter-spacing: 2px;
-        border-bottom: 1px solid #999;
+        border-bottom: 1px solid red;
         padding-bottom: 5px;
         display: inline-block;
     }
@@ -170,24 +170,23 @@
         font-size: 10px;
     }
     
-    /* Conteneur d'image - OPTIMISÉ */
-   .produit-image-container {
+   /* Conteneur d'image - CORRIGÉ */
+.produit-image-container {
     background-color: #f9f9f9;
-    /* border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px;
-    margin: 5px auto; */
     display: flex;
     justify-content: center;
     align-items: center;
     
-    /* Dimensions flexibles */
-    width: fit-content;
+    /* Dimensions fixes pour garantir l'affichage */
+    width: 180px;
+    height: 160px;
     max-width: 180px;
-    min-width: 100px;
-    height: fit-content;
     max-height: 160px;
+    min-width: 100px;
     min-height: 80px;
+    
+    /* Pour centrer dans la cellule */
+    margin: 0 auto;
 }
 
 /* L'image garde ses proportions */
@@ -196,7 +195,7 @@
     height: auto;
     max-width: 100%;
     max-height: 100%;
-    object-fit: scale-down;
+    object-fit: contain;  /* "contain" est mieux supporté que "scale-down" */
     display: block;
 }
 
@@ -205,6 +204,14 @@
     text-align: center;
     vertical-align: middle;
     width: 200px; /* Largeur fixe pour la colonne */
+}
+
+/* Fallback pour les navigateurs plus anciens */
+.img img {
+    max-width: 180px;
+    max-height: 160px;
+    width: auto;
+    height: auto;
 }
     
     /* Total row */
@@ -292,9 +299,9 @@
         {% endif %}
     </div>
     <div class="right">
-        <strong>TIME INTERNATIONAL CO. LTD</strong><br>
+        <strong style="color: red;">TIME INTERNATIONAL CO. LTD</strong><br>
         REPRESENTATION A ABIDJAN <br>
-        <strong>I - MEDICAL</strong><br>
+        <strong style="color: red;">I - MEDICAL</strong><br>
         Tel : (225) 27 21 59 38 82 <br>
         E-MAIL : info@imboe.com <br>
         MARCORY BOULEVARD VGE <br>
