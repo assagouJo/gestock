@@ -210,6 +210,7 @@
                                     or is_active('liste_proformas') 
                                     or is_active('liste_bons_commandes')
                                     or is_active('list_kit_proforma')
+                                    or is_active('creer_certificat')
                                     %}show{% endif %}"
                                     id="menuBonLivraison">
 
@@ -219,6 +220,12 @@
                                             <a class="nav-link fw-bold border-light text-black {% if is_active('liste_bons_livraison') %}bg-nav2{% endif %}"
                                             href="{{ url_for('liste_bons_livraison') }}">
                                                 Bon de Livraison
+                                            </a>
+                                        </li>
+                                        <li class="nav-item border-2 border-top bg-transparent">
+                                            <a class="nav-link fw-bold border-light text-black {% if is_active('creer_certificat') %}bg-nav2{% endif %}"
+                                            href="{{ url_for('creer_certificat') }}">
+                                                Reparation
                                             </a>
                                         </li>
                                         <li class="nav-item fw-bold border-2 border-top bg-transparent">

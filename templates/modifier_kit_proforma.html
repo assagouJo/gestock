@@ -11,6 +11,9 @@
         
         <div class="card-body">
             <form method="POST" action="{{ url_for('modifier_kit_proforma', kit_id=kit.id) }}" id="kitForm">
+                <!-- Champ caché pour stocker l'ordre des blocs -->
+                <input type="hidden" name="ordre_blocs" id="ordreBlocs" value="">
+                
                 <!-- Informations client et date -->
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -56,7 +59,7 @@
 
                 <hr class="my-4">
 
-                <!-- SECTION PRODUITS MODIFIABLE -->
+                <!-- SECTION PRODUITS -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0">
                         <i class="fas fa-cubes me-2"></i>Produits du kit
@@ -72,7 +75,7 @@
                     {% for ligne in kit.lignes %}
                         {% if ligne.bloc_id %}
                             {% if ligne.bloc_id not in blocs_dict %}
-                                {% set _ = blocs_dict.update({ligne.bloc_id: {'titre': ligne.bloc.titre if ligne.bloc else 'Bloc', 'lignes': []}}) %}
+                                {% set _ = blocs_dict.update({ligne.bloc_id: {'titre': ligne.bloc.nom if ligne.bloc else 'Bloc', 'lignes': []}}) %}
                             {% endif %}
                             {% set _ = blocs_dict[ligne.bloc_id]['lignes'].append(ligne) %}
                         {% endif %}
@@ -81,9 +84,10 @@
                     {% for bloc_id, bloc_data in blocs_dict.items() %}
                     <div class="bloc-item card mb-3 border-primary" data-bloc-id="{{ bloc_id }}">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
-                            <span>
+                            <span class="d-flex align-items-center">
+                                <i class="fas fa-grip-vertical me-2" style="cursor: move;"></i>
                                 <i class="fas fa-cube me-2"></i>
-                                <strong>Bloc {{ loop.index }}</strong>
+                                <strong>Bloc</strong>
                                 <input type="text" name="bloc_titre_{{ bloc_id }}" class="form-control form-control-sm d-inline-block ms-2" style="width: auto; min-width: 200px;" value="{{ bloc_data.titre }}" placeholder="Titre du bloc">
                             </span>
                             <button type="button" class="btn btn-sm btn-light remove-bloc">
@@ -91,7 +95,6 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <!-- Tableau des produits du bloc -->
                             <table class="table table-bordered table-sm">
                                 <thead class="table-light">
                                     <tr>
@@ -119,8 +122,8 @@
                                         </td>
                                         <td>
                                             <select name="type_{{ bloc_id }}[]" class="form-select form-select-sm">
-                                                <option value="principal" {% if ligne.est_principal %}selected{% endif %}>Principal</option>
-                                                <option value="secondaire" {% if not ligne.est_principal %}selected{% endif %}>Accessoire</option>
+                                                <option value="principal" {% if loop.first %}selected{% endif %}>Principal</option>
+                                                <option value="secondaire" {% if not loop.first %}selected{% endif %}>Accessoire</option>
                                             </select>
                                         </td>
                                         <td class="text-center">
@@ -142,7 +145,6 @@
 
                     <!-- Produits hors bloc -->
                     {% set produits_hors_bloc = kit.lignes|selectattr('bloc_id', 'none')|list %}
-                    {% if produits_hors_bloc %}
                     <div class="card mb-3 border-secondary">
                         <div class="card-header bg-secondary text-white py-2">
                             <strong>Produits hors bloc</strong>
@@ -187,7 +189,6 @@
                             </button>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
 
                 <hr class="my-4">
@@ -220,16 +221,70 @@
     </div>
 </div>
 
-<!-- JavaScript pour la gestion dynamique -->
+<!-- Inclure SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<!-- Inclure Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<!-- Passer les données produits au JavaScript -->
+<script>
+    // Définir les données produits une seule fois en dehors des fonctions
+    const produitsData = [
+    {% for produit in produits %}
+    {
+        id: {{ produit.id }},
+        nom: "{{ produit.nom_produit|replace('"', '\\"')|safe }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let blocCounter = {{ blocs_dict|length }};
+    
+    // Initialiser Sortable pour le conteneur des blocs
+    const blocsContainer = document.getElementById('blocsContainer');
+    if (blocsContainer) {
+        const sortable = new Sortable(blocsContainer, {
+            animation: 150,
+            handle: '.fa-grip-vertical',
+            onEnd: function() {
+                mettreAJourOrdreBlocs();
+            }
+        });
+    }
+    
+    // Fonction pour créer les options de produits
+    function getProduitsOptions(selectedId = null) {
+        let options = '<option value="">Choisir</option>';
+        produitsData.forEach(produit => {
+            const selected = (selectedId && produit.id === selectedId) ? 'selected' : '';
+            options += `<option value="${produit.id}" ${selected}>${produit.nom}</option>`;
+        });
+        return options;
+    }
+    
+    // Fonction pour mettre à jour l'ordre des blocs
+    function mettreAJourOrdreBlocs() {
+        const ordre = [];
+        document.querySelectorAll('.bloc-item').forEach(bloc => {
+            if (bloc.dataset.blocId) {
+                ordre.push(bloc.dataset.blocId);
+            }
+        });
+        const ordreBlocs = document.getElementById('ordreBlocs');
+        if (ordreBlocs) {
+            ordreBlocs.value = ordre.join(',');
+        }
+        console.log('Ordre des blocs:', ordre);
+    }
     
     // Fonction pour créer un nouveau bloc
     function createNewBloc() {
         blocCounter++;
         const newBlocId = 'new_' + Date.now();
-        const container = document.getElementById('blocsContainer');
         
         const blocDiv = document.createElement('div');
         blocDiv.className = 'bloc-item card mb-3 border-primary';
@@ -237,7 +292,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         blocDiv.innerHTML = `
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
-                <span>
+                <span class="d-flex align-items-center">
+                    <i class="fas fa-grip-vertical me-2" style="cursor: move;"></i>
                     <i class="fas fa-cube me-2"></i>
                     <strong>Nouveau Bloc</strong>
                     <input type="text" name="bloc_titre_${newBlocId}" class="form-control form-control-sm d-inline-block ms-2" style="width: auto; min-width: 200px;" placeholder="Titre du bloc">
@@ -260,10 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <tr class="ligne-produit">
                             <td>
                                 <select name="produit_${newBlocId}[]" class="form-select form-select-sm" required>
-                                    <option value="">Choisir</option>
-                                    {% for produit in produits %}
-                                    <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
-                                    {% endfor %}
+                                    ${getProduitsOptions()}
                                 </select>
                             </td>
                             <td>
@@ -289,15 +342,16 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Insérer avant la section des produits hors bloc ou à la fin
+        // Insérer avant la section des produits hors bloc
         const horsBlocSection = document.querySelector('.card.border-secondary');
         if (horsBlocSection) {
-            container.insertBefore(blocDiv, horsBlocSection);
+            blocsContainer.insertBefore(blocDiv, horsBlocSection);
         } else {
-            container.appendChild(blocDiv);
+            blocsContainer.appendChild(blocDiv);
         }
         
         attachBlocEvents(blocDiv);
+        mettreAJourOrdreBlocs();
     }
     
     // Fonction pour attacher les événements à un bloc
@@ -308,6 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
             removeBlocBtn.addEventListener('click', function() {
                 if (confirm('Supprimer ce bloc ?')) {
                     bloc.remove();
+                    mettreAJourOrdreBlocs();
                 }
             });
         }
@@ -323,10 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newRow.innerHTML = `
                     <td>
                         <select name="produit_${blocId}[]" class="form-select form-select-sm" required>
-                            <option value="">Choisir</option>
-                            {% for produit in produits %}
-                            <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
-                            {% endfor %}
+                            ${getProduitsOptions()}
                         </select>
                     </td>
                     <td>
@@ -384,85 +436,70 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (tbody && tbody.children.length > 1) {
                     row.remove();
                 } else {
-                    alert('Ajoutez d\'abord un autre produit');
+                    if(confirm('Supprimer le dernier produit hors bloc ?')) {
+                        row.remove();
+                    }
                 }
             });
         }
     });
     
     // Ajouter un nouveau bloc
-    document.getElementById('addBloc')?.addEventListener('click', createNewBloc);
+    const addBlocBtn = document.getElementById('addBloc');
+    if (addBlocBtn) {
+        addBlocBtn.addEventListener('click', createNewBloc);
+    }
     
     // Ajouter un produit hors bloc
-    document.getElementById('addProduitHorsBloc')?.addEventListener('click', function() {
-        const tbody = document.getElementById('hors-bloc-lignes');
-        if (!tbody) {
-            // Créer la section hors bloc si elle n'existe pas
-            const container = document.getElementById('blocsContainer');
-            const newSection = document.createElement('div');
-            newSection.className = 'card mb-3 border-secondary';
-            newSection.innerHTML = `
-                <div class="card-header bg-secondary text-white py-2">
-                    <strong>Produits hors bloc</strong>
-                </div>
-                <div class="card-body">
-                    <table class="table table-bordered table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Produit</th>
-                                <th style="width: 100px;">Quantité</th>
-                                <th style="width: 50px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="hors-bloc-lignes"></tbody>
-                    </table>
-                    <button type="button" class="btn btn-sm btn-outline-success" id="addProduitHorsBloc">
-                        <i class="fas fa-plus"></i> Ajouter un produit
-                    </button>
-                </div>
-            `;
-            container.appendChild(newSection);
+    const addProduitHorsBloc = document.getElementById('addProduitHorsBloc');
+    if (addProduitHorsBloc) {
+        addProduitHorsBloc.addEventListener('click', function() {
+            const tbody = document.getElementById('hors-bloc-lignes');
+            if (!tbody) return;
             
-            // Réattacher l'événement
-            document.getElementById('addProduitHorsBloc').addEventListener('click', arguments.callee);
-        }
-        
-        const newTbody = document.getElementById('hors-bloc-lignes');
-        const newRow = document.createElement('tr');
-        newRow.className = 'ligne-produit';
-        newRow.innerHTML = `
-            <td>
-                <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
-                    <option value="">Choisir</option>
-                    {% for produit in produits %}
-                    <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="1" min="1" required>
-            </td>
-            <td class="text-center">
-                <button type="button" class="btn btn-danger btn-sm remove-ligne">
-                    <i class="fas fa-times"></i>
-                </button>
-            </td>
-        `;
-        newTbody.appendChild(newRow);
-        
-        // Attacher l'événement de suppression
-        const removeBtn = newRow.querySelector('.remove-ligne');
-        removeBtn.addEventListener('click', function() {
-            if (newTbody.children.length > 1) {
-                newRow.remove();
-            } else {
-                alert('Ajoutez d\'abord un autre produit');
-            }
+            const newRow = document.createElement('tr');
+            newRow.className = 'ligne-produit';
+            newRow.innerHTML = `
+                <td>
+                    <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
+                        ${getProduitsOptions()}
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="1" min="1" required>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            
+            const removeBtn = newRow.querySelector('.remove-ligne');
+            removeBtn.addEventListener('click', function() {
+                if (tbody.children.length > 1) {
+                    newRow.remove();
+                } else {
+                    if(confirm('Supprimer le dernier produit hors bloc ?')) {
+                        newRow.remove();
+                    }
+                }
+            });
         });
-    });
+    }
+    
+    // Mettre à jour l'ordre avant la soumission
+    const kitForm = document.getElementById('kitForm');
+    if (kitForm) {
+        kitForm.addEventListener('submit', function(e) {
+            mettreAJourOrdreBlocs();
+            return true;
+        });
+    }
+    
+    // Initialiser l'ordre au chargement
+    mettreAJourOrdreBlocs();
 });
 </script>
-
-<!-- Inclure Font Awesome si pas déjà dans base.html -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

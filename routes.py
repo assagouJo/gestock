@@ -1,9 +1,9 @@
 from app import app, db, login_manager
 from datetime import datetime, timezone
-from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app
+from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma, BlocKit
-from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma, BlocKit, CertificatReparation, ReparationDetail
+from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm, CertificatReparationForm, ReparationDetailForm, RechercheProduitForm
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -26,6 +26,19 @@ from num2words import num2words
 import time
 
 
+
+def generer_numero_certificat():
+    """Génère un numéro de certificat automatique format: CERT-YYYY-XXXX"""
+    annee = datetime.now().year
+    # Compter le nombre de certificats créés cette année
+    count = CertificatReparation.query.filter(
+        CertificatReparation.date_creation >= datetime(annee, 1, 1),
+        CertificatReparation.date_creation <= datetime(annee, 12, 31)
+    ).count()
+    
+    # Numéro séquentiel avec 4 chiffres
+    numero = f"CERT-{annee}-{count + 1:04d}"
+    return numero
 
 
 def seed_compagnies():
@@ -2074,30 +2087,31 @@ def modifier_kit_proforma(kit_id):
             kit.garantie = request.form.get('garantie')
             kit.prix_global = float(request.form.get('prix_global', 0))
             
-            # SUPPRIMER toutes les lignes existantes (elles seront recréées)
+            # SUPPRIMER toutes les lignes existantes
             for ligne in kit.lignes:
                 db.session.delete(ligne)
             
-            # SUPPRIMER tous les blocs existants (ils seront recréés)
+            # SUPPRIMER tous les blocs existants
             for bloc in kit.blocs:
                 db.session.delete(bloc)
             
-            # Récupérer tous les noms de champs du formulaire
-            form_fields = request.form.keys()
+            # IMPORTANT: Récupérer l'ordre des blocs depuis le formulaire
+            # On cherche tous les champs bloc_titre_XXX pour identifier l'ordre
+            bloc_ids_ordonnes = []
             
-            # Identifier tous les blocs uniques
-            bloc_ids = set()
-            for field in form_fields:
-                if field.startswith('produit_'):
-                    # Format: produit_123[] ou produit_new_123[]
-                    bloc_id = field.replace('produit_', '').replace('[]', '')
-                    bloc_ids.add(bloc_id)
+            # Méthode 1: Parcourir tous les champs du formulaire
+            for field in request.form.keys():
+                if field.startswith('bloc_titre_'):
+                    # Extraire l'ID du bloc (new_XXX ou chiffre)
+                    bloc_id = field.replace('bloc_titre_', '')
+                    if bloc_id not in bloc_ids_ordonnes:
+                        bloc_ids_ordonnes.append(bloc_id)
             
-            # Dictionnaire pour stocker les blocs créés
-            blocs_crees = {}
+            # Méthode 2: Si vous avez un champ caché avec l'ordre, utilisez-le
+            # ordre_blocs = request.form.getlist('ordre_blocs[]')
             
-            # Traiter chaque bloc
-            for bloc_id in bloc_ids:
+            # Traiter chaque bloc dans l'ordre
+            for bloc_id in bloc_ids_ordonnes:
                 # Récupérer le titre du bloc
                 bloc_titre = request.form.get(f'bloc_titre_{bloc_id}', '')
                 
@@ -2108,10 +2122,16 @@ def modifier_kit_proforma(kit_id):
                 
                 # Vérifier si ce bloc a au moins un produit valide
                 a_produits_valides = False
+                produits_valides = []
+                quantites_valides = []
+                types_valides = []
+                
                 for i in range(len(produits)):
                     if produits[i] and quantites[i]:
                         a_produits_valides = True
-                        break
+                        produits_valides.append(produits[i])
+                        quantites_valides.append(quantites[i])
+                        types_valides.append(types[i] if i < len(types) else 'secondaire')
                 
                 if not a_produits_valides:
                     continue  # Ignorer les blocs vides
@@ -2124,25 +2144,18 @@ def modifier_kit_proforma(kit_id):
                 db.session.add(nouveau_bloc)
                 db.session.flush()  # Pour obtenir l'ID
                 
-                # Stocker l'association entre l'ID temporaire et le vrai ID
-                blocs_crees[bloc_id] = nouveau_bloc.id
-                
-                # Créer les lignes pour ce bloc
-                for i in range(len(produits)):
-                    if produits[i] and quantites[i]:
-                        # Déterminer si c'est un produit principal
-                        est_principal = (types[i] == 'principal' if i < len(types) else False)
-                        
-                        ligne = LigneKitProforma(
-                            kit_id=kit.id,
-                            bloc_id=nouveau_bloc.id,
-                            produit_id=int(produits[i]),
-                            quantite=int(quantites[i])
-                        )
-                        db.session.add(ligne)
-                        
-                        # Note: Si vous voulez stocker est_principal, ajoutez ce champ à LigneKitProforma
-                        # Sinon, vous pouvez l'ignorer ou l'utiliser pour d'autres traitements
+                # Créer les lignes pour ce bloc en préservant l'ordre des produits
+                for i in range(len(produits_valides)):
+                    # Déterminer si c'est un produit principal
+                    est_principal = (types_valides[i] == 'principal')
+                    
+                    ligne = LigneKitProforma(
+                        kit_id=kit.id,
+                        bloc_id=nouveau_bloc.id,
+                        produit_id=int(produits_valides[i]),
+                        quantite=int(quantites_valides[i])
+                    )
+                    db.session.add(ligne)
             
             # Traiter les produits hors bloc
             produits_hors_bloc = request.form.getlist('produit_hors_bloc[]')
@@ -2152,7 +2165,7 @@ def modifier_kit_proforma(kit_id):
                 if produits_hors_bloc[i] and quantites_hors_bloc[i]:
                     ligne = LigneKitProforma(
                         kit_id=kit.id,
-                        bloc_id=None,  # Pas de bloc
+                        bloc_id=None,
                         produit_id=int(produits_hors_bloc[i]),
                         quantite=int(quantites_hors_bloc[i])
                     )
@@ -2169,7 +2182,7 @@ def modifier_kit_proforma(kit_id):
             import traceback
             traceback.print_exc()
     
-    # GET request - Récupérer les données pour le formulaire
+    # GET request
     clients = Client.query.all()
     produits = Produit.query.all()
     
@@ -2177,7 +2190,6 @@ def modifier_kit_proforma(kit_id):
                          kit=kit, 
                          clients=clients, 
                          produits=produits)
-
 # Route pour supprimer un kit
 @app.route('/supprimer-kit-proforma/<int:kit_id>')
 def supprimer_kit_proforma(kit_id):
@@ -3065,6 +3077,349 @@ def logs():
         logs = query.order_by(Log.created_at.desc()).all()
 
     return render_template("logs.html", form=form, logs=logs)
+
+
+@app.route('/certificats')
+def liste_certificats():
+    """Liste tous les certificats de réparation"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Récupérer tous les certificats
+    certificats = CertificatReparation.query.order_by(
+        CertificatReparation.date_creation.desc()
+    ).paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Calculer les statistiques
+    from sqlalchemy import func
+    total_montant = db.session.query(func.sum(ReparationDetail.cout_reparation)).scalar() or 0
+    
+    # Nombre de certificats ce mois
+    from datetime import datetime
+    now = datetime.now()
+    debut_mois = datetime(now.year, now.month, 1)
+    certificats_mois = CertificatReparation.query.filter(
+        CertificatReparation.date_creation >= debut_mois
+    ).count()
+    
+    # Nombre total de produits réparés
+    total_produits = ReparationDetail.query.count()
+    
+    return render_template('certificats_liste.html', 
+                         certificats=certificats,
+                         total_montant=total_montant,
+                         certificats_mois=certificats_mois,
+                         total_produits=total_produits,
+                         per_page=per_page)
+
+
+@app.route('/certificats/creer', methods=['GET', 'POST'])
+def creer_certificat():
+    """Créer un nouveau certificat de réparation"""
+    form = CertificatReparationForm()
+    
+    # Générer automatiquement le numéro de certificat
+    if request.method == 'GET':
+        form.numero_certificat.data = generer_numero_certificat()
+    
+    # Remplir la liste des clients
+    form.client_id.choices = [(0, 'Choisir un client')] + [
+        (c.id, f"{c.nom_client} - {c.telephone}") for c in Client.query.order_by(Client.nom_client).all()
+    ]
+    
+    # Remplir la liste des produits
+    produits = Produit.query.order_by(Produit.marque, Produit.model, Produit.nom_produit).all()
+    produits_choices = [(0, 'Choisir un produit')] + [
+        (p.id, f"{p.marque} {p.model} - {p.nom_produit}") for p in produits
+    ]
+    
+    # IMPORTANT: Initialiser les choix pour TOUS les formulaires de réparation existants
+    if form.reparations:
+        for reparation_form in form.reparations:
+            reparation_form.produit_id.choices = produits_choices
+    
+    if request.method == 'POST':
+        print("=== DÉBUT SOUMISSION POST ===")
+        print("Form data:", request.form)
+        print("Form validation:", form.validate_on_submit())
+        print("Form errors:", form.errors)
+        
+        if form.validate_on_submit():
+            try:
+                # Créer le certificat
+                certificat = CertificatReparation(
+                    numero_certificat=form.numero_certificat.data,
+                    date_reparation=form.date_reparation.data,
+                    client_id=form.client_id.data,
+                    observations=form.observations.data,
+                    technicien=form.technicien.data
+                )
+                
+                db.session.add(certificat)
+                db.session.flush()
+                
+                # Ajouter les détails de réparation
+                for i, reparation_form in enumerate(form.reparations.data):
+                    if reparation_form.get('produit_id') and reparation_form.get('taches_effectuees'):
+                        reparation = ReparationDetail(
+                            certificat_id=certificat.id,
+                            produit_id=reparation_form['produit_id'],
+                            numero_serie=reparation_form['numero_serie'],
+                            taches_effectuees=reparation_form['taches_effectuees'],
+                            cout_reparation=reparation_form.get('cout_reparation', 0.0),
+                            garantie_mois=reparation_form.get('garantie_mois', 3)
+                        )
+                        db.session.add(reparation)
+                
+                db.session.commit()
+                flash(f'Certificat {certificat.numero_certificat} créé avec succès!', 'success')
+                return redirect(url_for('voir_certificat', id=certificat.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Erreur lors de la création: {str(e)}', 'danger')
+                print(f"Erreur: {e}")
+        else:
+            print("Erreurs de validation:", form.errors)
+            # Afficher les erreurs pour déboguer
+            for field, errors in form.errors.items():
+                print(f"Field {field}: {errors}")
+            flash('Veuillez corriger les erreurs dans le formulaire', 'danger')
+    
+    return render_template('certificats_creer.html', 
+                         form=form, 
+                         produits=produits,
+                         produits_choices=produits_choices)
+
+@app.route('/certificats/<int:id>')
+def voir_certificat(id):
+    """Voir un certificat spécifique"""
+    certificat = CertificatReparation.query.get_or_404(id)
+    return render_template('certificats_voir.html', certificat=certificat)
+
+
+@app.route('/certificats/<int:id>/modifier', methods=['GET', 'POST'])
+def modifier_certificat(id):
+    """Modifier un certificat existant"""
+    certificat = CertificatReparation.query.get_or_404(id)
+    
+    # Passer l'ID du certificat au formulaire
+    form = CertificatReparationForm(obj=certificat, certificat_id=id)
+    
+    # Remplir la liste des clients
+    form.client_id.choices = [(0, 'Choisir un client')] + [
+        (c.id, f"{c.nom_client} - {c.telephone}") for c in Client.query.order_by(Client.nom_client).all()
+    ]
+    
+    # Remplir la liste des produits
+    produits = Produit.query.order_by(Produit.marque, Produit.model, Produit.nom_produit).all()
+    produits_choices = [(0, 'Choisir un produit')] + [
+        (p.id, f"{p.marque} {p.model} - {p.nom_produit}") for p in produits
+    ]
+    
+    if request.method == 'GET':
+        # Initialiser les formulaires de réparation
+        form.reparations = []
+        for reparation in certificat.reparations:
+            reparation_form = ReparationDetailForm()
+            reparation_form.produit_id.choices = produits_choices
+            reparation_form.produit_id.data = reparation.produit_id
+            reparation_form.numero_serie.data = reparation.numero_serie
+            reparation_form.taches_effectuees.data = reparation.taches_effectuees
+            reparation_form.cout_reparation.data = reparation.cout_reparation
+            reparation_form.garantie_mois.data = reparation.garantie_mois
+            reparation_form.id.data = reparation.id
+            form.reparations.append(reparation_form)
+        
+        # Ajouter un formulaire vide si aucun produit
+        if len(form.reparations) == 0:
+            empty_form = ReparationDetailForm()
+            empty_form.produit_id.choices = produits_choices
+            form.reparations.append(empty_form)
+    
+    if request.method == 'POST':
+        print("=== MODIFICATION POST ===")
+        print("Form data:", request.form)
+        
+        # Remplir les choix des produits avant validation
+        for reparation_form in form.reparations:
+            reparation_form.produit_id.choices = produits_choices
+        
+        if form.validate_on_submit():
+            try:
+                # Mettre à jour le certificat
+                certificat.numero_certificat = form.numero_certificat.data
+                certificat.date_reparation = form.date_reparation.data
+                certificat.client_id = form.client_id.data
+                certificat.observations = form.observations.data
+                certificat.technicien = form.technicien.data
+                
+                # Supprimer les anciennes réparations
+                for reparation in certificat.reparations:
+                    db.session.delete(reparation)
+                
+                # Ajouter les nouvelles réparations
+                for reparation_form in form.reparations:
+                    if reparation_form.produit_id.data and reparation_form.produit_id.data != 0:
+                        if reparation_form.taches_effectuees.data and reparation_form.taches_effectuees.data.strip():
+                            new_reparation = ReparationDetail(
+                                certificat_id=certificat.id,
+                                produit_id=reparation_form.produit_id.data,
+                                numero_serie=reparation_form.numero_serie.data,
+                                taches_effectuees=reparation_form.taches_effectuees.data,
+                                cout_reparation=reparation_form.cout_reparation.data or 0.0,
+                                garantie_mois=reparation_form.garantie_mois.data or 3
+                            )
+                            db.session.add(new_reparation)
+                
+                db.session.commit()
+                flash('Certificat modifié avec succès!', 'success')
+                return redirect(url_for('voir_certificat', id=certificat.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Erreur lors de la modification: {str(e)}', 'danger')
+                print(f"Erreur: {e}")
+        else:
+            print("Erreurs de validation:", form.errors)
+            for field, errors in form.errors.items():
+                print(f"Field {field}: {errors}")
+            flash('Veuillez corriger les erreurs dans le formulaire', 'danger')
+    
+    return render_template('certificats_modifier.html', 
+                         form=form, 
+                         certificat=certificat,
+                         produits=produits,
+                         produits_choices=produits_choices)
+
+
+@app.route('/certificats/<int:id>/supprimer', methods=['POST'])
+def supprimer_certificat(id):
+    """Supprimer un certificat"""
+    certificat = CertificatReparation.query.get_or_404(id)
+    
+    try:
+        db.session.delete(certificat)
+        db.session.commit()
+        flash(f'Certificat {certificat.numero_certificat} supprimé avec succès!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'danger')
+    
+    return redirect(url_for('liste_certificats'))
+
+
+@app.route('/certificats/<int:id>/pdf')
+def generer_pdf_certificat(id):
+    """Générer le PDF du certificat"""
+    certificat = CertificatReparation.query.get_or_404(id)
+    
+    try:
+        # Générer le HTML
+        rendered_html = render_template('certificats_pdf.html', certificat=certificat)
+        
+        # Créer le PDF
+        pdf = HTML(string=rendered_html).write_pdf()
+        
+        # Retourner le PDF
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=certificat_{certificat.numero_certificat}.pdf'
+        return response
+        
+    except Exception as e:
+        flash(f'Erreur lors de la génération du PDF: {str(e)}', 'danger')
+        return redirect(url_for('voir_certificat', id=certificat.id))
+
+
+@app.route('/api/produits/recherche')
+def api_recherche_produits():
+    """API pour rechercher des produits via AJAX"""
+    term = request.args.get('term', '').strip()
+    limit = request.args.get('limit', 10, type=int)
+    
+    if term:
+        produits = Produit.query.filter(
+            db.or_(
+                Produit.code_produit.ilike(f'%{term}%'),
+                Produit.nom_produit.ilike(f'%{term}%'),
+                Produit.model.ilike(f'%{term}%'),
+                Produit.marque.ilike(f'%{term}%')
+            )
+        ).limit(limit).all()
+    else:
+        produits = Produit.query.limit(limit).all()
+    
+    results = [{
+        'id': p.id,
+        'code_produit': p.code_produit,
+        'nom_produit': p.nom_produit,
+        'model': p.model or '',
+        'marque': p.marque or '',
+        'description': p.description or ''
+    } for p in produits]
+    
+    return jsonify(results)
+
+
+@app.route('/api/clients/recherche')
+def api_recherche_clients():
+    """API pour rechercher des clients via AJAX"""
+    term = request.args.get('term', '').strip()
+    limit = request.args.get('limit', 10, type=int)
+    
+    if term:
+        clients = Client.query.filter(
+            db.or_(
+                Client.nom_client.ilike(f'%{term}%'),
+                Client.telephone.ilike(f'%{term}%'),
+                Client.adresse.ilike(f'%{term}%')
+            )
+        ).limit(limit).all()
+    else:
+        clients = Client.query.limit(limit).all()
+    
+    results = [{
+        'id': c.id,
+        'nom_client': c.nom_client,
+        'telephone': c.telephone or '',
+        'adresse': c.adresse,
+        'attn': c.attn or ''
+    } for c in clients]
+    
+    return jsonify(results)
+
+
+@app.route('/certificats/recherche')
+def recherche_certificats():
+    """Page de recherche avancée des certificats"""
+    search_term = request.args.get('q', '')
+    date_debut = request.args.get('date_debut', '')
+    date_fin = request.args.get('date_fin', '')
+    
+    query = CertificatReparation.query
+    
+    if search_term:
+        query = query.filter(
+            db.or_(
+                CertificatReparation.numero_certificat.ilike(f'%{search_term}%'),
+                CertificatReparation.technicien.ilike(f'%{search_term}%')
+            )
+        )
+    
+    if date_debut:
+        query = query.filter(CertificatReparation.date_reparation >= datetime.strptime(date_debut, '%Y-%m-%d'))
+    
+    if date_fin:
+        query = query.filter(CertificatReparation.date_reparation <= datetime.strptime(date_fin, '%Y-%m-%d'))
+    
+    certificats = query.order_by(CertificatReparation.date_creation.desc()).all()
+    
+    return render_template('certificats_recherche.html', 
+                         certificats=certificats, 
+                         search_term=search_term,
+                         date_debut=date_debut,
+                         date_fin=date_fin)
 
 
 @app.route('/gestion_materiel/user')

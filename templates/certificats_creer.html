@@ -1,0 +1,344 @@
+<!-- templates/certificats/creer.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Créer un certificat de réparation</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Affichage des erreurs flash -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Affichage des erreurs de formulaire -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Erreurs de validation:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ field }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <form method="POST" id="certificatForm" action="{{ url_for('creer_certificat') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Informations générales -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.numero_certificat.label }}
+                                    {{ form.numero_certificat(class="form-control", readonly=true) }}
+                                    <small class="text-muted">Numéro généré automatiquement</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.date_reparation.label }}
+                                    {{ form.date_reparation(class="form-control", type="date", required=true) }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.client_id.label }}
+                                    {{ form.client_id(class="form-control", required=true) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.technicien.label }}
+                                    {{ form.technicien(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Produits réparés -->
+                        <div class="mb-4">
+                            <h4>Produits réparés</h4>
+                            <div id="reparations-container">
+                                {% for reparation in form.reparations %}
+                                <div class="reparation-item card mb-3" data-index="{{ loop.index0 }}">
+                                    <div class="card-body">
+                                        {{ reparation.csrf_token }}
+                                        {% if reparation.id %}
+                                            {{ reparation.id }}
+                                        {% endif %}
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    {{ reparation.produit_id.label }}
+                                                    {{ reparation.produit_id(class="form-control produit-select", required=true) }}
+                                                    {% if reparation.produit_id.errors %}
+                                                        <small class="text-danger">{{ reparation.produit_id.errors[0] }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    {{ reparation.numero_serie.label }}
+                                                    {{ reparation.numero_serie(class="form-control numero-serie", required=true, placeholder="Ex: SN-2024-001") }}
+                                                    {% if reparation.numero_serie.errors %}
+                                                        <small class="text-danger">{{ reparation.numero_serie.errors[0] }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    {{ reparation.taches_effectuees.label }}
+                                                    {{ reparation.taches_effectuees(class="form-control taches-textarea", rows=3, required=true) }}
+                                                    {% if reparation.taches_effectuees.errors %}
+                                                        <small class="text-danger">{{ reparation.taches_effectuees.errors[0] }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    {{ reparation.cout_reparation.label }}
+                                                    {{ reparation.cout_reparation(class="form-control", step="0.01", value="0.0") }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    {{ reparation.garantie_mois.label }}
+                                                    {{ reparation.garantie_mois(class="form-control", value="3") }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-danger btn-sm remove-reparation">
+                                            <i class="bi bi-trash"></i> Supprimer ce produit
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-primary" id="add-reparation">
+                                <i class="bi bi-plus-circle"></i> Ajouter un produit
+                            </button>
+                        </div>
+                        
+                        <!-- Observations -->
+                        <div class="mb-4">
+                            <div class="form-group">
+                                {{ form.observations.label }}
+                                {{ form.observations(class="form-control", rows=3) }}
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="bi bi-save"></i> Créer le certificat
+                            </button>
+                            <a href="{{ url_for('liste_certificats') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Éviter les conflits avec d'autres scripts
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page chargée, initialisation des composants...');
+    
+    let reparationCount = {{ form.reparations|length }};
+    
+    // Fonction pour supprimer un produit
+    window.removeReparation = function(button) {
+        const item = button.closest('.reparation-item');
+        const container = document.getElementById('reparations-container');
+        
+        if (container.children.length === 1) {
+            alert('Vous devez avoir au moins un produit à réparer');
+            return false;
+        }
+        
+        item.remove();
+        return true;
+    };
+    
+    // Ajouter un nouveau produit
+    const addButton = document.getElementById('add-reparation');
+    if (addButton) {
+        addButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Ajout d\'un nouveau produit');
+            
+            const container = document.getElementById('reparations-container');
+            const index = reparationCount++;
+            
+            const template = `
+                <div class="reparation-item card mb-3" data-index="${index}">
+                    <div class="card-body">
+                        <input type="hidden" name="reparations-${index}-csrf_token" value="{{ form.csrf_token.current_token }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reparations-${index}-produit_id">Produit</label>
+                                    <select class="form-control produit-select" id="reparations-${index}-produit_id" name="reparations-${index}-produit_id" required>
+                                        <option value="">Choisir un produit</option>
+                                        {% for produit in produits %}
+                                        <option value="{{ produit.id }}">
+                                            {{ produit.marque }} {{ produit.model }} - {{ produit.nom_produit }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reparations-${index}-numero_serie">Numéro de série</label>
+                                    <input type="text" class="form-control numero-serie" id="reparations-${index}-numero_serie" 
+                                           name="reparations-${index}-numero_serie" required 
+                                           placeholder="Ex: SN-2024-001">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="reparations-${index}-taches_effectuees">Tâches effectuées</label>
+                                    <textarea class="form-control taches-textarea" id="reparations-${index}-taches_effectuees" 
+                                              name="reparations-${index}-taches_effectuees" rows="3" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reparations-${index}-cout_reparation">Coût de réparation (€)</label>
+                                    <input class="form-control" id="reparations-${index}-cout_reparation" 
+                                           name="reparations-${index}-cout_reparation" type="number" step="0.01" value="0.0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reparations-${index}-garantie_mois">Garantie (mois)</label>
+                                    <input class="form-control" id="reparations-${index}-garantie_mois" 
+                                           name="reparations-${index}-garantie_mois" type="number" value="3">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-reparation" onclick="removeReparation(this)">
+                            <i class="bi bi-trash"></i> Supprimer ce produit
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', template);
+        });
+    }
+    
+    // Initialiser les boutons de suppression existants
+    document.querySelectorAll('.remove-reparation').forEach(btn => {
+        btn.onclick = function(e) {
+            e.preventDefault();
+            removeReparation(this);
+        };
+    });
+    
+    // Validation du formulaire
+    const form = document.getElementById('certificatForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Soumission du formulaire...');
+            
+            // Vérifier qu'au moins un produit est sélectionné
+            const produits = document.querySelectorAll('.produit-select');
+            let hasValidProduct = false;
+            
+            for (let i = 0; i < produits.length; i++) {
+                if (produits[i].value && produits[i].value !== '') {
+                    hasValidProduct = true;
+                    break;
+                }
+            }
+            
+            if (!hasValidProduct) {
+                e.preventDefault();
+                alert('Veuillez sélectionner au moins un produit à réparer');
+                console.log('Validation échouée: aucun produit sélectionné');
+                return false;
+            }
+            
+            // Vérifier que chaque produit a un numéro de série
+            const numerosSerie = document.querySelectorAll('.numero-serie');
+            for (let i = 0; i < numerosSerie.length; i++) {
+                if (numerosSerie[i].value.trim() === '') {
+                    e.preventDefault();
+                    alert('Veuillez saisir le numéro de série pour chaque produit');
+                    numerosSerie[i].focus();
+                    console.log('Validation échouée: numéro de série manquant');
+                    return false;
+                }
+            }
+            
+            // Vérifier que chaque produit a des tâches effectuées
+            const taches = document.querySelectorAll('.taches-textarea');
+            for (let i = 0; i < taches.length; i++) {
+                if (taches[i].value.trim() === '') {
+                    e.preventDefault();
+                    alert('Veuillez décrire les tâches effectuées pour chaque produit');
+                    taches[i].focus();
+                    console.log('Validation échouée: tâches manquantes');
+                    return false;
+                }
+            }
+            
+            console.log('Validation réussie, envoi du formulaire');
+            return true;
+        });
+    }
+    
+    console.log('Initialisation terminée');
+});
+</script>
+
+<!-- Ajout de CSS pour le débogage -->
+<style>
+.reparation-item {
+    transition: all 0.3s ease;
+}
+.reparation-item:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+.border-danger {
+    border: 1px solid #dc3545 !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,349 @@
+<!-- templates/certificats/liste.html -->
+{% extends "base.html" %}
+
+{% block title %}Liste des certificats de réparation{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>Certificats de réparation</h3>
+                    <a href="{{ url_for('creer_certificat') }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Nouveau certificat
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Barre de recherche -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" action="{{ url_for('recherche_certificats') }}" class="d-flex">
+                                <input type="text" name="q" class="form-control me-2" 
+                                       placeholder="Rechercher par numéro, client ou technicien..." 
+                                       value="{{ search_term if search_term else '' }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Rechercher
+                                </button>
+                                {% if search_term %}
+                                <a href="{{ url_for('liste_certificats') }}" class="btn btn-secondary ms-2">
+                                    <i class="bi bi-x-circle"></i> Réinitialiser
+                                </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                                    <i class="bi bi-printer"></i> Imprimer
+                                </button>
+                                <button type="button" class="btn btn-outline-success" id="exportExcel">
+                                    <i class="bi bi-file-excel"></i> Exporter Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistiques -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total certificats</h5>
+                                    <h2>{{ certificats.total }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Montant total</h5>
+                                    <h2>{{ "{:,.2f}".format(total_montant) }} €</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Ce mois</h5>
+                                    <h2>{{ certificats_mois }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Produits réparés</h5>
+                                    <h2>{{ total_produits }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tableau des certificats -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="certificatsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>N° Certificat</th>
+                                    <th>Date réparation</th>
+                                    <th>Client</th>
+                                    <th>Technicien</th>
+                                    <th>Produits</th>
+                                    <th>Montant total</th>
+                                    <th>Date création</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for certificat in certificats.items %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ certificat.numero_certificat }}</strong>
+                                    </td>
+                                    <td>{{ certificat.date_reparation.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        {{ certificat.client.nom_client }}
+                                        {% if certificat.client.telephone %}
+                                        <br><small class="text-muted">{{ certificat.client.telephone }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ certificat.technicien or '-' }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ certificat.reparations|length }}</span>
+                                        <button type="button" class="btn btn-sm btn-link" 
+                                                onclick="showProducts({{ certificat.id }})">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        {% set total = certificat.reparations|sum(attribute='cout_reparation') %}
+                                        <strong>{{ "{:,.2f}".format(total) }} €</strong>
+                                    </td>
+                                    <td>{{ certificat.date_creation.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('voir_certificat', id=certificat.id) }}" 
+                                               class="btn btn-info" title="Voir">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('modifier_certificat', id=certificat.id) }}" 
+                                               class="btn btn-warning" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{{ url_for('generer_pdf_certificat', id=certificat.id) }}" 
+                                               class="btn btn-primary" title="PDF" target="_blank">
+                                                <i class="bi bi-file-pdf"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-danger" 
+                                                    title="Supprimer"
+                                                    onclick="confirmDelete('{{ certificat.id }}', '{{ certificat.numero_certificat }}')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2">Aucun certificat de réparation trouvé</p>
+                                        <a href="{{ url_for('creer_certificat') }}" class="btn btn-success mt-2">
+                                            <i class="bi bi-plus-circle"></i> Créer le premier certificat
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if certificats.pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if certificats.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('liste_certificats', page=certificats.prev_num) }}">
+                                    <i class="bi bi-chevron-left"></i> Précédent
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i> Précédent</span>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in certificats.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                                {% if page_num %}
+                                    {% if page_num == certificats.page %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('liste_certificats', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if certificats.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('liste_certificats', page=certificats.next_num) }}">
+                                    Suivant <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Suivant <i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p class="text-muted">
+                                Affichage de {{ certificats.items|length }} sur {{ certificats.total }} certificats
+                                {% if search_term %} - Filtre: "{{ search_term }}"{% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <select class="form-select form-select-sm w-auto d-inline-block" id="perPage">
+                                <option value="10" {% if per_page == 10 %}selected{% endif %}>10 par page</option>
+                                <option value="20" {% if per_page == 20 %}selected{% endif %}>20 par page</option>
+                                <option value="50" {% if per_page == 50 %}selected{% endif %}>50 par page</option>
+                                <option value="100" {% if per_page == 100 %}selected{% endif %}>100 par page</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour afficher les produits -->
+<div class="modal fade" id="productsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Détails des produits réparés</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="productsModalBody">
+                <!-- Contenu chargé dynamiquement -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 5px; width: 400px; max-width: 90%;">
+        <div style="margin-bottom: 15px;">
+            <h5>Confirmer la suppression</h5>
+            <button type="button" onclick="hideDeleteModal()" style="float: right; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p>Êtes-vous sûr de vouloir supprimer le certificat <strong id="deleteCertificatNumero"></strong> ?</p>
+            <p class="text-danger">Cette action est irréversible !</p>
+        </div>
+        <div style="text-align: right;">
+            <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Annuler</button>
+            <form id="deleteForm" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+.table td {
+    vertical-align: middle;
+}
+.badge {
+    font-size: 0.9em;
+}
+</style>
+
+<script>
+// Fonction pour afficher les produits
+function showProducts(certificatId) {
+    fetch(`/api/certificats/${certificatId}/produits`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '<div class="list-group">';
+            data.forEach(produit => {
+                html += `
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${produit.marque} ${produit.model}</h6>
+                            <small>${produit.cout_reparation} €</small>
+                        </div>
+                        <p class="mb-1"><strong>Code:</strong> ${produit.code_produit}</p>
+                        <p class="mb-1"><strong>Nom:</strong> ${produit.nom_produit}</p>
+                        <p class="mb-1"><strong>Tâches:</strong> ${produit.taches_effectuees.substring(0, 100)}${produit.taches_effectuees.length > 100 ? '...' : ''}</p>
+                        <small class="text-muted">Garantie: ${produit.garantie_mois} mois</small>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            document.getElementById('productsModalBody').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('productsModal')).show();
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors du chargement des produits');
+        });
+}
+
+// Fonction pour confirmer la suppression
+function confirmDelete(id, numero) {
+    document.getElementById('deleteCertificatNumero').textContent = numero;
+    document.getElementById('deleteForm').action = `/certificats/${id}/supprimer`;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Fermer le modal si on clique en dehors
+window.onclick = function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target == modal) {
+        hideDeleteModal();
+    }
+}
+
+// Changer le nombre d'éléments par page
+document.getElementById('perPage')?.addEventListener('change', function() {
+    window.location.href = `{{ url_for('liste_certificats') }}?per_page=${this.value}`;
+});
+
+// Exporter en Excel
+document.getElementById('exportExcel')?.addEventListener('click', function() {
+    const table = document.getElementById('certificatsTable');
+    const html = table.outerHTML;
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'certificats_reparation.xls';
+    link.click();
+    URL.revokeObjectURL(link.href);
+});
+</script>
+{% endblock %}

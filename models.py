@@ -764,6 +764,50 @@ class LigneBonLivraison(db.Model):
 # bon de livraison
 
 
+# models.py - Ajoutez ces classes à vos modèles existants
+
+class CertificatReparation(db.Model):
+    """Modèle pour le certificat de réparation"""
+    __tablename__ = "certificat_reparation"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    numero_certificat = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    date_reparation = db.Column(db.Date, nullable=False)
+    observations = db.Column(db.Text)
+    technicien = db.Column(db.String(100))
+    
+    # Clés étrangères
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
+    
+    # Relations
+    client = db.relationship('Client', backref='certificats_reparation')
+    reparations = db.relationship('ReparationDetail', back_populates='certificat', 
+                                  cascade='all, delete-orphan', lazy='joined')
+
+
+class ReparationDetail(db.Model):
+    """Modèle pour les détails des réparations (liaison produit-certificat)"""
+    __tablename__ = "reparation_detail"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    taches_effectuees = db.Column(db.Text, nullable=False)
+    cout_reparation = db.Column(db.Float, default=0.0)
+    garantie_mois = db.Column(db.Integer, default=3)
+    numero_serie = db.Column(db.String(100), nullable=False)
+    
+    # Clés étrangères
+    certificat_id = db.Column(db.Integer, db.ForeignKey('certificat_reparation.id'), nullable=False)
+    produit_id = db.Column(db.Integer, db.ForeignKey('produit.id'), nullable=False)
+    
+    # Relations
+    certificat = db.relationship('CertificatReparation', back_populates='reparations')
+    produit = db.relationship('Produit', backref='reparations')
+    
+    def __repr__(self):
+        return f"<ReparationDetail {self.produit.nom_produit}>"
+
+
 class Compagnie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(150), nullable=False)
@@ -787,12 +831,12 @@ class Log(db.Model):
 
 
 
-with app.app_context():
-    db.create_all()
-    # Transaction.query.filter(
-    # ~Transaction.details.any()
-    # ).delete(synchronize_session=False)
+# with app.app_context():
+#     db.create_all()
+#     Transaction.query.filter(
+#     ~Transaction.details.any()
+#     ).delete(synchronize_session=False)
 
-    # db.session.commit()
+#     db.session.commit()
 
-    # exit()  
+#     exit()  

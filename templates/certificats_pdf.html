@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificat de réparation {{ certificat.numero_certificat }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 10px;
+            line-height: 1.3;
+            color: #333;
+            font-size: 11px;
+        }
+        
+        .certificate-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        /* En-tête compact */
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .certificat-number {
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+        
+        .date-info {
+            font-size: 10px;
+            color: #777;
+            margin-top: 3px;
+        }
+        
+        /* Sections compactes */
+        .section {
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #f0f0f0;
+            padding: 4px 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #3498db;
+        }
+        
+        /* Grille d'informations compacte */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .info-item {
+            display: flex;
+            border-bottom: 1px dotted #eee;
+            padding: 3px 0;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            width: 120px;
+            font-size: 10px;
+        }
+        
+        .info-value {
+            flex: 1;
+            font-size: 10px;
+        }
+        
+        /* Tableau des produits compact */
+        .produits-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        
+        .produits-table th {
+            background-color: #f8f9fa;
+            padding: 6px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .produits-table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+            font-size: 10px;
+        }
+        
+        .produit-header {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .taches-content {
+            font-size: 9px;
+            line-height: 1.3;
+            margin-top: 3px;
+            color: #555;
+        }
+        
+        .badge-serie {
+            background-color: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 9px;
+            display: inline-block;
+        }
+        
+        /* Signatures compactes */
+        .signature-section {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            page-break-inside: avoid;
+        }
+        
+        .signature-line {
+            text-align: center;
+            width: 200px;
+        }
+        
+        .signature-line div {
+            font-size: 14px;
+        }
+        
+        /* Garantie et footer compacts */
+        .garantie-info {
+            margin-top: 15px;
+            padding: 6px;
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 3px;
+            font-size: 9px;
+            text-align: center;
+        }
+        
+        .footer {
+            margin-top: 150px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            font-size: 8px;
+            color: #777;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .certificate-container {
+                margin: 0;
+                padding: 5px;
+            }
+            .no-print {
+                display: none;
+            }
+            .produits-table {
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* Classes utilitaires */
+        .text-right {
+            text-align: right;
+        }
+        .mt-1 {
+            margin-top: 3px;
+        }
+        .mb-1 {
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="title">CERTIFICAT DE RÉPARATION</div>
+            <div class="certificat-number">N° {{ certificat.numero_certificat }}</div>
+            <div class="date-info">
+                Émis le: {{ certificat.date_creation.strftime('%d/%m/%Y') if certificat.date_creation else '' }}
+            </div>
+        </div>
+        
+        <!-- Informations générales et client sur une ligne -->
+        <div class="section">
+            <div class="section-title">INFORMATIONS</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Date réparation:</span>
+                    <span class="info-value">{{ certificat.date_reparation.strftime('%d/%m/%Y') if certificat.date_reparation else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Technicien:</span>
+                    <span class="info-value">{{ certificat.technicien or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Client:</span>
+                    <span class="info-value">{{ certificat.client.nom_client if certificat.client else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Téléphone:</span>
+                    <span class="info-value">{{ certificat.client.telephone if certificat.client and certificat.client.telephone else '-' }}</span>
+                </div>
+                {% if certificat.client and certificat.client.adresse %}
+                <div class="info-item">
+                    <span class="info-label">Adresse:</span>
+                    <span class="info-value">{{ certificat.client.adresse|truncate(50) }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Produits réparés - Format tableau compact -->
+        <div class="section">
+            <div class="section-title">PRODUITS RÉPARÉS</div>
+            <table class="produits-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%">Produit / Marque</th>
+                        <th style="width: 20%">N° Série</th>
+                        <th style="width: 15%">Coût</th>
+                        <th style="width: 40%">Tâches effectuées</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reparation in certificat.reparations %}
+                    <tr>
+                        <td class="produit-header">
+                            <strong style="font-size: 9px; color: #666;">{{ reparation.produit.nom_produit }}</strong><br>
+                            <span><strong>Marque : </strong>{{ reparation.produit.marque if reparation.produit.marque else '' }}</span><br>
+                            <span><strong>Model : </strong>{{ reparation.produit.model if reparation.produit.model else '' }}</span><br>
+                            <span style="font-size: 8px; color: #999;">Code: {{ reparation.produit.code_produit }}</span>
+                        </td>
+                        <td>
+                            <strong class="badge-serie">{{ reparation.numero_serie }}</strong>
+                        </td>
+                        <td class="text-right">
+                            <strong>{{ "{:,.0f}".format(reparation.cout_reparation) }}</strong> F CFA
+                        </td>
+                        <td>
+                            <div class="taches-content">
+                                {{ reparation.taches_effectuees|replace('\n', '<br>')|truncate(150)|safe }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Observations (si présentes) -->
+        {% if certificat.observations %}
+        <div class="section">
+            <div class="section-title">OBSERVATIONS</div>
+            <div style="padding: 5px 8px; background-color: #f9f9f9; border: 1px solid #ddd; font-size: 9px;">
+                {{ certificat.observations|replace('\n', '<br>')|truncate(200)|safe }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Résumé et garantie -->
+        <div class="garantie-info">
+            <strong>Récapitulatif :</strong> 
+            {{ certificat.reparations|length }} produit(s) réparé(s) | 
+            Montant total: <strong>{{ "{:,.0f}".format(certificat.reparations|sum(attribute='cout_reparation')) }} F CFA</strong> |
+            sur pièces et main d'œuvre
+        </div>
+        
+        <!-- Signatures -->
+        <div class="signature-section" style="margin-top: 300px;">
+            <div class="signature-line">
+                <div>Approuve par : ............</div>
+            </div>
+            <div class="signature-line">
+                <div>Service Technique</div>
+            </div>
+        </div>
+        
+        <!-- Pied de page -->
+        <div class="footer">
+            <p>Ce certificat atteste que les réparations décrites ci-dessus ont été effectuées conformément aux normes en vigueur.</p>
+        </div>
+    </div>
+</body>
+</html>

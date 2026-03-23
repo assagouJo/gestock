@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Certificat de réparation N° {{ certificat.numero_certificat }}</h3>
+                <div>
+                    <a href="{{ url_for('generer_pdf_certificat', id=certificat.id) }}" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                    <a href="{{ url_for('modifier_certificat', id=certificat.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Informations générales</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Numéro certificat:</th>
+                            <td>{{ certificat.numero_certificat }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date de réparation:</th>
+                            <td>{{ certificat.date_reparation.strftime('%d/%m/%Y') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date création:</th>
+                            <td>{{ certificat.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Technicien:</th>
+                            <td>{{ certificat.technicien or 'Non spécifié' }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Informations client</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Nom:</th>
+                            <td>{{ certificat.client.nom_client }}</td>
+                        </tr>
+                        <tr>
+                            <th>Téléphone:</th>
+                            <td>{{ certificat.client.telephone or 'Non spécifié' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Adresse:</th>
+                            <td>{{ certificat.client.adresse }}</td>
+                        </tr>
+                        <tr>
+                            <th>Attn:</th>
+                            <td>{{ certificat.client.attn or 'Non spécifié' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <h5>Produits réparés</h5>
+            <!-- templates/certificats/voir.html - Modifiez l'affichage des produits -->
+            {% for reparation in certificat.reparations %}
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <strong>{{ reparation.produit.marque }} {{ reparation.produit.model }}</strong>
+                        <span class="badge bg-info ms-2">SN: {{ reparation.numero_serie }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Nom produit:</strong> {{ reparation.produit.nom_produit }}</p>
+                                <p><strong>Code produit:</strong> {{ reparation.produit.code_produit }}</p>
+                                <p><strong>Marque:</strong> {{ reparation.produit.marque or 'Non spécifié' }}</p>
+                                <p><strong>Modèle:</strong> {{ reparation.produit.model or 'Non spécifié' }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Numéro de série:</strong> {{ reparation.numero_serie }}</p>
+                                <p><strong>Coût réparation:</strong> {{ "{:,.2f}".format(reparation.cout_reparation) }} €</p>
+                                <p><strong>Garantie:</strong> {{ reparation.garantie_mois }} mois</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <strong>Tâches effectuées:</strong>
+                                <div class="border p-3 mt-2 bg-light">
+                                    {{ reparation.taches_effectuees|safe }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            {% if certificat.observations %}
+            <div class="mt-4">
+                <h5>Observations</h5>
+                <div class="border p-3 bg-light">
+                    {{ certificat.observations|safe }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le certificat <strong>{{ certificat.numero_certificat }}</strong> ?</p>
+                <p class="text-danger">Cette action est irréversible !</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form action="{{ url_for('supprimer_certificat', id=certificat.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+// S'assurer que le modal Bootstrap fonctionne correctement
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier si Bootstrap est chargé
+    if (typeof bootstrap !== 'undefined') {
+        console.log('Bootstrap chargé, modal prêt');
+    } else {
+        console.log('Bootstrap non trouvé, utilisation de la méthode alternative');
+        // Alternative manuelle si Bootstrap n'est pas chargé
+        const deleteBtn = document.querySelector('[data-bs-target="#deleteModal"]');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const modal = document.getElementById('deleteModal');
+                if (modal) {
+                    modal.classList.add('show');
+                    modal.style.display = 'block';
+                    modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                }
+            });
+        }
+        
+        const closeBtns = document.querySelectorAll('[data-bs-dismiss="modal"]');
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = document.getElementById('deleteModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
