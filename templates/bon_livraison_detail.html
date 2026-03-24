@@ -160,7 +160,7 @@
         display: flex;
         margin-top: 10px;
         font-size: 14px;
-        line-height: 0.8;
+        line-height: 1.3;
     }
     
     .info-label {
@@ -533,11 +533,11 @@
         <table class="bon-table">
             <thead>
                 <tr>
-                    <th style="width: 35%">DÉSIGNATION</th>
-                    <th style="width: 10%">QTÉ LIVRÉE</th>
-                    <th style="width: 12%">N° SÉRIE</th>
+                    <th style="width: 30%">DÉSIGNATION</th>
+                    <th style="width: 25%">QTÉ LIVRÉE</th>
+                    <th style="width: 20%">N° SÉRIE</th>
                     <th style="width: 10%">MARQUE</th>
-                    <th style="width: 10%">MODÈLE</th>
+                    <th style="width: 15%">MODÈLE</th>
                 </tr>
             </thead>
             <tbody>
@@ -555,7 +555,9 @@
                         {% endif %}
                     </td>
                     <td>{{ ligne.produit.marque or '-' }}</td>
+                    {% if ligne.produit.model %}
                     <td>{{ ligne.produit.model or '-' }}</td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
