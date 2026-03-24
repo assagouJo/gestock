@@ -253,9 +253,8 @@
             <table class="produits-table">
                 <thead>
                     <tr>
-                        <th style="width: 25%">Produit</th>
-                        <th style="width: 15%">Coût (F CFA)</th>
-                        <th style="width: 60%">Tâches effectuées</th>
+                        <th style="width: 35%">Produit</th>
+                        <th style="width: 65%">Tâches effectuées</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -266,10 +265,6 @@
                             <span><strong>Marque : </strong>{{ reparation.produit.marque if reparation.produit.marque else '' }}</span><br>
                             <span><strong>Model : </strong>{{ reparation.produit.model if reparation.produit.model else '' }}</span><br>
                             <span><strong>S/N : </strong>{{ reparation.numero_serie }}</span>
-                        </td>
-
-                        <td class="text-center">
-                            <strong style="font-size: 12px;">{{ "{:,.0f}".format(reparation.cout_reparation) }}</strong>
                         </td>
                         <td>
                             <div class="taches-content">
@@ -295,8 +290,7 @@
         <!-- Résumé et garantie -->
         <div class="garantie-info">
             <strong>Récapitulatif :</strong> 
-            {{ certificat.reparations|length }} produit(s) réparé(s) | 
-            Montant total: <strong>{{ "{:,.0f}".format(certificat.reparations|sum(attribute='cout_reparation')) }} F CFA</strong> |
+            {{ certificat.reparations|length }} produit(s) réparé(s) |
             sur pièces et main d'œuvre
         </div>
         

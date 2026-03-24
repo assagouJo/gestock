@@ -1,122 +1,481 @@
 {% extends "base_print.html" %}
 {% block title %}Détail Bon de Livraison{% endblock %}
 {% block styles %}
- <link rel="stylesheet" href="{{ url_for('static', filename='style/detail_bon_livraison.css') }}">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background: #f5f5f5;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .bon-wrapper {
+        max-width: 1100px;
+        margin: 30px auto;
+        background: white;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border-radius: 12px;
+    }
+    
+    /* Header */
+    .first-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #d32f2f;
+        margin-bottom: 25px;
+    }
+    
+    .img-style img {
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .info-style {
+        text-align: right;
+        line-height: 1.5;
+    }
+    
+    .info-style p {
+        margin: 3px 0;
+        font-size: 12px;
+        color: #333;
+    }
+    
+    .text-danger {
+        color: #d32f2f !important;
+    }
+    
+    .fw-bold {
+        font-weight: bold;
+    }
+    
+    /* Titre */
+    .bon-title {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: #d32f2f;
+        margin: 20px 0;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        position: relative;
+    }
+    
+    .bon-title:before {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: #d32f2f;
+    }
+    
+    /* Header document */
+    .bon-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 30px 0 25px;
+        padding: 12px 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+    }
+    
+    .bon-subtitle {
+        font-size: 20px;
+        font-weight: bold;
+        color: #d32f2f;
+        font-family: monospace;
+        letter-spacing: 1px;
+    }
+    
+    .text-end {
+        font-size: 14px;
+        color: #555;
+    }
+    
+    .text-end strong {
+        color: #d32f2f;
+    }
+    
+    /* Informations client */
+    .bon-info-box {
+        background: linear-gradient(135deg, #fff9f0 0%, #fff3e0 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        border: 1px solid #ffe0b5;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .bon-info-box > div {
+        margin-bottom: 12px;
+        font-size: 14px;
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+    }
+    
+    .bon-info-box > div:last-child {
+        margin-bottom: 0;
+    }
+    
+    .bon-info-box strong {
+        display: inline-block;
+        min-width: 100px;
+        color: #666;
+        font-weight: 600;
+    }
+    
+    .nom-client {
+        font-size: 16px;
+        font-weight: bold;
+        color: #d32f2f;
+    }
+    
+    /* Tableau */
+    .bon-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 13px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .bon-table th {
+        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        color: white;
+        padding: 14px 10px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .bon-table th:first-child {
+        border-radius: 8px 0 0 0;
+    }
+    
+    .bon-table th:last-child {
+        border-radius: 0 8px 0 0;
+    }
+    
+    .bon-table td {
+        padding: 12px 10px;
+        text-align: center;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+        background: white;
+    }
+    
+    .bon-table tbody tr:hover td {
+        background: #fafafa;
+    }
+    
+    .bon-table td:first-child {
+        font-weight: 500;
+        font-family: monospace;
+    }
+    
+    /* Mention */
+    .mention {
+        margin: 30px 0 20px;
+        padding: 15px;
+        background: #fef9e6;
+        border-left: 5px solid #ff9800;
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    /* Nota bene */
+    .nota-bene {
+        margin: 15px 0;
+        padding: 12px 15px;
+        background: #e8f5e9;
+        border-left: 5px solid #4caf50;
+        font-size: 12px;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .nota-bene h6 {
+        font-weight: bold;
+        color: #2e7d32;
+    }
+    
+    /* Footer signatures */
+    .footer-prof {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+        gap: 40px;
+    }
+    
+    .footer-left, .footer-right {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .footer-left h5, .footer-right h5 {
+        margin-top: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #555;
+        border-top: 2px solid #333;
+        padding-top: 12px;
+        display: inline-block;
+        letter-spacing: 1px;
+    }
+    
+    /* Badge livraison partielle */
+    .badge-partiel {
+        display: inline-block;
+        background: #ff9800;
+        color: white;
+        font-size: 10px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-left: 10px;
+        vertical-align: middle;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    
+    /* Pied de page */
+    .footer-note {
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px dashed #ddd;
+        text-align: center;
+        font-size: 10px;
+        color: #999;
+    }
+    
+    /* Impression */
+    @media print {
+        body {
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+        .bon-wrapper {
+            margin: 0;
+            padding: 15px;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        .bon-table th {
+            background: #d32f2f !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .p-2 {
+            display: none;
+        }
+        .bon-header {
+            background: #f8f9fa !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .bon-info-box {
+            background: #fff9f0 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+    
+    /* Boutons */
+    .p-2 {
+        margin-top: 25px;
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .btn-outline-secondary {
+        background: white;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+    }
+</style>
 {% endblock %}
+
 {% block content %}
 
-<div class="bon-wrapper ">    
+<div class="bon-wrapper">    
     <!-- Header -->
-    <div class=" first-header d-flex justify-content-between align-items-center">
+    <div class="first-header d-flex justify-content-between align-items-center">
         <div class="img-style">
             {% if compagnie and compagnie.logo %}
-                <img src="{{ compagnie.logo }}" height="70" width="70">
+                <img src="{{ compagnie.logo }}" height="80" width="80">
             {% endif %}
         </div>
         <div class="info-style">
             <p><span class="text-danger fw-bold">TIME INTERNATIONAL CO. LTD</span></p>
-            <p class="fw-bold">REPRESENTATION A ABIDJAN</span><br></p>
+            <p class="fw-bold">REPRESENTATION A ABIDJAN</p>
             <p><span class="text-danger fw-bold">I - MEDICAL</span></p>
-            <p class="">Tel : (225) 27 21 59 38 82</p>
-            <p class="">E-MAIL : info@imboe.com</p>
-            <p class="">MARCORY BOULEVARD VGE</p>
-            <p class="">FACEBOOK: IMBOE I-MEDICAL</p>
-            <p class="">REPUBLIQUE DE COTE D'IVOIRE</p>
+            <p>Tel : (225) 27 21 59 38 82</p>
+            <p>E-MAIL : info@imboe.com</p>
+            <p>MARCORY BOULEVARD VGE</p>
+            <p>FACEBOOK: IMBOE I-MEDICAL</p>
+            <p>REPUBLIQUE DE COTE D'IVOIRE</p>
         </div>
     </div>
 
-    <div class="bon-title">BON DE LIVRAISON</div>
+    <div class="bon-title">
+        BON DE LIVRAISON
+        {% if bon.type_livraison == 'partiel' %}
+            <span class="badge-partiel">Livraison Partielle</span>
+        {% endif %}
+    </div>
 
     <div class="bon-header">
-        
-        <div class="text-end">
-            <strong>Date : </strong>
-            {{ bon.date_creation.strftime('%d/%m/%Y') }}
-        </div>
         <div class="bon-subtitle">N° {{ bon.numero }}</div>
+        <div class="text-end">
+            <strong>Date :</strong> {{ bon.date_creation.strftime('%d/%m/%Y') }}
+        </div>
     </div>
     
     <!-- Infos -->
-    <div class="bon-info-box ">
-            <div>
-                <strong>Client :</strong>
-                <span class="text-danger fw-bold nom-client">{{ bon.client.nom_client }}</span>
-            </div>
-            <div>
-                <strong>ATTN :</strong>
-                <span class="text-danger fw-bold">{{ bon.client.attn }}</span>
-            </div>
-            <div>
-                <strong>Tel :</strong>
-                <span class="text-danger fw-bold">{{ bon.client.telephone }}</span>
-            </div>
-            <div>
-                <strong>Adresse :</strong>
-                <span class="text-danger fw-bold">{{ bon.client.adresse }}</span>
-            </div>
+    <div class="bon-info-box">
+        <div>
+            <strong>Client :</strong>
+            <span class="text-danger fw-bold nom-client">{{ bon.client.nom_client }}</span>
+        </div>
+        {% if bon.client.attn %}
+        <div>
+            <strong>ATTN :</strong>
+            <span class="text-danger fw-bold">{{ bon.client.attn }}</span>
+        </div>
+        {% endif %}
+        <div>
+            <strong>Tel :</strong>
+            <span class="text-danger fw-bold">{{ bon.client.telephone or 'Non spécifié' }}</span>
+        </div>
+        <div>
+            <strong>Adresse :</strong>
+            <span class="text-danger fw-bold">{{ bon.client.adresse }}</span>
+        </div>
     </div>
     
     <!-- Table -->
     <table class="bon-table">
         <thead>
             <tr>
-                <th>S/N</th>
-                <th>Designation</th>
-                <th>Quantité</th>
-                <th>Marque</th>
-                <th>Model</th>
+                <th style="width: 15%">N° SÉRIE</th>
+                <th style="width: 40%">DÉSIGNATION</th>
+                <th style="width: 15%">QUANTITÉ</th>
+                <th style="width: 15%">MARQUE</th>
+                <th style="width: 15%">MODÈLE</th>
             </tr>
         </thead>
         <tbody>
             {% for ligne in bon.lignes %}
             <tr>
-                <td>{{ ligne.numero_serie }}</td>
-                <td>{{ ligne.produit.nom_produit }}</td>
+                <td><strong>{{ ligne.numero_serie or '-' }}</strong></td>
+                <td style="text-align: left;"><strong>{{ ligne.produit.nom_produit }}</strong></td>
                 <td>{{ ligne.quantite }}</td>
-                <td>{{ ligne.produit.marque }}</td>
-                <td>{{ ligne.produit.model }}</td>
+                <td>{{ ligne.produit.marque or '-' }}</td>
+                <td>{{ ligne.produit.model or '-' }}</td>
             </tr>
             {% endfor %}
         </tbody>
-    </table><br>
-    <p class="mention"><strong>NB : Nous certifions avoir recu l'equipement et les accessoires ci-dessus mentionnes en bon etat.</strong></p>
+    </table>
+    
+    <p class="mention">
+        <strong>NB :</strong> Nous certifions avoir reçu l'équipement et les accessoires ci-dessus mentionnés en bon état.
+    </p>
+    
     {% if bon.nota_bene and bon.nota_bene|trim %}
     <div class="nota-bene">
-        <h6><strong></strong>{{ bon.nota_bene }}</h6>
+        <h6>📝 NOTE :</h6>
+        <p>{{ bon.nota_bene }}</p>
     </div>
     {% endif %}
+    
     <div class="footer-prof">
-    <div class="footer-left">
-            <h5>
-                LU ET APPROUVE
-            </h5>
+        <div class="footer-left">
+            <h5>LU ET APPROUVÉ</h5>
         </div>
-
         <div class="footer-right">
-            <h5>
-                SERVICE TECHNIQUE
-            </h5>
-
+            <h5>SERVICE TECHNIQUE</h5>
         </div>
-</div>
+    </div>
+    
+    <div class="footer-note">
+        <p>Ce document atteste de la livraison des équipements ci-dessus</p>
+    </div>
     
 </div>
+
 {% if not pdf_mode %}
-<div class=" p-2">
-    <a href="{{ url_for('liste_bons_livraison') }}" 
-       class="btn btn-outline-secondary">
+<div class="p-2">
+    <a href="{{ url_for('liste_bons_livraison') }}" class="btn btn-outline-secondary">
         ⬅ Retour
     </a>   
-    <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}"
-    target="_blank"
-    class="btn btn-success">
-        🖨 Bon de Livraison pdf
+    <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}" target="_blank" class="btn btn-success">
+        🖨 Bon de Livraison PDF
     </a>
-    <a href="{{ url_for('certificat_installation', id=bon.id) }}"
-    target="_blank"
-    class="btn btn-primary">
-    📄 Certificat d'installation pdf
+    <a href="{{ url_for('certificat_installation', id=bon.id) }}" target="_blank" class="btn btn-primary">
+        📄 Certificat d'installation PDF
     </a>
+    <button onclick="window.print()" class="btn btn-primary" style="background: #17a2b8;">
+        🖨 Imprimer
+    </button>
 </div>
 {% endif %}
 

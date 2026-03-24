@@ -8,17 +8,18 @@
     /* Tous les styles sont maintenant INLINE - pas de téléchargement externe */
     
     /* Styles de base */
+    
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
     }
     @page{
-        margin: 5mm 8mm 10mm 8mm;
+        margin: 5mm 6mm 8mm 6mm;
     }
     
     body {
-        font-family: Arial, Helvetica, sans-serif;
+        /* font-family: Arial, Helvetica, sans-serif; */
         font-size: 12px;
         line-height: 1.4;
         color: #333;
@@ -29,9 +30,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 2px solid #000;
-        margin-bottom: 15px;
+        padding: 4px 0;
     }
     
     .left img {
@@ -48,7 +47,7 @@
     /* Entête */
     .entete {
         text-align: center;
-        margin: 20px 0;
+        margin: 10px 0;
     }
     
     .entete h2 {
@@ -208,8 +207,8 @@
 
 /* Fallback pour les navigateurs plus anciens */
 .img img {
-    max-width: 180px;
-    max-height: 160px;
+    max-width: 140px;
+    max-height: 140px;
     width: auto;
     height: auto;
 }
@@ -223,9 +222,9 @@
     
     /* Montant en lettres */
     .montant-chiffre {
-        margin-top: 10px;
-        margin-bottom: 20px;
-        padding: 3px;
+        margin-top: 3px;
+        /* margin-bottom: 5px; */
+        padding: 2px;
         border: 1px solid #333;
         background-color: #f9f9f9;
         font-style: italic;
@@ -235,15 +234,13 @@
     .footer-prof {
         display: flex;
         justify-content: space-between;
-        margin-top: 50px;
-        padding-top: 20px;
-        border-top: 1px dashed #999;
+        margin-top: 25px;
     }
+
     
     .footer-left, .footer-right {
-        width: 45%;
         text-align: center;
-        padding-top: 20px;
+        /* padding-top: 10px; */
     }
     
     /* Pour l'impression */
@@ -295,7 +292,7 @@
     <div class="left">
         {% if compagnie and compagnie.logo %}
         <!-- Image en base64 serait mieux ici, mais on garde l'URL pour l'instant -->
-        <img src="{{ compagnie.logo }}" alt="Logo" style="max-height: 80px; max-width: 200px;">
+        <img src="{{ compagnie.logo }}" alt="Logo" style="max-height: 120px; max-width: 120px;">
         {% endif %}
     </div>
     <div class="right">
@@ -351,7 +348,7 @@
         <tr>
             <th class="col-designation">Désignation</th>
             <th class="col-quantite">Qté</th>
-            <th class="col-image">Image</th>
+            <th class="col-image"></th>
         </tr>
     </thead>
     <tbody>
@@ -572,16 +569,14 @@
 </table>
 
 <div class="montant-chiffre">
-    <p>
         <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <span style="color: red;font-size: 12px;">{{ total_lettre }} francs CFA</span>
-    </p>
+        <span style="color: red;font-size: 14px;">{{ total_lettre }} francs CFA</span>
 </div>
 
 <div class="main-content">
     <div class="footer-prof">
-        <div class="footer-left"><span style="font-size: 14px; text-decoration: underline;">SIGNATURE DU CLIENT</span></div>
-        <div class="footer-right"><span style="font-size: 14px; text-decoration: underline;">LE RESPONSABLE COMMERCIAL</span></div>
+        <div class="footer-left"><span style="font-size: 12px; text-decoration: underline;">SIGNATURE DU CLIENT</span></div>
+        <div class="footer-right"><span style="font-size: 12px; text-decoration: underline;">LE RESPONSABLE COMMERCIAL</span></div>
     </div>
 </div>
 {% endblock %}

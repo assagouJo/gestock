@@ -3,6 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Bookman+Old+Style&display=swap" rel="stylesheet">
+      <style>
+        /* Application de la police à tout le document */
+        body {
+            font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
+        }
+        
+        /* Application spécifique aux éléments importants */
+        h1, h2, h3, h4, h5, h6,p, span, strong, div, th, td
+        .btn, .nav-link, .card-title,
+        .table, .form-control,
+        .modal-title, .alert {
+            font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
+        }
+        
+        /* Pour les éléments qui doivent rester en monospace (codes, numéros) */
+        code, pre, .monospace, .numero-serie {
+            font-family: 'Courier New', monospace;
+        }
+    </style>
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">

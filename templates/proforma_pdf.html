@@ -22,8 +22,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
-        margin-bottom: 20px;
+        padding: 5px 0;
     }
     
     .left img {
@@ -43,11 +42,11 @@
     
     .entete {
         text-align: center;
-        margin: 20px 0;
+        margin: 10px 0;
     }
     
-    .entete h2 {
-        font-size: 22px;
+    .entete h3 {
+        font-size: 18px;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
@@ -137,7 +136,7 @@
     
     .produit-photo {
         width: 130px;
-        height: 180px;
+        height: 130px;
         object-fit: cover;
        
     }
@@ -205,8 +204,8 @@
     
     .montant-lettre {
         background: #f9f9f9;
-        padding: 15px;
-        margin-bottom: 30px;
+        padding: 5px;
+        margin-bottom: 10px;
         border-left: 4px solid #333;
         font-size: 13px;
     }
@@ -216,16 +215,15 @@
     }
     
     .montant-lettre span {
-        font-weight: bold;
-        text-transform: uppercase;
+        font-weight: 500;
+        text-transform: capitalize;
     }
     
     .footer {
         display: flex;
         justify-content: space-between;
-        margin-top: 50px;
-        padding-top: 20px;
-        border-top: 1px dashed #999;
+        margin-top: 30px;
+        padding-top: 5px;
     }
     
     .signature-box {
@@ -294,7 +292,7 @@
 
 <!-- TITRE -->
 <div class="entete">
-    <h2>FACTURE PROFORMA</h2>
+    <h3>FACTURE PROFORMA</h3>
 </div>
 
 <!-- INFOS PROFORMA -->
@@ -306,12 +304,18 @@
 <!-- INFOS CLIENT -->
 <div class="client-box">
     <div>
-        <strong>DOIT :</strong> {{ proforma.client.nom_client if proforma.client else '' }}<br>
+        <strong>DOIT :</strong> <span style="font-size: 13px;color: red;">{{ proforma.client.nom_client if proforma.client else '' }}</span><br>
+        {% if proforma.client and proforma.attn %}
         <strong>ATTN :</strong> {{ proforma.attn or '' }}
+        {% endif %}
     </div>
     <div>
+        {% if proforma.client and proforma.client.telephone %}
         <strong>Tél :</strong> {{ proforma.client.telephone if proforma.client else '' }}<br>
+        {% endif %}
+        {% if proforma.client and proforma.client.adresse %}
         <strong>Ville :</strong> {{ proforma.client.adresse if proforma.client else '' }}
+        {% endif %}
     </div>
 </div>
 
@@ -351,7 +355,7 @@
             <th class="col-quantite">QTÉ</th>
             <th class="col-prix">P.U (F CFA)</th>
             <th class="col-soustotal">SOUS-TOTAL (F CFA)</th>
-            <th class="col-photo">IMAGE</th>
+            <th class="col-photo"></th>
         </tr>
     </thead>
     <tbody>
@@ -420,7 +424,7 @@
 <div class="montant-lettre">
     <p>
         <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <span style="font-style: italic; color: red;">{{ total_lettre }} francs CFA</span>
+        <span style="font-style: italic; color: red;font-size: 14px;">{{ total_lettre }} francs CFA</span>
     </p>
 </div>
 
