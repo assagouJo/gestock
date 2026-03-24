@@ -1121,6 +1121,7 @@ def modifier_vente(vente_id):
 
 
 @app.route("/achat/nouveau", methods=["GET"])
+@login_required
 def nouveau_achat():
     fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
     produits = Produit.query.order_by(Produit.nom_produit).all()
@@ -1204,6 +1205,284 @@ def ajouter_achat():
 
     flash("Achat enregistré avec succès", "success")
     return redirect(url_for("nouveau_achat"))
+
+
+# ==================== ROUTE MODIFIER ACHAT (AFFICHAGE FORMULAIRE) ====================
+@app.route("/achat/modifier/<int:id>", methods=["GET"])
+@login_required
+def modifier_achat(id):
+    """Affiche le formulaire de modification d'un achat"""
+    achat = Achat.query.get_or_404(id)
+    
+    # Récupérer les données nécessaires pour les formulaires
+    fournisseurs = Fournisseur.query.all()
+    magasins = Magasin.query.all()
+    produits = Produit.query.all()
+    
+    return render_template(
+        "modifier_achat.html",
+        achat=achat,
+        fournisseurs=fournisseurs,
+        magasins=magasins,
+        produits=produits,
+        now=datetime.now()
+    )
+
+
+# ==================== ROUTE MODIFIER ACHAT (TRAITEMENT) ====================
+@app.route("/achat/modifier/<int:id>", methods=["POST"])
+@login_required
+def update_achat(id):
+    """Met à jour un achat existant"""
+    achat = Achat.query.get_or_404(id)
+    
+    # Récupération des données du formulaire
+    fournisseur_id = request.form.get("fournisseur_id")
+    magasin_id = request.form.get("magasin_id")
+    taxe_douane = float(request.form.get("taxe_douane") or 0)
+    
+    # Mise à jour des informations principales
+    achat.fournisseur_id = fournisseur_id
+    achat.magasin_id = magasin_id
+    achat.taxe_douane = taxe_douane
+    
+    # Récupérer les lignes existantes
+    anciennes_lignes = {ligne.id: ligne for ligne in achat.lignes}
+    
+    # Récupérer les données des lignes du formulaire
+    ligne_ids = request.form.getlist("ligne_id[]")
+    produit_ids = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    prix = request.form.getlist("prix_unitaire[]")
+    types = request.form.getlist("type_conditionnement[]")
+    
+    # Liste pour stocker les IDs des lignes conservées
+    lignes_conservees = []
+    
+    # Traitement des lignes existantes et nouvelles
+    for i, (ligne_id, produit_id, quantite, prix_unitaire, type_conditionnement) in enumerate(
+        zip(ligne_ids, produit_ids, quantites, prix, types)
+    ):
+        if not produit_id or not quantite:
+            continue
+        
+        quantite = int(quantite)
+        prix_unitaire = float(prix_unitaire)
+        
+        if ligne_id and int(ligne_id) in anciennes_lignes:
+            # Mettre à jour la ligne existante
+            ligne = anciennes_lignes[int(ligne_id)]
+            
+            # Ajuster le stock (retirer l'ancienne quantité, ajouter la nouvelle)
+            ajuster_stock_apres_modification(
+                produit_id=produit_id,
+                magasin_id=magasin_id,
+                ancienne_quantite=ligne.quantite,
+                nouvelle_quantite=quantite,
+                type_conditionnement=type_conditionnement
+            )
+            
+            ligne.produit_id = produit_id
+            ligne.quantite = quantite
+            ligne.prix_unitaire = prix_unitaire
+            ligne.total_ligne = quantite * prix_unitaire
+            ligne.type_conditionnement = type_conditionnement
+            
+            lignes_conservees.append(ligne.id)
+        else:
+            # Créer une nouvelle ligne
+            ligne = LigneAchat(
+                achat_id=achat.id,
+                produit_id=produit_id,
+                quantite=quantite,
+                prix_unitaire=prix_unitaire,
+                total_ligne=quantite * prix_unitaire,
+                type_conditionnement=type_conditionnement
+            )
+            db.session.add(ligne)
+            
+            # Mettre à jour le stock (ajouter)
+            mettre_a_jour_stock(
+                produit_id=produit_id,
+                magasin_id=magasin_id,
+                quantite=quantite,
+                type_conditionnement=type_conditionnement,
+                operation="ajouter"
+            )
+    
+    # Supprimer les lignes qui n'existent plus dans le formulaire
+    for ligne_id, ligne in anciennes_lignes.items():
+        if ligne_id not in lignes_conservees:
+            # Retirer du stock avant suppression
+            ajuster_stock_apres_modification(
+                produit_id=ligne.produit_id,
+                magasin_id=magasin_id,
+                ancienne_quantite=ligne.quantite,
+                nouvelle_quantite=0,
+                type_conditionnement=ligne.type_conditionnement
+            )
+            db.session.delete(ligne)
+    
+    # Recalculer les totaux
+    achat.calculer_totaux()
+    
+    db.session.commit()
+    
+    flash("Achat modifié avec succès", "success")
+    return redirect(url_for("nouveau_achat"))
+
+
+# ==================== ROUTE SUPPRIMER ACHAT ====================
+@app.route("/achat/supprimer/<int:id>", methods=["POST"])
+@login_required
+def supprimer_achat(id):
+    """Supprime un achat et ajuste le stock"""
+    achat = Achat.query.get_or_404(id)
+    
+    try:
+        # Retirer les quantités du stock avant suppression
+        for ligne in achat.lignes:
+            stock = Stock.query.filter_by(
+                produit_id=ligne.produit_id,
+                magasin_id=achat.magasin_id,
+                type_conditionnement=ligne.type_conditionnement
+            ).first()
+            
+            if stock:
+                stock.retirer(ligne.quantite)
+        
+        # Supprimer les lignes d'achat
+        for ligne in achat.lignes:
+            db.session.delete(ligne)
+        
+        # Supprimer l'achat
+        db.session.delete(achat)
+        db.session.commit()
+        
+        flash("Achat supprimé avec succès", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la suppression : {str(e)}", "danger")
+    
+    return redirect(url_for("nouveau_achat"))
+
+
+# ==================== ROUTE AJOUTER LIGNE (AJAX) ====================
+@app.route("/achat/ligne/ajouter", methods=["POST"])
+@login_required
+def ajouter_ligne_achat():
+    """Ajoute une ligne à un achat existant (AJAX)"""
+    data = request.get_json()
+    achat_id = data.get("achat_id")
+    produit_id = data.get("produit_id")
+    quantite = data.get("quantite")
+    prix_unitaire = data.get("prix_unitaire")
+    type_conditionnement = data.get("type_conditionnement")
+    
+    achat = Achat.query.get_or_404(achat_id)
+    
+    ligne = LigneAchat(
+        achat_id=achat.id,
+        produit_id=produit_id,
+        quantite=quantite,
+        prix_unitaire=prix_unitaire,
+        total_ligne=quantite * prix_unitaire,
+        type_conditionnement=type_conditionnement
+    )
+    
+    db.session.add(ligne)
+    
+    # Mettre à jour le stock
+    mettre_a_jour_stock(
+        produit_id=produit_id,
+        magasin_id=achat.magasin_id,
+        quantite=quantite,
+        type_conditionnement=type_conditionnement,
+        operation="ajouter"
+    )
+    
+    achat.calculer_totaux()
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "ligne_id": ligne.id,
+        "total_ligne": ligne.total_ligne,
+        "total_ht": achat.total_ht,
+        "total_ttc": achat.total_ttc
+    })
+
+
+# ==================== ROUTE SUPPRIMER LIGNE (AJAX) ====================
+@app.route("/achat/ligne/supprimer/<int:ligne_id>", methods=["DELETE"])
+@login_required
+def supprimer_ligne_achat(ligne_id):
+    """Supprime une ligne d'achat et ajuste le stock"""
+    ligne = LigneAchat.query.get_or_404(ligne_id)
+    achat = ligne.achat
+    
+    # Retirer du stock
+    mettre_a_jour_stock(
+        produit_id=ligne.produit_id,
+        magasin_id=achat.magasin_id,
+        quantite=ligne.quantite,
+        type_conditionnement=ligne.type_conditionnement,
+        operation="retirer"
+    )
+    
+    db.session.delete(ligne)
+    achat.calculer_totaux()
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "total_ht": achat.total_ht,
+        "total_ttc": achat.total_ttc
+    })
+
+
+# ==================== FONCTIONS UTILITAIRES ====================
+
+def mettre_a_jour_stock(produit_id, magasin_id, quantite, type_conditionnement, operation):
+    """Met à jour le stock (ajouter ou retirer)"""
+    stock = Stock.query.filter_by(
+        produit_id=produit_id,
+        magasin_id=magasin_id,
+        type_conditionnement=type_conditionnement
+    ).first()
+    
+    if stock:
+        if operation == "ajouter":
+            stock.ajouter(quantite)
+        elif operation == "retirer":
+            stock.retirer(quantite)
+    else:
+        if operation == "ajouter":
+            stock = Stock(
+                produit_id=produit_id,
+                magasin_id=magasin_id,
+                quantite=quantite,
+                type_conditionnement=type_conditionnement
+            )
+            db.session.add(stock)
+
+
+def ajuster_stock_apres_modification(produit_id, magasin_id, ancienne_quantite, nouvelle_quantite, type_conditionnement):
+    """Ajuste le stock après modification d'une ligne"""
+    difference = nouvelle_quantite - ancienne_quantite
+    
+    if difference > 0:
+        # Ajouter la différence
+        mettre_a_jour_stock(
+            produit_id, magasin_id, difference,
+            type_conditionnement, "ajouter"
+        )
+    elif difference < 0:
+        # Retirer la différence
+        mettre_a_jour_stock(
+            produit_id, magasin_id, abs(difference),
+            type_conditionnement, "retirer"
+        )
 
 
 @app.route("/bon-livraison/nouveau/<int:commande_id>")

@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Modifier Achat{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-success">
+            ✏️ Modifier Achat #{{ achat.numero or achat.id }}
+        </h4>
+        <a href="{{ url_for('nouveau_achat') }}" class="btn btn-outline-secondary">
+            ⬅ Retour à la liste
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('update_achat', id=achat.id) }}">
+                
+                <!-- INFOS PRINCIPALES -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Date</label>
+                        <input type="datetime-local"
+                               name="date_achat"
+                               class="form-control"
+                               value="{{ achat.date_achat.strftime('%Y-%m-%dT%H:%M') }}"
+                               required>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Fournisseur</label>
+                        <select name="fournisseur_id" class="form-select" required>
+                            {% for f in fournisseurs %}
+                                <option value="{{ f.id }}" 
+                                    {% if f.id == achat.fournisseur_id %}selected{% endif %}>
+                                    {{ f.nom_fournisseur }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Magasin</label>
+                        <select name="magasin_id" class="form-select" required>
+                            {% for m in magasins %}
+                                <option value="{{ m.id }}" 
+                                    {% if m.id == achat.magasin_id %}selected{% endif %}>
+                                    {{ m.nom }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Taxe Douane (FCFA)</label>
+                        <input type="number"
+                               step="0.01"
+                               name="taxe_douane"
+                               id="taxeDouane"
+                               class="form-control"
+                               value="{{ achat.taxe_douane }}">
+                    </div>
+                </div>
+                
+                <!-- LIGNES PRODUITS -->
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="lignesTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Produit</th>
+                                <th>Conditionnement</th>
+                                <th width="100">Quantité</th>
+                                <th width="120">Prix Unitaire</th>
+                                <th width="120">Total Ligne</th>
+                                <th width="50"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lignesContainer">
+                            {% for ligne in achat.lignes %}
+                            <tr class="ligne-achat">
+                                <td>
+                                    <input type="hidden" name="ligne_id[]" value="{{ ligne.id }}">
+                                    <select name="produit_id[]" class="form-select" required>
+                                        <option value="">-- Produit --</option>
+                                        {% for p in produits %}
+                                            <option value="{{ p.id }}" 
+                                                {% if p.id == ligne.produit_id %}selected{% endif %}>
+                                                {{ p.nom_produit }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="type_conditionnement[]" class="form-select" required>
+                                        <option value="carton" {% if ligne.type_conditionnement == 'carton' %}selected{% endif %}>Carton</option>
+                                        <option value="paquet" {% if ligne.type_conditionnement == 'paquet' %}selected{% endif %}>Paquet</option>
+                                        <option value="unite" {% if ligne.type_conditionnement == 'unite' %}selected{% endif %}>Unité</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number"
+                                           name="quantite[]"
+                                           class="form-control quantite"
+                                           value="{{ ligne.quantite }}"
+                                           min="1"
+                                           required>
+                                </td>
+                                <td>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="prix_unitaire[]"
+                                           class="form-control prix"
+                                           value="{{ ligne.prix_unitaire }}"
+                                           required>
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           class="form-control total-ligne"
+                                           value="{{ ligne.total_ligne }}"
+                                           readonly>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm supprimer-ligne"
+                                            data-ligne-id="{{ ligne.id }}">
+                                        ✖
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="text-end mb-3">
+                    <strong>Total HT : <span id="totalHT">{{ achat.total_ht }}</span> FCFA</strong><br>
+                    <strong>Total TTC : <span id="totalTTC">{{ achat.total_ttc }}</span> FCFA</strong>
+                </div>
+                
+                <button type="button"
+                        class="btn btn-outline-secondary mb-3"
+                        id="ajouterLigne">
+                    ➕ Ajouter une ligne
+                </button>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-success">
+                        💾 Enregistrer les modifications
+                    </button>
+                    <a href="{{ url_for('nouveau_achat') }}" class="btn btn-secondary">
+                        Annuler
+                    </a>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const lignesContainer = document.getElementById("lignesContainer");
+    const btnAjouter = document.getElementById("ajouterLigne");
+    const taxeInput = document.getElementById("taxeDouane");
+    
+    // Fonction de calcul des totaux
+    function calculerTotaux() {
+        let totalHT = 0;
+        
+        document.querySelectorAll(".ligne-achat").forEach(row => {
+            const qte = parseFloat(row.querySelector(".quantite").value) || 0;
+            const prix = parseFloat(row.querySelector(".prix").value) || 0;
+            const total = qte * prix;
+            
+            row.querySelector(".total-ligne").value = total.toFixed(2);
+            totalHT += total;
+        });
+        
+        const taxe = parseFloat(taxeInput.value) || 0;
+        const totalTTC = totalHT + taxe;
+        
+        document.getElementById("totalHT").innerText = totalHT.toFixed(2);
+        document.getElementById("totalTTC").innerText = totalTTC.toFixed(2);
+    }
+    
+    // Écouter les changements sur les champs
+    document.addEventListener("input", calculerTotaux);
+    
+    // Ajouter une nouvelle ligne
+    btnAjouter.addEventListener("click", () => {
+        const template = document.querySelector(".ligne-achat").cloneNode(true);
+        template.querySelectorAll("input").forEach(input => {
+            if (input.type !== "hidden") {
+                input.value = "";
+            }
+        });
+        template.querySelectorAll("select").forEach(select => {
+            select.selectedIndex = 0;
+        });
+        template.querySelector("input[name='ligne_id[]']").value = "";
+        
+        lignesContainer.appendChild(template);
+        calculerTotaux();
+    });
+    
+    // Supprimer une ligne (version modale de confirmation)
+    document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("supprimer-ligne")) {
+            const btn = e.target;
+            const ligneId = btn.dataset.ligneId;
+            const row = btn.closest("tr");
+            
+            if (confirm("Êtes-vous sûr de vouloir supprimer cette ligne ?")) {
+                if (ligneId) {
+                    // Suppression via AJAX si la ligne existe déjà
+                    fetch(`/achat/ligne/supprimer/${ligneId}`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            row.remove();
+                            document.getElementById("totalHT").innerText = data.total_ht;
+                            document.getElementById("totalTTC").innerText = data.total_ttc;
+                            calculerTotaux();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erreur:", error);
+                        row.remove();
+                        calculerTotaux();
+                    });
+                } else {
+                    // Suppression simple pour les nouvelles lignes
+                    row.remove();
+                    calculerTotaux();
+                }
+            }
+        }
+    });
+    
+    // Initialiser les totaux
+    calculerTotaux();
+});
+</script>
+
+<style>
+    .ligne-achat {
+        transition: background-color 0.2s;
+    }
+    .ligne-achat:hover {
+        background-color: #f8f9fa;
+    }
+    .total-ligne {
+        background-color: #f0f0f0;
+        font-weight: bold;
+    }
+</style>
+
+{% endblock %}
