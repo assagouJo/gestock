@@ -24,6 +24,8 @@ from flask import send_file
 import io
 from num2words import num2words
 import time
+from calendar import month_name
+from collections import defaultdict
 
 
 
@@ -238,13 +240,41 @@ def delete_users():
 @login_required
 def dashboard():
 
-    from collections import defaultdict
-    from calendar import month_name
-
     ventes = Vente.query.all()
     achats = Achat.query.all()
     vendeurs = Vendeur.query.all()
     clients = Client.query.all()
+
+    # =========================
+    # 🔹 STATISTIQUES GÉNÉRALES
+    # =========================
+    
+    # Calcul des totaux
+    total_ventes = sum(v.total or 0 for v in ventes)
+    total_achats = sum(a.total_ttc or 0 for a in achats)
+    total_dettes = sum(sum(v.reste_a_payer or 0 for v in client.ventes) for client in clients)
+    nb_vendeurs = len(vendeurs)
+    
+    # Moyenne des ventes par vendeur
+    moyenne_ventes_vendeur = total_ventes / nb_vendeurs if nb_vendeurs > 0 else 0
+    
+    # Calcul des tendances (comparaison avec mois précédent)
+    maintenant = datetime.now()
+    mois_courant = maintenant.month
+    mois_precedent = mois_courant - 1 if mois_courant > 1 else 12
+    
+    ventes_mois_courant = sum(v.total or 0 for v in ventes if v.date_vente and v.date_vente.month == mois_courant)
+    ventes_mois_precedent = sum(v.total or 0 for v in ventes if v.date_vente and v.date_vente.month == mois_precedent)
+    
+    achats_mois_courant = sum(a.total_ttc or 0 for a in achats if a.date_achat and a.date_achat.month == mois_courant)
+    achats_mois_precedent = sum(a.total_ttc or 0 for a in achats if a.date_achat and a.date_achat.month == mois_precedent)
+    
+    trend_ventes = ((ventes_mois_courant - ventes_mois_precedent) / ventes_mois_precedent * 100) if ventes_mois_precedent > 0 else 0
+    trend_achats = ((achats_mois_courant - achats_mois_precedent) / achats_mois_precedent * 100) if achats_mois_precedent > 0 else 0
+    
+    # Taux de recouvrement
+    total_creances = total_ventes
+    taux_recouvrement = ((total_creances - total_dettes) / total_creances * 100) if total_creances > 0 else 0
 
     # =========================
     # 🔹 VENTES & ACHATS PAR MOIS
@@ -262,9 +292,10 @@ def dashboard():
             mois = month_name[a.date_achat.month]
             achats_mois[mois] += float(a.total_ttc or 0)
 
-    # 🔥 Fusion des mois pour éviter pertes
+    # Fusion des mois
     mois_uniques = sorted(
-        set(list(ventes_mois.keys()) + list(achats_mois.keys()))
+        set(list(ventes_mois.keys()) + list(achats_mois.keys())),
+        key=lambda x: list(month_name).index(x)  # Tri par ordre des mois
     )
 
     labels = mois_uniques
@@ -272,26 +303,61 @@ def dashboard():
     achats_data = [achats_mois[m] for m in labels]
 
     # =========================
-    # 🔹 DETTES CLIENTS
+    # 🔹 DETTES CLIENTS (filtrer les clients avec dette > 0)
     # =========================
     clients_labels = []
     dettes_data = []
-
+    
+    # Trier les clients par dette décroissante
+    clients_avec_dettes = []
     for client in clients:
         total_reste = sum(v.reste_a_payer or 0 for v in client.ventes)
-        clients_labels.append(client.nom_client)
-        dettes_data.append(float(total_reste))
+        if total_reste > 0:  # Ne montrer que les clients avec des dettes
+            clients_avec_dettes.append((client.nom_client, float(total_reste)))
+    
+    # Trier par montant de dette (du plus élevé au plus bas)
+    clients_avec_dettes.sort(key=lambda x: x[1], reverse=True)
+    
+    # Limiter à 10 clients maximum pour éviter un graphique trop chargé
+    if len(clients_avec_dettes) > 10:
+        clients_avec_dettes = clients_avec_dettes[:10]
+    
+    clients_labels = [c[0] for c in clients_avec_dettes]
+    dettes_data = [c[1] for c in clients_avec_dettes]
 
     # =========================
     # 🔹 VENTES PAR VENDEUR
     # =========================
     vendeur_labels = []
     vendeur_data = []
-
+    
+    # Trier les vendeurs par performance
+    vendeurs_performance = []
     for vendeur in vendeurs:
         total_vendeur = sum(v.total or 0 for v in vendeur.ventes)
-        vendeur_labels.append(vendeur.nom)
-        vendeur_data.append(float(total_vendeur))
+        if total_vendeur > 0:  # Ne montrer que les vendeurs avec des ventes
+            vendeurs_performance.append((vendeur.nom, float(total_vendeur)))
+    
+    # Trier par montant de ventes (du plus élevé au plus bas)
+    vendeurs_performance.sort(key=lambda x: x[1], reverse=True)
+    
+    vendeur_labels = [v[0] for v in vendeurs_performance]
+    vendeur_data = [v[1] for v in vendeurs_performance]
+
+    # =========================
+    # 🔹 TOP 5 PRODUITS LES PLUS VENDUS
+    # =========================
+    top_produits = []
+    from models import LigneVente, Produit
+    
+    produits_vendus = defaultdict(int)
+    for vente in ventes:
+        for ligne in vente.lignes_vente:  # Assurez-vous que la relation existe
+            if ligne.produit:
+                produits_vendus[ligne.produit.nom] += ligne.quantite or 0
+    
+    # Trier et prendre les 5 premiers
+    top_produits = sorted(produits_vendus.items(), key=lambda x: x[1], reverse=True)[:5]
 
     return render_template(
         "dashboard.html",
@@ -301,7 +367,16 @@ def dashboard():
         clients_labels=clients_labels,
         dettes_data=dettes_data,
         vendeur_labels=vendeur_labels,
-        vendeur_data=vendeur_data
+        vendeur_data=vendeur_data,
+        total_ventes=total_ventes,
+        total_achats=total_achats,
+        total_dettes=total_dettes,
+        nb_vendeurs=nb_vendeurs,
+        moyenne_ventes_vendeur=moyenne_ventes_vendeur,
+        trend_ventes=round(trend_ventes, 1),
+        trend_achats=round(trend_achats, 1),
+        taux_recouvrement=round(taux_recouvrement, 1),
+        top_produits=top_produits
     )
 
 

@@ -171,7 +171,8 @@
     
    /* Conteneur d'image - CORRIGÉ */
 .produit-image-container {
-    background-color: #f9f9f9;
+    /* Supprimer le fond */
+    background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -194,23 +195,28 @@
     height: auto;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;  /* "contain" est mieux supporté que "scale-down" */
+    object-fit: contain;
     display: block;
+    
+    /* Supprimer toute bordure potentielle */
+    border: none;
+    outline: none;
 }
 
 /* Cellule centrée */
 .img {
     text-align: center;
     vertical-align: middle;
-    width: 200px; /* Largeur fixe pour la colonne */
+    width: 200px;
 }
 
-/* Fallback pour les navigateurs plus anciens */
+/* Fallback */
 .img img {
     max-width: 140px;
     max-height: 140px;
     width: auto;
     height: auto;
+    border: none;
 }
     
     /* Total row */

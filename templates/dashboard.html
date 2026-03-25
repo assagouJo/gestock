@@ -3,75 +3,341 @@
 
 {% block styles %}
 <style>
-
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
 
     h3 {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 25px;
+        color: var(--dark-color);
+        font-weight: 600;
     }
 
+    /* Cartes de statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-top: 4px solid;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.ventes { border-top-color: var(--primary-color); }
+    .stat-card.achats { border-top-color: var(--danger-color); }
+    .stat-card.dettes { border-top-color: var(--warning-color); }
+    .stat-card.vendeurs { border-top-color: var(--success-color); }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        opacity: 0.7;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--dark-color);
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-trend {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .trend-up { color: var(--success-color); }
+    .trend-down { color: var(--danger-color); }
+
+    /* Grille des graphiques */
     .grid-container {
         display: grid;
-        justify-items: center;
-        align-items: center;
         grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
+        gap: 20px;
+        margin-bottom: 30px;
     }
-    
-    /* 🔥 Taille fixe identique pour chaque graphique */
+
     .card {
         background: white;
-        padding: 5px;
+        padding: 15px;
         border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        
-        height: 260px;  
-        width: 95%;      /* 🔥 hauteur contrôlée */
+        height: 320px;
         display: flex;
-        margin-bottom: 15px;
-        align-items: center;
-        justify-content: center;
+        flex-direction: column;
+        transition: all 0.3s ease;
     }
 
-/* 🔥 Force le canvas à remplir la card */
+    .card:hover {
+        box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    }
 
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--light-color);
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--dark-color);
+        font-weight: 600;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .card-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+
+    .card-btn:hover {
+        background: var(--light-color);
+    }
+
+    canvas {
+        flex: 1;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .empty-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #95a5a6;
+        text-align: center;
+        padding: 20px;
+    }
+
+    /* Section Top Produits */
+    .top-products {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        margin-top: 20px;
+    }
+
+    .top-products h4 {
+        margin: 0 0 15px 0;
+        color: var(--dark-color);
+        font-weight: 600;
+    }
+
+    .product-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .product-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: var(--light-color);
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .product-item:hover {
+        background: #e0e0e0;
+        transform: translateX(5px);
+    }
+
+    .product-name {
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+
+    .product-quantity {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .grid-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
-    
 {% endblock %}
+
 {% block content %}
 
 <h3>📊 Tableau de Bord</h3>
 
-<div class="grid-container">
+<!-- Cartes de statistiques -->
+<div class="stats-grid">
+    <div class="stat-card ventes">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">{{ "{:,.0f}".format(total_ventes|default(0)) }} FCFA</div>
+        <div class="stat-label">Total Ventes</div>
+        <div class="stat-trend {% if trend_ventes > 0 %}trend-up{% else %}trend-down{% endif %}">
+            {% if trend_ventes > 0 %}+{% endif %}{{ trend_ventes|default(0) }}%
+        </div>
+    </div>
+    
+    <div class="stat-card achats">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">{{ "{:,.0f}".format(total_achats|default(0)) }} FCFA</div>
+        <div class="stat-label">Total Achats</div>
+        <div class="stat-trend {% if trend_achats > 0 %}trend-up{% else %}trend-down{% endif %}">
+            {% if trend_achats > 0 %}+{% endif %}{{ trend_achats|default(0) }}%
+        </div>
+    </div>
+    
+    <div class="stat-card dettes">
+        <div class="stat-icon">💳</div>
+        <div class="stat-value">{{ "{:,.0f}".format(total_dettes|default(0)) }} FCFA</div>
+        <div class="stat-label">Dettes Clients</div>
+        <div class="stat-trend">{{ taux_recouvrement|default(0) }}% recouvré</div>
+    </div>
+    
+    <div class="stat-card vendeurs">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ nb_vendeurs|default(0) }}</div>
+        <div class="stat-label">Vendeurs Actifs</div>
+        <div class="stat-trend">Moy: {{ moyenne_ventes_vendeur|default(0)|round }} FCFA</div>
+    </div>
+</div>
 
+<!-- Graphiques -->
+<div class="grid-container">
     <div class="card" id="card-ventes-achats">
+        <div class="card-header">
+            <h4>📈 Ventes vs Achats par mois</h4>
+            <div class="card-actions">
+                <button class="card-btn" onclick="exportChart('ventesAchatsChart')" title="Exporter">📸</button>
+            </div>
+        </div>
         <canvas id="ventesAchatsChart"></canvas>
     </div>
 
     <div class="card" id="card-dettes">
+        <div class="card-header">
+            <h4>📉 Top 10 des dettes clients</h4>
+            <div class="card-actions">
+                <button class="card-btn" onclick="exportChart('dettesChart')" title="Exporter">📸</button>
+            </div>
+        </div>
         <canvas id="dettesChart"></canvas>
     </div>
 
     <div class="card" id="card-vendeur">
+        <div class="card-header">
+            <h4>👤 Performance des vendeurs</h4>
+            <div class="card-actions">
+                <button class="card-btn" onclick="exportChart('vendeurChart')" title="Exporter">📸</button>
+            </div>
+        </div>
         <canvas id="vendeurChart"></canvas>
     </div>
 
     <div class="card" id="card-doughnut">
+        <div class="card-header">
+            <h4>🥧 Répartition des dettes</h4>
+            <div class="card-actions">
+                <button class="card-btn" onclick="exportChart('doughnutChart')" title="Exporter">📸</button>
+            </div>
+        </div>
         <canvas id="doughnutChart"></canvas>
     </div>
-
 </div>
 
-<script>
-    function showEmptyMessage(cardId, message) {
-    const card = document.getElementById(cardId);
-    card.innerHTML = `
-        <div style="text-align:center; color:gray;">
-            <h5>${message}</h5>
+<!-- Top produits -->
+{% if top_produits %}
+<div class="top-products">
+    <h4>🏆 Top 5 des produits les plus vendus</h4>
+    <div class="product-list">
+        {% for produit, quantite in top_produits %}
+        <div class="product-item">
+            <span class="product-name">{{ produit }}</span>
+            <span class="product-quantity">{{ quantite }} unités</span>
         </div>
-    `;
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    let charts = {};
+
+    function showEmptyMessage(cardId, message) {
+        const card = document.getElementById(cardId);
+        const canvas = card.querySelector('canvas');
+        if (canvas) {
+            canvas.style.display = 'none';
+        }
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-message';
+        emptyDiv.innerHTML = `<div><div style="font-size: 3rem;">📭</div><h5>${message}</h5></div>`;
+        card.appendChild(emptyDiv);
     }
 
+    function exportChart(chartId) {
+        const canvas = document.getElementById(chartId);
+        if (canvas) {
+            const link = document.createElement('a');
+            link.download = `${chartId}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    }
+
+    // Données initiales
     const labels = {{ labels | tojson }};
     const ventesData = {{ ventes_data | tojson }};
     const achatsData = {{ achats_data | tojson }};
@@ -81,76 +347,170 @@
     const vendeurData = {{ vendeur_data | tojson }};
 
     // 1️⃣ VENTES VS ACHATS
-    if (labels.length > 0 && (ventesData.length > 0 || achatsData.length > 0)) {
-        new Chart(document.getElementById("ventesAchatsChart"), {
+    if (labels.length > 0) {
+        const ctx = document.getElementById("ventesAchatsChart").getContext('2d');
+        charts.ventesAchats = new Chart(ctx, {
             type: "bar",
             data: {
                 labels: labels,
                 datasets: [
-                    { label: "Ventes", data: ventesData, backgroundColor: "rgba(54, 162, 235, 0.7)" },
-                    { label: "Achats", data: achatsData, backgroundColor: "rgba(255, 99, 132, 0.7)" }
+                    { 
+                        label: "Ventes", 
+                        data: ventesData, 
+                        backgroundColor: "rgba(54, 162, 235, 0.7)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 1,
+                        borderRadius: 5
+                    },
+                    { 
+                        label: "Achats", 
+                        data: achatsData, 
+                        backgroundColor: "rgba(255, 99, 132, 0.7)",
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw.toLocaleString()} FCFA`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' FCFA';
+                            }
+                        }
+                    }
+                }
+            }
         });
     } else {
-        showEmptyMessage("card-ventes-achats", "Aucune donnée de ventes/achats 📊");
+        showEmptyMessage("card-ventes-achats", "Aucune donnée de ventes/achats");
     }
 
-    // 2️⃣ DETTES CLIENTS (LINE)
+    // 2️⃣ DETTES CLIENTS
     if (clientsLabels.length > 0 && dettesData.length > 0) {
-    new Chart(document.getElementById("dettesChart"), {
-        type: "line",
-        data: {
-            labels: clientsLabels,
-            datasets: [{
-                label: "Dettes Clients",
-                data: dettesData,
-                borderColor: "orange",
-                fill: false,
-                tension: 0.3
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
+        const ctx = document.getElementById("dettesChart").getContext('2d');
+        charts.dettes = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: clientsLabels,
+                datasets: [{
+                    label: "Dettes Clients",
+                    data: dettesData,
+                    backgroundColor: "rgba(243, 156, 18, 0.7)",
+                    borderColor: "rgba(243, 156, 18, 1)",
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Dette: ${context.raw.toLocaleString()} FCFA`;
+                            }
+                        }
+                    }
+                }
+            }
         });
     } else {
-        showEmptyMessage("card-dettes", "Aucune dette client 💳");
+        showEmptyMessage("card-dettes", "Aucune dette client enregistrée");
     }
 
     // 3️⃣ VENTES PAR VENDEUR
     if (vendeurLabels.length > 0 && vendeurData.length > 0) {
-    new Chart(document.getElementById("vendeurChart"), {
-        type: "bar",
-        data: {
-            labels: vendeurLabels,
-            datasets: [{
-                label: "Total Ventes",
-                data: vendeurData,
-                backgroundColor: "rgba(75, 192, 192, 0.7)"
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
+        const ctx = document.getElementById("vendeurChart").getContext('2d');
+        charts.vendeur = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: vendeurLabels,
+                datasets: [{
+                    label: "Total Ventes",
+                    data: vendeurData,
+                    backgroundColor: "rgba(46, 204, 113, 0.7)",
+                    borderColor: "rgba(46, 204, 113, 1)",
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Ventes: ${context.raw.toLocaleString()} FCFA`;
+                            }
+                        }
+                    }
+                }
+            }
         });
     } else {
-        showEmptyMessage("card-vendeur", "Aucune vente par vendeur 👤");
+        showEmptyMessage("card-vendeur", "Aucune vente enregistrée");
     }
+    
     // 4️⃣ DETTES EN CAMEMBERT
     if (clientsLabels.length > 0 && dettesData.length > 0) {
-    new Chart(document.getElementById("doughnutChart"), {
-        type: "doughnut",
-        data: {
-            labels: clientsLabels,
-            datasets: [{
-                label: "Reste à payer",
-                data: dettesData
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
+        const ctx = document.getElementById("doughnutChart").getContext('2d');
+        charts.doughnut = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: clientsLabels,
+                datasets: [{
+                    label: "Reste à payer",
+                    data: dettesData,
+                    backgroundColor: [
+                        'rgba(67, 97, 238, 0.8)',
+                        'rgba(46, 204, 113, 0.8)',
+                        'rgba(243, 156, 18, 0.8)',
+                        'rgba(231, 76, 60, 0.8)',
+                        'rgba(155, 89, 182, 0.8)',
+                        'rgba(52, 73, 94, 0.8)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.raw / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.raw.toLocaleString()} FCFA (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     } else {
-        showEmptyMessage("card-doughnut", "Aucune donnée pour le graphique circulaire 🥯");
+        showEmptyMessage("card-doughnut", "Aucune donnée disponible");
     }
-
 </script>
 
 {% endblock %}
