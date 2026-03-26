@@ -390,14 +390,17 @@ def produit():
         try:
             # ✅ Vérifier si le produit existe déjà
             exist_produit = Produit.query.filter(
-                Produit.nom_produit == form.nom_produit.data,
-                Produit.marque == form.marque.data,
-                Produit.model == form.model.data
+                Produit.nom_produit == form.nom_produit.data
+                # Produit.marque == form.marque.data,
+                # Produit.model == form.model.data
             ).first()
 
             if exist_produit:
-                flash(f"Ce produit existe déjà avec le code {exist_produit.code_produit}", "danger")
-                return redirect(url_for("produit"))
+                if exist_produit.marque == form.marque.data and exist_produit.model == form.model.data:
+                    flash(f"Ce produit existe déjà avec le code {exist_produit.code_produit}", "danger")
+                    return redirect(url_for("produit"))
+                else :
+                    flash(f"Un produit nommé '{form.nom_produit.data}' existe déjà mais avec des caractéristiques différentes. Voulez-vous créer une variante ?", "warning")
 
             # ✅ Gestion de l'image
             image_url = None
