@@ -376,9 +376,9 @@
                         
                         {% if ligne.produit.description %}
                         <div class="produit-caracs">
-                            <strong>Caractéristiques:</strong>
+                            <strong>Caractéristiques:</strong><br>
                             <ul>
-                                {% for desc in ligne.produit.description.split(',') %}
+                                {% for desc in ligne.produit.description.split('.') %}
                                     {% if desc.strip() %}
                                     <li>{{ desc.strip() }}</li>
                                     {% endif %}
