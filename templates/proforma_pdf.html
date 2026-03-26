@@ -377,14 +377,17 @@
                         {% if ligne.produit.description %}
                         <div class="produit-caracs">
                             <strong>Caractéristiques:</strong><br>
-                            <ul>
-                                {% for desc in ligne.produit.description.split('.') %}
-                                    {% if desc.strip() %}
-                                    <li>{{ desc.strip() }}</li>
+                           <ul style="margin: 5px 0 0 20px; padding-left: 0; list-style-type: disc;">
+                                {# Remplacer d'abord les points par des virgules, puis splitter #}
+                                {% set desc_with_commas = produit_principal.produit.description.replace('.', ',') %}
+                                {% for desc in desc_with_commas.split(',') %}
+                                    {% set desc_clean = desc.strip() %}
+                                    {% if desc_clean and desc_clean != '.' %}
+                                        <li style="font-size: 12px; margin-bottom: 3px;">{{ desc_clean }}</li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
-                        </div>
+                                                </div>
                         {% endif %}
                     {% endif %}
                 </div>
