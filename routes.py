@@ -2453,23 +2453,21 @@ def modifier_kit_proforma(kit_id):
             for bloc in kit.blocs:
                 db.session.delete(bloc)
             
-            # IMPORTANT: Récupérer l'ordre des blocs depuis le formulaire
-            # On cherche tous les champs bloc_titre_XXX pour identifier l'ordre
-            bloc_ids_ordonnes = []
+            # ✅ Récupérer l'ordre des blocs depuis le champ caché
+            ordre_blocs_str = request.form.get('ordre_blocs', '')
+            ordre_blocs = ordre_blocs_str.split(',') if ordre_blocs_str else []
             
-            # Méthode 1: Parcourir tous les champs du formulaire
-            for field in request.form.keys():
-                if field.startswith('bloc_titre_'):
-                    # Extraire l'ID du bloc (new_XXX ou chiffre)
-                    bloc_id = field.replace('bloc_titre_', '')
-                    if bloc_id not in bloc_ids_ordonnes:
-                        bloc_ids_ordonnes.append(bloc_id)
+            # Si pas d'ordre, on reconstruit l'ordre depuis les champs du formulaire
+            if not ordre_blocs:
+                # Parcourir tous les champs du formulaire pour trouver les blocs
+                for field in request.form.keys():
+                    if field.startswith('bloc_titre_'):
+                        bloc_id = field.replace('bloc_titre_', '')
+                        if bloc_id not in ordre_blocs:
+                            ordre_blocs.append(bloc_id)
             
-            # Méthode 2: Si vous avez un champ caché avec l'ordre, utilisez-le
-            # ordre_blocs = request.form.getlist('ordre_blocs[]')
-            
-            # Traiter chaque bloc dans l'ordre
-            for bloc_id in bloc_ids_ordonnes:
+            # ✅ Traiter chaque bloc dans l'ordre spécifié
+            for bloc_id in ordre_blocs:
                 # Récupérer le titre du bloc
                 bloc_titre = request.form.get(f'bloc_titre_{bloc_id}', '')
                 
@@ -2485,14 +2483,14 @@ def modifier_kit_proforma(kit_id):
                 types_valides = []
                 
                 for i in range(len(produits)):
-                    if produits[i] and quantites[i]:
+                    if produits[i] and quantites[i] and int(quantites[i]) > 0:
                         a_produits_valides = True
                         produits_valides.append(produits[i])
                         quantites_valides.append(quantites[i])
                         types_valides.append(types[i] if i < len(types) else 'secondaire')
                 
                 if not a_produits_valides:
-                    continue  # Ignorer les blocs vides
+                    continue
                 
                 # Créer un nouveau bloc
                 nouveau_bloc = BlocKit(
@@ -2500,13 +2498,10 @@ def modifier_kit_proforma(kit_id):
                     nom=bloc_titre or f"Bloc"
                 )
                 db.session.add(nouveau_bloc)
-                db.session.flush()  # Pour obtenir l'ID
+                db.session.flush()
                 
-                # Créer les lignes pour ce bloc en préservant l'ordre des produits
+                # ✅ Créer les lignes pour ce bloc en préservant l'ordre
                 for i in range(len(produits_valides)):
-                    # Déterminer si c'est un produit principal
-                    est_principal = (types_valides[i] == 'principal')
-                    
                     ligne = LigneKitProforma(
                         kit_id=kit.id,
                         bloc_id=nouveau_bloc.id,
@@ -2520,7 +2515,7 @@ def modifier_kit_proforma(kit_id):
             quantites_hors_bloc = request.form.getlist('quantite_hors_bloc[]')
             
             for i in range(len(produits_hors_bloc)):
-                if produits_hors_bloc[i] and quantites_hors_bloc[i]:
+                if produits_hors_bloc[i] and quantites_hors_bloc[i] and int(quantites_hors_bloc[i]) > 0:
                     ligne = LigneKitProforma(
                         kit_id=kit.id,
                         bloc_id=None,
@@ -2548,6 +2543,9 @@ def modifier_kit_proforma(kit_id):
                          kit=kit, 
                          clients=clients, 
                          produits=produits)
+
+
+
 # Route pour supprimer un kit
 @app.route('/supprimer-kit-proforma/<int:kit_id>')
 def supprimer_kit_proforma(kit_id):
