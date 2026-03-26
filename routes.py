@@ -401,6 +401,7 @@ def produit():
                     return redirect(url_for("produit"))
                 else :
                     flash(f"Un produit nommé '{form.nom_produit.data}' existe déjà mais avec des caractéristiques différentes. Voulez-vous créer une variante ?", "warning")
+                    
 
             # ✅ Gestion de l'image
             image_url = None
