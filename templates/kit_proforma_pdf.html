@@ -35,12 +35,12 @@
     
     .left img {
         max-height: 80px;
-        max-width: 200px;
+        max-width: 100px;
     }
     
     .right {
         text-align: right;
-        font-size: 11px;
+        font-size: 10px;
         line-height: 1.3;
     }
     
@@ -64,7 +64,7 @@
     .info-doc {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         font-size: 12px;
     }
     
@@ -72,15 +72,15 @@
     .client-box {
         display: flex;
         justify-content: space-between;
-        border: 1px solid #000;
-        padding: 10px;
-        margin-bottom: 15px;
+        border: 1px solid #696969;
+        padding: 5px;
+        margin-bottom: 5px;
         background-color: #f9f9f9;
     }
     
     /* Conditions */
     .conditions-box {
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
     
     .conditions-table {
@@ -89,7 +89,7 @@
     }
     
     .conditions-table td {
-        padding: 3px 5px;
+        padding: 5px 5px;
         border: 1px solid #ddd;
     }
     
@@ -98,44 +98,45 @@
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
     
     .table-produits th {
-        background-color: #333;
+        background-color: #616161;
         color: white;
         font-weight: bold;
-        padding: 8px 4px;
+        padding: 4px 4px;
         text-align: left;
         font-size: 12px;
     }
     
     .table-produits td {
-        padding: 4px;
+        padding: 2px;
         vertical-align: top;
         border: 1px solid #ddd;
     }
     
     /* Largeurs des colonnes */
     .col-designation {
-        width: 45% !important;
+        width: 65% !important;
     }
     .col-quantite {
         width: 10% !important;
-        text-align: center;
+        text-align: center !important;
     }
     .col-image {
-        width: 45% !important;
+        width: 25% !important;
     }
     
     /* Produit principal */
-    .produit-principal {
+    /* .produit-principal {
         background-color: #f0f0f0 !important;
-    }
+    } */
     
     .produit-principal td {
         font-weight: bold;
-        padding: 8px 4px !important;
+        margin-left: 3px;
+        padding: 4px 4px !important;
     }
     
     /* Détails verticaux */
@@ -143,8 +144,8 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
-        margin-top: 3px;
-        margin-bottom: 3px;
+        margin-top: 1px;
+        margin-bottom: 1px;
     }
     
     .detail-item {
@@ -154,9 +155,10 @@
     
     .detail-label {
         font-weight: bold;
-        font-size: 10px;
-        color: #272727;
+        font-size: 12px;
+        color: #575757;
         min-width: 45px;
+        margin-left: 3px;
         display: inline-block;
     }
     
@@ -165,42 +167,46 @@
     }
     
     .detail-value {
-        color: #333;
+        color: #6d6d6d;
         font-size: 10px;
+        line-height: 1,6;
     }
     
    /* Conteneur d'image - CORRIGÉ */
 .produit-image-container {
-    /* Supprimer le fond */
     background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     
-    /* Dimensions fixes pour garantir l'affichage */
-    width: 180px;
-    height: 160px;
-    max-width: 180px;
-    max-height: 160px;
-    min-width: 100px;
-    min-height: 80px;
+    /* Utiliser des pourcentages pour plus de flexibilité */
+    width: 100%;
+    min-width: 200px;
+    max-width: 300px;
+    height: auto;
+    min-height: 150px;
+    max-height: 250px;
     
-    /* Pour centrer dans la cellule */
     margin: 0 auto;
+    
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-/* L'image garde ses proportions */
+/* L'image s'adapte à la taille du conteneur */
 .produit-image {
-    width: auto;
+    width: 100%;
     height: auto;
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 280px;
+    max-height: 220px;
     object-fit: contain;
     display: block;
     
-    /* Supprimer toute bordure potentielle */
-    border: none;
-    outline: none;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    
 }
 
 /* Cellule centrée */
@@ -212,8 +218,8 @@
 
 /* Fallback */
 .img img {
-    max-width: 140px;
-    max-height: 140px;
+    max-width: 130px;
+    max-height: 120px;
     width: auto;
     height: auto;
     border: none;
@@ -231,7 +237,7 @@
         margin-top: 3px;
         /* margin-bottom: 5px; */
         padding: 2px;
-        border: 1px solid #333;
+        border: 1px solid #747474;
         background-color: #f9f9f9;
         font-style: italic;
     }
@@ -358,159 +364,79 @@
         </tr>
     </thead>
     <tbody>
-        {% if kit.blocs and kit.blocs|length > 0 %}
-            {% for bloc in kit.blocs %}
-                {% if bloc.lignes and bloc.lignes|length > 0 %}
-                    {% set produit_principal = bloc.lignes[0] %}
-                    {% set has_image = produit_principal.produit and produit_principal.produit.image %}
-                    
-                    <!-- Produit principal -->
-                    <tr class="produit-principal">
-                        <td colspan="3">
-                            <strong>{{ produit_principal.produit.nom_produit if produit_principal.produit else 'Produit' }}</strong>
-                        </td>
-                    </tr>
-                    
-                    <!-- Détails du produit principal -->
-                    <tr>
-                        <td>
-                            {% if produit_principal.produit %}
-                            <div class="details-vertical">
-                                {% if produit_principal.produit.marque %}
-                                <div class="detail-item">
-                                    <span class="detail-label">Marque:</span>
-                                    <span class="detail-value">{{ produit_principal.produit.marque }}</span>
-                                </div>
-                                {% endif %}
-                                
-                                {% if produit_principal.produit.model %}
-                                <div class="detail-item">
-                                    <span class="detail-label">Modèle:</span>
-                                    <span class="detail-value">{{ produit_principal.produit.model }}</span>
-                                </div>
-                                {% endif %}
-                                
-                                {% if produit_principal.produit.origine %}
-                                <div class="detail-item">
-                                    <span class="detail-label">Origine:</span>
-                                    <span class="detail-value">{{ produit_principal.produit.origine }}</span>
-                                </div>
-                                {% endif %}
-                                
-                                {% if produit_principal.produit.description %}
-                                <div class="detail-item">
-                                    <span class="detail-label desc">Description:</span>
-                                    <span class="detail-value">{{ produit_principal.produit.description }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </td>
-                        <td style="text-align: center; vertical-align: middle;">
-                            {{ produit_principal.quantite }}
-                        </td>
+    {% if kit.blocs and kit.blocs|length > 0 %}
+        {% for bloc in kit.blocs %}
+            {% if bloc.lignes and bloc.lignes|length > 0 %}
+                {% set produit_principal = bloc.lignes[0] %}
+                {% set has_image = produit_principal.produit and produit_principal.produit.image %}
+                
+                <!-- Produit principal -->
+                <tr class="produit-principal">
+                    <!-- Colonne Désignation: nom + toutes les caractéristiques -->
+                    <td>
+                        <strong style="font-size: 14px;">{{ produit_principal.produit.nom_produit if produit_principal.produit else 'Produit' }}</strong>
                         
-                        <!-- Image produit principal -->
-                        <td class="img">
-                            {% if has_image %}
-                            <div class="produit-image-container">
-                                <img src="{{ produit_principal.produit.image }}" 
-                                     alt="{{ produit_principal.produit.nom_produit }}"
-                                     class="produit-image"
-                                     loading="lazy">
+                        {% if produit_principal.produit %}
+                        <div class="details-vertical">
+                            {% if produit_principal.produit.marque %}
+                            <div class="detail-item">
+                                <span class="detail-label">Marque:</span>
+                                <span class="detail-value">{{ produit_principal.produit.marque }}</span>
                             </div>
-                            {% else %}
-                            <span style="color: #999; font-style: italic;">—</span>
                             {% endif %}
-                        </td>
-                    </tr>
-                    
-                    <!-- Produits secondaires -->
-                    {% if bloc.lignes|length > 1 %}
-                        {% for ligne in bloc.lignes[1:] %}
-                        {% set has_secondary_image = ligne.produit and ligne.produit.image %}
-                        <tr>
-                            <td style="padding-left: 15px !important;">
-                                <div>
-                                    <strong>{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
-                                    
-                                    {% if ligne.produit %}
-                                    <div class="details-vertical">
-                                        {% if ligne.produit.marque %}
-                                        <div class="detail-item">
-                                            <span class="detail-label">Marque:</span>
-                                            <span class="detail-value">{{ ligne.produit.marque }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if ligne.produit.model %}
-                                        <div class="detail-item">
-                                            <span class="detail-label">Modèle:</span>
-                                            <span class="detail-value">{{ ligne.produit.model }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if ligne.produit.origine %}
-                                        <div class="detail-item">
-                                            <span class="detail-label">Origine:</span>
-                                            <span class="detail-value">{{ ligne.produit.origine }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if ligne.produit.description %}
-                                        <div class="detail-item">
-                                            <span class="detail-label">Description:</span>
-                                            <span class="detail-value">{{ ligne.produit.description }}</span>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td style="text-align: center; vertical-align: middle;">
-                                {{ ligne.quantite }}
-                            </td>
                             
-                            <!-- Image produit secondaire -->
-                            <td class="img">
-                                {% if has_secondary_image %}
-                                <div class="produit-image-container">
-                                    <img src="{{ ligne.produit.image }}" 
-                                         alt="{{ ligne.produit.nom_produit }}"
-                                         class="produit-image"
-                                         loading="lazy">
-                                </div>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% endif %}
+                            {% if produit_principal.produit.model %}
+                            <div class="detail-item">
+                                <span class="detail-label">Modèle:</span>
+                                <span class="detail-value">{{ produit_principal.produit.model }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if produit_principal.produit.origine %}
+                            <div class="detail-item">
+                                <span class="detail-label">Origine:</span>
+                                <span class="detail-value">{{ produit_principal.produit.origine }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if produit_principal.produit.description %}
+                            <div class="detail-item">
+                                <span class="detail-label desc">Description:</span>
+                                <span class="detail-value">{{ produit_principal.produit.description }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
                     
-                    <!-- Séparateur entre blocs -->
-                    {% if not loop.last %}
-                    <tr><td colspan="3" style="border-bottom: 1px dashed #999; padding: 5px 0;"></td></tr>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-
-        <!-- Produits hors bloc -->
-        {% if kit.lignes %}
-            {% set produits_hors_bloc = [] %}
-            {% for ligne in kit.lignes %}
-                {% if not ligne.bloc_id %}
-                    {% set produits_hors_bloc = produits_hors_bloc.append(ligne) %}
-                {% endif %}
-            {% endfor %}
-            
-            {% if produits_hors_bloc|length > 0 %}
-
-                {% for ligne in produits_hors_bloc %}
-                {% set has_hors_image = ligne.produit and ligne.produit.image %}
-                <tr>
-                    <td style="padding-left: 15px !important;">
-                        <div>
-                            <strong>{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
+                    <!-- Colonne Quantité -->
+                    <td style="text-align: center; vertical-align: top;">
+                        <strong>{{ produit_principal.quantite }}</strong>
+                    </td>
+                    
+                    <!-- Colonne Image -->
+                    <td class="img">
+                        {% if has_image %}
+                        <div class="produit-image-container">
+                            <img src="{{ produit_principal.produit.image }}" 
+                                 alt="{{ produit_principal.produit.nom_produit }}"
+                                 class="produit-image"
+                                 loading="lazy">
+                        </div>
+                        {% else %}
+                        <span style="color: #999; font-style: italic;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                
+                <!-- Produits secondaires (chacun sa propre ligne) -->
+                {% if bloc.lignes|length > 1 %}
+                    {% for ligne in bloc.lignes[1:] %}
+                    {% set has_secondary_image = ligne.produit and ligne.produit.image %}
+                    <tr>
+                        <!-- Colonne Désignation: nom + caractéristiques du sous-produit -->
+                        <td>
+                            <strong >{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
                             
                             {% if ligne.produit %}
                             <div class="details-vertical">
@@ -543,35 +469,115 @@
                                 {% endif %}
                             </div>
                             {% endif %}
-                        </div>
-                    </td>
-                    <td style="text-align: center; vertical-align: middle;">
-                        {{ ligne.quantite }}
-                    </td>
-                    
-                    <!-- Image produit hors bloc -->
-                    <td class="img">
-                        {% if has_hors_image %}
-                        <div class="produit-image-container">
-                            <img src="{{ ligne.produit.image }}" 
-                                 alt="{{ ligne.produit.nom_produit }}"
-                                 class="produit-image"
-                                 loading="lazy">
+                        </td>
+                        
+                        <!-- Colonne Quantité du sous-produit -->
+                        <td style="text-align: center; vertical-align: top;">
+                            {{ ligne.quantite }}
+                        </td>
+                        
+                        <!-- Colonne Image du sous-produit -->
+                        <td class="img">
+                            {% if has_secondary_image %}
+                            <div class="produit-image-container">
+                                <img src="{{ ligne.produit.image }}" 
+                                     alt="{{ ligne.produit.nom_produit }}"
+                                     class="produit-image"
+                                     loading="lazy">
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Séparateur entre blocs -->
+                {% if not loop.last %}
+                <tr>
+                    <td colspan="3" style="border-bottom: 1px dashed #999; padding: 5px 0;"></td>
+                </tr>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <!-- Produits hors bloc -->
+    {% if kit.lignes %}
+        {% set produits_hors_bloc = [] %}
+        {% for ligne in kit.lignes %}
+            {% if not ligne.bloc_id %}
+                {% set produits_hors_bloc = produits_hors_bloc.append(ligne) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if produits_hors_bloc|length > 0 %}
+            {% for ligne in produits_hors_bloc %}
+            {% set has_hors_image = ligne.produit and ligne.produit.image %}
+            <tr>
+                <td>
+                    <div>
+                        <strong>{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
+                        
+                        {% if ligne.produit %}
+                        <div class="details-vertical">
+                            {% if ligne.produit.marque %}
+                            <div class="detail-item">
+                                <span class="detail-label">Marque:</span>
+                                <span class="detail-value">{{ ligne.produit.marque }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if ligne.produit.model %}
+                            <div class="detail-item">
+                                <span class="detail-label">Modèle:</span>
+                                <span class="detail-value">{{ ligne.produit.model }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if ligne.produit.origine %}
+                            <div class="detail-item">
+                                <span class="detail-label">Origine:</span>
+                                <span class="detail-value">{{ ligne.produit.origine }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if ligne.produit.description %}
+                            <div class="detail-item">
+                                <span class="detail-label">Description:</span>
+                                <span class="detail-value">{{ ligne.produit.description }}</span>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            {% endif %}
+                    </div>
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    {{ ligne.quantite }}
+                </td>
+                <td class="img">
+                    {% if has_hors_image %}
+                    <div class="produit-image-container">
+                        <img src="{{ ligne.produit.image }}" 
+                             alt="{{ ligne.produit.nom_produit }}"
+                             class="produit-image"
+                             loading="lazy">
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
         {% endif %}
+    {% endif %}
 
-        <!-- Total -->
-        <tr><td colspan="3" style="height: 5px;"></td></tr>
-        <tr class="total-row">
-            <td colspan="2"><strong>MONTANT TOTAL HT/HD</strong></td>
-            <td style="text-align: right;"><strong>{{ "{:,.0f}".format(kit.prix_global|float) if kit.prix_global else '0' }} F CFA</strong></td>
-        </tr>
-    </tbody>
+    <!-- Total -->
+    <tr>
+        <td colspan="3" style="height: 5px;"></td>
+    </tr>
+    <tr class="total-row">
+        <td colspan="2"><strong>MONTANT TOTAL HT/HD</strong></td>
+        <td style="text-align: right;"><strong>{{ "{:,.0f}".format(kit.prix_global|float) if kit.prix_global else '0' }} F CFA</strong></td>
+    </tr>
+</tbody>
 </table>
 
 <div class="montant-chiffre">
