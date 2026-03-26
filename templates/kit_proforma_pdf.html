@@ -411,7 +411,7 @@
                     
                     <!-- Colonne Quantité -->
                     <td style="text-align: center; vertical-align: top;">
-                        <strong>{{ produit_principal.quantite }}</strong>
+                        {{ produit_principal.quantite }}
                     </td>
                     
                     <!-- Colonne Image -->
@@ -436,7 +436,7 @@
                     <tr>
                         <!-- Colonne Désignation: nom + caractéristiques du sous-produit -->
                         <td>
-                            <strong style="font-size: 14px;">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
+                            <strong style="font-size: 12px;">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
                             
                             {% if ligne.produit %}
                             <div class="details-vertical">
