@@ -330,10 +330,10 @@
 
 <div class="client-box">
     <div>
-        DOIT : <strong style="color: red;">{{ kit.client.nom_client if kit.client else '' }}</strong><br>
-        ATTN : <strong>{{ kit.attn or '' }}</strong>
+        DOIT : <strong style="color: red; font-size: 12px;">{{ kit.client.nom_client if kit.client else '' }}</strong><br>
+        ATTN : <strong style="font-size: 12px;">{{ kit.attn or '' }}</strong>
     </div>
-    <div>
+    <div style="font-size: 12px;">
         Tel : {{ kit.client.telephone if kit.client else '' }}<br>
         {% if kit.client and kit.client.adresse %}
             Ville : {{ kit.client.adresse if kit.client else '' }}
@@ -344,13 +344,13 @@
 <div class="conditions-box">
     <table class="conditions-table">
         {% if kit.condition_paiement %}
-        <tr><td><strong>CONDITION DE PAIEMENT</strong></td><td>{{ kit.condition_paiement }}</td></tr>
+        <tr><td><strong style="font-size: 12px;">CONDITION DE PAIEMENT</strong></td><td>{{ kit.condition_paiement }}</td></tr>
         {% endif %}
         {% if kit.delai_livraison %}
-        <tr><td><strong>DELAI DE LIVRAISON</strong></td><td>{{ kit.delai_livraison }}</td></tr>
+        <tr><td><strong style="font-size: 12px;">DELAI DE LIVRAISON</strong></td><td>{{ kit.delai_livraison }}</td></tr>
         {% endif %}
         {% if kit.garantie %}
-        <tr><td><strong>GARANTIE</strong></td><td>{{ kit.garantie }}</td></tr>
+        <tr><td><strong style="font-size: 12px;">GARANTIE</strong></td><td>{{ kit.garantie }}</td></tr>
         {% endif %}
     </table>
 </div>
@@ -374,7 +374,7 @@
                 <tr class="produit-principal">
                     <!-- Colonne Désignation: nom + toutes les caractéristiques -->
                     <td>
-                        <strong style="font-size: 14px;">{{ produit_principal.produit.nom_produit if produit_principal.produit else 'Produit' }}</strong>
+                        <strong>{{ produit_principal.produit.nom_produit if produit_principal.produit else 'Produit' }}</strong>
                         
                         {% if produit_principal.produit %}
                         <div class="details-vertical">
@@ -436,7 +436,7 @@
                     <tr>
                         <!-- Colonne Désignation: nom + caractéristiques du sous-produit -->
                         <td>
-                            <strong >{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
+                            <strong style="font-size: 14px;">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
                             
                             {% if ligne.produit %}
                             <div class="details-vertical">
@@ -494,7 +494,7 @@
                 <!-- Séparateur entre blocs -->
                 {% if not loop.last %}
                 <tr>
-                    <td colspan="3" style="border-bottom: 1px dashed #999; padding: 2px 0;"></td>
+                    <td colspan="3" style="border-bottom: 1px dashed #999; padding: 1px 0;"></td>
                 </tr>
                 {% endif %}
             {% endif %}
@@ -574,21 +574,21 @@
         <td colspan="3" style="height: 5px;"></td>
     </tr>
     <tr class="total-row">
-        <td colspan="2"><strong>MONTANT TOTAL HT/HD</strong></td>
-        <td style="text-align: right;"><strong>{{ "{:,.0f}".format(kit.prix_global|float) if kit.prix_global else '0' }} F CFA</strong></td>
+        <td colspan="2" style="font-size: 14px;">MONTANT TOTAL HT/HD</td>
+        <td style="text-align: right;"><strong style="font-size: 14px;">{{ "{:,.0f}".format(kit.prix_global|float) if kit.prix_global else '0' }} F CFA</strong></td>
     </tr>
 </tbody>
 </table>
 
 <div class="montant-chiffre">
-        <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <span style="color: red;font-size: 14px;">{{ total_lettre }} francs CFA</span>
+        <strong style="font-size: 14px;">Arrêtée la présente proforma à la somme de :</strong><br>
+        <strong style="color: red;font-size: 14px;">{{ total_lettre }} francs CFA</strong>
 </div>
 
 <div class="main-content">
     <div class="footer-prof">
-        <div class="footer-left"><span style="font-size: 12px; text-decoration: underline;">SIGNATURE DU CLIENT</span></div>
-        <div class="footer-right"><span style="font-size: 12px; text-decoration: underline;">LE RESPONSABLE COMMERCIAL</span></div>
+        <div class="footer-left"><span style="font-size: 14px; text-decoration: underline;">SIGNATURE DU CLIENT</span></div>
+        <div class="footer-right"><span style="font-size: 14px; text-decoration: underline;">LE RESPONSABLE COMMERCIAL</span></div>
     </div>
 </div>
 {% endblock %}
