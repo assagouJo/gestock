@@ -4,35 +4,31 @@
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Bookman+Old+Style&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    
     {% block styles %}
-      <style>
-
-
-        /* Application de la police à tout le document */
-       /* Définition de la police de base */
-
-/* Application de la police Google Fonts */
+    <style>
+        /* Police Bookman Old Style via Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Bookman+Old+Style&display=swap');
+        
+        /* Application de la police */
         * {
-            font-family: 'Cormorant Garamond', 'Libre Baskerville', 'Georgia', 'Times New Roman', serif;
+            font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
         }
         
         body {
-            font-family: 'Cormorant Garamond', 'Libre Baskerville', 'Georgia', 'Times New Roman', serif;
-            font-weight: 400;  /* Normal */
+            font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+            font-weight: normal;
             font-size: 12px;
             line-height: 1.5;
             color: #333;
-            font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: normal; 
         }
         
         /* Pour le texte en gras */
         strong, b, th, h1, h2, h3, h4, h5, h6,
         .bold, .font-bold, .produit-principal {
-            font-family: 'Cormorant Garamond', 'Libre Baskerville', 'Georgia', 'Times New Roman', serif;
-            font-weight: 700;  /* Bold */
+            font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+            font-weight: bold;
         }
         
         /* Pour le texte semi-gras */
@@ -42,12 +38,12 @@
         
         /* Pour les titres */
         h1 {
-            font-weight: 700;
+            font-weight: bold;
             font-size: 24px;
         }
         
         h2 {
-            font-weight: 700;
+            font-weight: bold;
             font-size: 20px;
         }
         
@@ -58,7 +54,7 @@
         
         /* Pour les détails */
         .detail-item, .detail-value, p, span, div {
-            font-weight: 400;
+            font-weight: normal;
         }
         
         .detail-label {
@@ -76,68 +72,10 @@
                 font-size: 11px;
             }
             
-            /* Assurer que les polices sont bien imprimées */
             * {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-        }
-
-/* Application à TOUS les éléments */
-* {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-}
-
-/* Pour le texte en gras normal */
-strong, b, th, h1, h2, h3, h4, h5, h6, 
-.bold, .font-bold, .produit-principal {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: bold;  /* Utilise la version bold de Bookman */
-}
-
-/* Pour le texte en gras très prononcé (si disponible) */
-strong strong, .extra-bold {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: 900;  /* Extra bold si la police le supporte */
-}
-
-/* Pour vos éléments spécifiques */
-p, span, div, th, td, 
-.btn, .nav-link, .card-title,
-.table, .form-control,
-.modal-title, .alert,
-.detail-item, .detail-label, .detail-value {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-}
-
-/* Si vous voulez que certains textes restent normaux malgré le gras */
-.normal-weight, .light-text {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: normal;
-}
-
-/* Pour les titres avec différents niveaux de gras */
-h1 {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: bold;
-    font-size: 24px;
-}
-
-h2 {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: bold;
-    font-size: 20px;
-}
-
-h3 {
-    font-family: 'Bookman Old Style', 'Georgia', 'Times New Roman', serif;
-    font-weight: 600;  /* Semi-bold */
-    font-size: 18px;
-}
-        
-        /* Pour les éléments qui doivent rester en monospace (codes, numéros) */
-        code, pre, .monospace, .numero-serie {
-            font-family: 'Courier New', monospace;
         }
     </style>
     {% endblock %}
@@ -151,13 +89,8 @@ h3 {
     <link rel="icon" type="image/png" sizes="256x256" href="/static/images/logo_imedical-1.png">
     
     {% block head %}{% endblock %}
-    {% block styles %}{% endblock %}
-
-
 </head>
 <body>   
-  
     {% block content %}{% endblock %}
-
 </body>
 </html>
