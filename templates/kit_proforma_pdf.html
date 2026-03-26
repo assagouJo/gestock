@@ -344,13 +344,13 @@
 <div class="conditions-box">
     <table class="conditions-table">
         {% if kit.condition_paiement %}
-        <tr><td><strong style="font-size: 12px;">CONDITION DE PAIEMENT</strong></td><td>{{ kit.condition_paiement }}</td></tr>
+        <tr><td><strong style="font-size: 12px;">CONDITION DE PAIEMENT</strong></td><td style="font-size: 12px;">{{ kit.condition_paiement }}</td></tr>
         {% endif %}
         {% if kit.delai_livraison %}
-        <tr><td><strong style="font-size: 12px;">DELAI DE LIVRAISON</strong></td><td>{{ kit.delai_livraison }}</td></tr>
+        <tr><td><strong style="font-size: 12px;">DELAI DE LIVRAISON</strong></td><td style="font-size: 12px;">{{ kit.delai_livraison }}</td></tr>
         {% endif %}
         {% if kit.garantie %}
-        <tr><td><strong style="font-size: 12px;">GARANTIE</strong></td><td>{{ kit.garantie }}</td></tr>
+        <tr><td><strong style="font-size: 12px;">GARANTIE</strong></td><td style="font-size: 12px;">{{ kit.garantie }}</td></tr>
         {% endif %}
     </table>
 </div>
@@ -401,8 +401,14 @@
                             
                             {% if produit_principal.produit.description %}
                             <div class="detail-item">
-                                <span class="detail-label desc">Description:</span>
-                                <span class="detail-value" style="font-size: 12px;">{{ produit_principal.produit.description }}</span>
+                                <span class="detail-label desc">Description:</span><br>
+                                <ul style="margin: 5px 0 0 20px; padding-left: 0;">
+                                    {% for desc in produit_principal.produit.description.split(',') %}
+                                        {% if desc.strip() %}
+                                        <li style="font-size: 12px; margin-bottom: 3px;">{{ desc.strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
                             </div>
                             {% endif %}
                         </div>
