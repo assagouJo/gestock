@@ -860,6 +860,7 @@ def ajouter_stock():
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     magasins = request.form.getlist("magasin_id[]")
+    model_noms = request.form.getlist("model_nom[]")  # Récupérer les noms des modèles
     nouveaux_magasins = request.form.getlist("nouveau_magasin[]")
     types = request.form.getlist("type_conditionnement[]")
 
@@ -868,11 +869,11 @@ def ajouter_stock():
         return redirect(url_for("etat_stock"))
 
     try:
-        for produit_id, quantite, magasin_id, nouveau_nom, type_cond in zip(
-            produits, quantites, magasins, nouveaux_magasins, types
+        for produit_id, quantite, magasin_id, model_nom, nouveau_nom, type_cond in zip(
+            produits, quantites, magasins, model_noms, nouveaux_magasins, types
         ):
 
-            if not produit_id or not quantite or not type_cond:
+            if not produit_id or not quantite or not type_cond or not model_nom:
                 continue
 
             try:
@@ -914,21 +915,29 @@ def ajouter_stock():
             if not produit:
                 continue
 
+            # Vérifier que le modèle correspond
+            if produit.model != model_nom:
+                flash(f"Le modèle {model_nom} ne correspond pas au produit sélectionné", "danger")
+                continue
+
             numero_lot = produit.code_produit
 
-            # 🔎 Vérifier si stock existe déjà
+            # 🔎 Vérifier si stock existe déjà avec le même modèle
             stock_existant = Stock.query.filter_by(
                 produit_id=produit_id,
                 magasin_id=magasin_id,
                 type_conditionnement=type_conditionnement
             ).first()
+            
+            # Note: Puisque le modèle fait partie du produit, 
+            # on n'a pas besoin de le filtrer séparément car chaque produit a son propre modèle
 
             if stock_existant:
                 stock_existant.quantite += quantite
             else:
                 nouveau_stock = Stock(
-                    produit_id=produit_id,
                     numero_lot=numero_lot, 
+                    produit_id=produit_id,
                     quantite=quantite,
                     magasin_id=magasin_id,
                     type_conditionnement=type_conditionnement
@@ -943,7 +952,6 @@ def ajouter_stock():
         flash(f"Erreur lors de l'enregistrement ❌ : {str(e)}", "danger")
 
     return redirect(url_for("etat_stock"))
-
 
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])

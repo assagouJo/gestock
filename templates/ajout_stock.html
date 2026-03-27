@@ -37,6 +37,7 @@
             <th>Code Produit</th>
             <th>Magasin</th>
             <th>Produit</th>
+            <th>Model</th>
             <th>Conditionnement</th>
             <th>Quantité</th>
             <th>Statut</th>
@@ -50,6 +51,7 @@
               data-magasin="{{ s.magasin.id }}"
               data-produit="{{ s.produit.id }}"
               data-quantite="{{ s.quantite }}"
+              data-model="{{s.produit.model}}"
               data-conditionnement="{{ s.type_conditionnement.value }}"
               style="cursor:pointer">
 
@@ -62,6 +64,7 @@
             <td>{{ s.produit.code_produit }}</td>
             <td>{{ s.magasin.nom }}</td>
             <td>{{ s.produit.nom_produit }}</td>
+            <td>{{s.produit.model}}</td>
             <td>{{ s.type_conditionnement.value }}</td>
             <td class="fw-bold">{{ s.quantite }}</td>
 
@@ -158,13 +161,18 @@
                       <option value="">-- Choisir un produit --</option>
                       {% for p in produits_all %}
                         <option value="{{ p.id }}"
-                                data-code="{{ p.code_produit }}">
-                          {{ p.nom_produit }}
+                                data-code="{{ p.code_produit }}"
+                                data-model="{{ p.model }}">
+                          {{ p.nom_produit }} - {{ p.model }}
                         </option>
                       {% endfor %}
                     </select>
+                    <!-- Champ caché pour stocker le modèle -->
+                    <input type="hidden" 
+                          name="model_nom[]" 
+                          class="model-nom-input"
+                          value="">
                   </td>
-
                   <!-- CONDITIONNEMENT -->
                   <td>
                     <select name="type_conditionnement[]"
@@ -229,7 +237,7 @@
 
 <!-- ================= JS ================= -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+ document.addEventListener("DOMContentLoaded", function () {
 
   const tbody = document.getElementById("lignesStock");
   const btnAjouter = document.getElementById("ajouterLigne");
@@ -238,11 +246,34 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("stockForm");
   const title = modalEl.querySelector(".modal-title");
 
+  /* ================= Fonction pour mettre à jour le modèle caché ================= */
+  function updateModelHidden(selectProduit) {
+    const row = selectProduit.closest("tr");
+    const hiddenModelInput = row.querySelector(".model-nom-input");
+    const selectedOption = selectProduit.options[selectProduit.selectedIndex];
+    
+    if (selectedOption.value) {
+      const modelName = selectedOption.getAttribute("data-model");
+      hiddenModelInput.value = modelName || "";
+    } else {
+      hiddenModelInput.value = "";
+    }
+  }
+
   /* ================= AJOUT LIGNE ================= */
   btnAjouter.addEventListener("click", () => {
     const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
-    ligne.querySelectorAll("input").forEach(i => i.value = "");
-    ligne.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+    ligne.querySelectorAll("input, select").forEach(input => {
+      if (input.type !== "hidden") {
+        input.value = "";
+      }
+      if (input.tagName === "SELECT") {
+        input.selectedIndex = 0;
+      }
+    });
+    // Réinitialiser le champ caché du modèle
+    const hiddenInput = ligne.querySelector(".model-nom-input");
+    if (hiddenInput) hiddenInput.value = "";
     tbody.appendChild(ligne);
   });
 
@@ -255,60 +286,60 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* ================= AUTO CODE PRODUIT ================= */
+  /* ================= AUTO CODE PRODUIT ET MODELE ================= */
   tbody.addEventListener("change", function(e) {
     if (e.target.classList.contains("produit-select")) {
-
       const select = e.target;
       const selectedOption = select.options[select.selectedIndex];
       const code = selectedOption.getAttribute("data-code");
+      const model = selectedOption.getAttribute("data-model");
 
       const row = select.closest("tr");
       const inputCode = row.querySelector(".code-produit");
-
+      
       inputCode.value = code || "";
+      
+      // Mettre à jour le champ caché du modèle
+      updateModelHidden(select);
+      
+      console.log("Modèle sélectionné:", model);
     }
   });
 
   /* ================= DOUBLE CLIC MODIFICATION ================= */
-  /* ================= DOUBLE CLIC MODIFICATION ================= */
-document.querySelectorAll(".stock-row").forEach(row => {
-  row.addEventListener("dblclick", function () {
+  document.querySelectorAll(".stock-row").forEach(row => {
+    row.addEventListener("dblclick", function () {
+      title.textContent = "Modifier le stock";
+      form.action = `/stock/edit/${this.dataset.id}`;
 
-    title.textContent = "Modifier le stock";
-    form.action = `/stock/edit/${this.dataset.id}`;
+      const templateRow = tbody.querySelector(".ligne-stock").cloneNode(true);
+      tbody.innerHTML = "";
+      tbody.appendChild(templateRow);
 
-    // 🔥 On clone AVANT de vider
-    const templateRow = tbody.querySelector(".ligne-stock").cloneNode(true);
+      const selectProduit = templateRow.querySelector('[name="produit_id[]"]');
+      const selectMagasin = templateRow.querySelector('[name="magasin_id[]"]');
+      const selectCond = templateRow.querySelector('[name="type_conditionnement[]"]');
+      const inputQuantite = templateRow.querySelector('[name="quantite[]"]');
+      const inputCode = templateRow.querySelector(".code-produit");
+      const hiddenModel = templateRow.querySelector(".model-nom-input");
 
-    // Ensuite on vide
-    tbody.innerHTML = "";
+      // Remplir les valeurs
+      selectProduit.value = this.dataset.produit;
+      selectMagasin.value = this.dataset.magasin;
+      selectCond.value = this.dataset.conditionnement;
+      inputQuantite.value = this.dataset.quantite;
+      
+      // Mettre à jour le modèle caché
+      updateModelHidden(selectProduit);
 
-    // Puis on ajoute la ligne clonée
-    tbody.appendChild(templateRow);
+      // Mise à jour code produit
+      const selectedOption = selectProduit.options[selectProduit.selectedIndex];
+      inputCode.value = selectedOption.getAttribute("data-code") || "";
 
-    const selectProduit = templateRow.querySelector('[name="produit_id[]"]');
-    const selectMagasin = templateRow.querySelector('[name="magasin_id[]"]');
-    const selectCond = templateRow.querySelector('[name="type_conditionnement[]"]');
-    const inputQuantite = templateRow.querySelector('[name="quantite[]"]');
-    const inputCode = templateRow.querySelector(".code-produit");
-
-    // Remplissage
-    selectProduit.value = this.dataset.produit;
-    selectMagasin.value = this.dataset.magasin;
-    selectCond.value = this.dataset.conditionnement;
-    inputQuantite.value = this.dataset.quantite;
-
-    // Mise à jour code produit
-    const selectedOption = selectProduit.options[selectProduit.selectedIndex];
-    inputCode.value = selectedOption.getAttribute("data-code") || "";
-
-    btnAjouter.style.display = "none";
-
-    modal.show();
+      btnAjouter.style.display = "none";
+      modal.show();
+    });
   });
-});
-
 
   /* ================= RESET MODAL ================= */
   modalEl.addEventListener("hidden.bs.modal", function () {
@@ -316,10 +347,16 @@ document.querySelectorAll(".stock-row").forEach(row => {
     form.action = "{{ url_for('ajouter_stock') }}";
     form.reset();
     btnAjouter.style.display = "inline-block";
+    
+    // Réinitialiser la première ligne
+    const firstRow = tbody.querySelector(".ligne-stock");
+    if (firstRow) {
+      const hiddenInput = firstRow.querySelector(".model-nom-input");
+      if (hiddenInput) hiddenInput.value = "";
+    }
   });
 
 });
 </script>
-
 
 {% endblock %}
