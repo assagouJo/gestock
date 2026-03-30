@@ -7,6 +7,8 @@ import enum
 from sqlalchemy import event
 from helper import generate_code_produit, generate_code_proforma
 from sqlalchemy import Enum, func
+import random
+import string
 
 
 class User(UserMixin, db.Model):
@@ -189,7 +191,7 @@ class Stock(db.Model):
         db.ForeignKey("produit.id"),
         nullable=False
     )
-    
+    numero_lot = db.Column(db.String(100))
     quantite = db.Column(db.Integer, nullable=False, default=0)
     seuil_alerte = db.Column(db.Integer, default=5)
     date_creation = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
@@ -204,6 +206,24 @@ class Stock(db.Model):
     )
 
     magasin_id = db.Column(db.Integer, db.ForeignKey("magasin.id"), nullable=False)
+
+    @staticmethod
+    def generer_numero_lot():
+        """Génère un numéro de lot aléatoire à 5 chiffres"""
+        while True:
+            # Générer un nombre aléatoire à 5 chiffres (10000 à 99999)
+            numero = str(random.randint(10000, 99999))
+            
+            # Vérifier que le numéro n'existe pas déjà
+            existant = Stock.query.filter_by(numero_lot=numero).first()
+            if not existant:
+                return numero
+    
+    def __init__(self, **kwargs):
+        # Si numero_lot n'est pas fourni, en générer un automatiquement
+        if 'numero_lot' not in kwargs or not kwargs['numero_lot']:
+            kwargs['numero_lot'] = self.generer_numero_lot()
+        super().__init__(**kwargs)
 
 
     def ajouter(self, quantite):

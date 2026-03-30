@@ -34,10 +34,10 @@
         <thead class="table-dark">
           <tr>
             <th>#</th>
-            <th>Code Produit</th>
+            <th>N° Lot</th>
             <th>Magasin</th>
             <th>Produit</th>
-            <th>Model</th>
+            <th>Modèle</th>
             <th>Conditionnement</th>
             <th>Quantité</th>
             <th>Statut</th>
@@ -53,6 +53,7 @@
               data-quantite="{{ s.quantite }}"
               data-model="{{s.produit.model}}"
               data-conditionnement="{{ s.type_conditionnement.value }}"
+              data-numero-lot="{{ s.numero_lot }}"
               style="cursor:pointer">
 
             <td class="text-center align-middle">
@@ -61,10 +62,13 @@
                      value="{{ s.id }}">
             </td>
 
-            <td>{{ s.produit.code_produit }}</td>
+            <td class="text-center align-middle">
+              <span class="badge bg-info">{{ s.numero_lot }}</span>
+            </td>
+
             <td>{{ s.magasin.nom }}</td>
             <td>{{ s.produit.nom_produit }}</td>
-            <td>{{s.produit.model}}</td>
+            <td>{{ s.produit.model }}</td>
             <td>{{ s.type_conditionnement.value }}</td>
             <td class="fw-bold">{{ s.quantite }}</td>
 
@@ -115,7 +119,7 @@
               
               <thead class="table-dark text-center">
                 <tr>
-                  <th>Code Produit</th>
+                  <th>N° Lot</th>
                   <th>Magasin</th>
                   <th>Produit</th>
                   <th>Conditionnement</th>
@@ -127,11 +131,12 @@
               <tbody id="lignesStock">
                 <tr class="ligne-stock">
 
-                  <!-- CODE PRODUIT (auto affiché) -->
+                  <!-- NUMERO LOT (auto-généré) -->
                   <td>
                     <input type="text"
-                           class="form-control form-control-sm code-produit"
-                           placeholder="Code auto"
+                           name="numero_lot[]"
+                           class="form-control form-control-sm numero-lot"
+                           placeholder="Auto généré"
                            readonly>
                   </td>
 
@@ -161,7 +166,6 @@
                       <option value="">-- Choisir un produit --</option>
                       {% for p in produits_all %}
                         <option value="{{ p.id }}"
-                                data-code="{{ p.code_produit }}"
                                 data-model="{{ p.model }}">
                           {{ p.nom_produit }} - {{ p.model }}
                         </option>
@@ -173,6 +177,7 @@
                           class="model-nom-input"
                           value="">
                   </td>
+                  
                   <!-- CONDITIONNEMENT -->
                   <td>
                     <select name="type_conditionnement[]"
@@ -246,6 +251,12 @@
   const form = document.getElementById("stockForm");
   const title = modalEl.querySelector(".modal-title");
 
+  /* ================= Fonction pour générer un numéro de lot aléatoire ================= */
+  function genererNumeroLot() {
+    // Générer un nombre aléatoire à 5 chiffres (10000 à 99999)
+    return Math.floor(10000 + Math.random() * 90000).toString();
+  }
+
   /* ================= Fonction pour mettre à jour le modèle caché ================= */
   function updateModelHidden(selectProduit) {
     const row = selectProduit.closest("tr");
@@ -260,10 +271,20 @@
     }
   }
 
-  /* ================= AJOUT LIGNE ================= */
-  btnAjouter.addEventListener("click", () => {
-    const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
-    ligne.querySelectorAll("input, select").forEach(input => {
+  /* ================= Fonction pour initialiser une nouvelle ligne ================= */
+  function initializeNewRow(row) {
+    // Générer un nouveau numéro de lot pour cette ligne
+    const numeroLotInput = row.querySelector(".numero-lot");
+    if (numeroLotInput) {
+      numeroLotInput.value = genererNumeroLot();
+    }
+    
+    // Réinitialiser tous les champs sauf le numéro de lot
+    row.querySelectorAll("input, select").forEach(input => {
+      if (input.classList.contains("numero-lot")) {
+        // Ne pas réinitialiser le numéro de lot
+        return;
+      }
       if (input.type !== "hidden") {
         input.value = "";
       }
@@ -271,9 +292,16 @@
         input.selectedIndex = 0;
       }
     });
+    
     // Réinitialiser le champ caché du modèle
-    const hiddenInput = ligne.querySelector(".model-nom-input");
+    const hiddenInput = row.querySelector(".model-nom-input");
     if (hiddenInput) hiddenInput.value = "";
+  }
+
+  /* ================= AJOUT LIGNE ================= */
+  btnAjouter.addEventListener("click", () => {
+    const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
+    initializeNewRow(ligne);
     tbody.appendChild(ligne);
   });
 
@@ -286,23 +314,12 @@
     }
   });
 
-  /* ================= AUTO CODE PRODUIT ET MODELE ================= */
+  /* ================= MISE À JOUR MODÈLE ================= */
   tbody.addEventListener("change", function(e) {
     if (e.target.classList.contains("produit-select")) {
       const select = e.target;
-      const selectedOption = select.options[select.selectedIndex];
-      const code = selectedOption.getAttribute("data-code");
-      const model = selectedOption.getAttribute("data-model");
-
-      const row = select.closest("tr");
-      const inputCode = row.querySelector(".code-produit");
-      
-      inputCode.value = code || "";
-      
       // Mettre à jour le champ caché du modèle
       updateModelHidden(select);
-      
-      console.log("Modèle sélectionné:", model);
     }
   });
 
@@ -320,7 +337,7 @@
       const selectMagasin = templateRow.querySelector('[name="magasin_id[]"]');
       const selectCond = templateRow.querySelector('[name="type_conditionnement[]"]');
       const inputQuantite = templateRow.querySelector('[name="quantite[]"]');
-      const inputCode = templateRow.querySelector(".code-produit");
+      const inputNumeroLot = templateRow.querySelector(".numero-lot");
       const hiddenModel = templateRow.querySelector(".model-nom-input");
 
       // Remplir les valeurs
@@ -329,12 +346,15 @@
       selectCond.value = this.dataset.conditionnement;
       inputQuantite.value = this.dataset.quantite;
       
+      // Remplir le numéro de lot existant
+      if (this.dataset.numeroLot) {
+        inputNumeroLot.value = this.dataset.numeroLot;
+      } else {
+        inputNumeroLot.value = genererNumeroLot();
+      }
+      
       // Mettre à jour le modèle caché
       updateModelHidden(selectProduit);
-
-      // Mise à jour code produit
-      const selectedOption = selectProduit.options[selectProduit.selectedIndex];
-      inputCode.value = selectedOption.getAttribute("data-code") || "";
 
       btnAjouter.style.display = "none";
       modal.show();
@@ -348,13 +368,27 @@
     form.reset();
     btnAjouter.style.display = "inline-block";
     
-    // Réinitialiser la première ligne
+    // Réinitialiser la première ligne avec un nouveau numéro de lot
     const firstRow = tbody.querySelector(".ligne-stock");
     if (firstRow) {
       const hiddenInput = firstRow.querySelector(".model-nom-input");
       if (hiddenInput) hiddenInput.value = "";
+      
+      const numeroLotInput = firstRow.querySelector(".numero-lot");
+      if (numeroLotInput) {
+        numeroLotInput.value = genererNumeroLot();
+      }
     }
   });
+
+  // Initialiser la première ligne avec un numéro de lot
+  const firstRow = tbody.querySelector(".ligne-stock");
+  if (firstRow) {
+    const numeroLotInput = firstRow.querySelector(".numero-lot");
+    if (numeroLotInput) {
+      numeroLotInput.value = genererNumeroLot();
+    }
+  }
 
 });
 </script>

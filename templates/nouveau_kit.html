@@ -29,11 +29,11 @@
                         <input type="text" name="attn" class="form-control" placeholder="Nom du contact">
                     </div>
                     <div class="col-md-3">
-        <label class="form-label fw-bold">Date de la proforma <span class="text-danger">*</span></label>
-        <input type="date" name="date_proforma" class="form-control" 
-               value="{{ today_date }}" required>
-        <small class="text-muted">Choisissez la date souhaitée</small>
-    </div>
+                        <label class="form-label fw-bold">Date de la proforma <span class="text-danger">*</span></label>
+                        <input type="date" name="date_proforma" class="form-control" 
+                               value="{{ today_date }}" required>
+                        <small class="text-muted">Choisissez la date souhaitée</small>
+                    </div>
                 </div>
 
                 <!-- Conditions -->
@@ -78,7 +78,7 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <!-- Produit principal du bloc (ex: Échographe) -->
+                            <!-- Produit principal du bloc avec modèle -->
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     <label class="form-label fw-bold">Produit principal du bloc <span class="text-danger">*</span></label>
@@ -86,7 +86,7 @@
                                         <option value="">Choisir le produit principal</option>
                                         {% for produit in produits %}
                                         <option value="{{ produit.id }}">
-                                            {{ produit.nom_produit }}
+                                            {{ produit.nom_produit }} - {{ produit.model }}
                                         </option>
                                         {% endfor %}
                                     </select>
@@ -98,12 +98,12 @@
                                 </div>
                             </div>
 
-                            <!-- Produits secondaires (accessoires) -->
+                            <!-- Produits secondaires (accessoires) avec modèle -->
                             <label class="form-label fw-bold mt-2">Accessoires / Sondes</label>
                             <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Produit</th>
+                                        <th>Produit - Modèle</th>
                                         <th style="width: 150px;">Quantité</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
@@ -115,7 +115,7 @@
                                                 <option value="">Choisir un accessoire</option>
                                                 {% for produit in produits %}
                                                 <option value="{{ produit.id }}">
-                                                    {{ produit.nom_produit }}
+                                                    {{ produit.nom_produit }} - {{ produit.model }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
@@ -206,35 +206,6 @@ function updateBlocIndices() {
     });
 }
 
-// Ajouter un nouveau bloc
-document.getElementById('addBloc').addEventListener('click', function() {
-    const container = document.getElementById('blocsContainer');
-    const firstBloc = container.children[0];
-    const newBloc = firstBloc.cloneNode(true);
-    
-    // Réinitialiser les valeurs
-    newBloc.querySelectorAll('select').forEach(select => {
-        select.selectedIndex = 0;
-    });
-    
-    newBloc.querySelectorAll('input[type="number"]').forEach(input => {
-        input.value = '1';
-    });
-    
-    // Vider les produits secondaires (garder une ligne)
-    const tbody = newBloc.querySelector('.produits-secondaires-body');
-    tbody.innerHTML = '';
-    
-    // Ajouter une première ligne de produit secondaire
-    addProduitSecondaireRow(tbody, blocIndex);
-    
-    container.appendChild(newBloc);
-    blocIndex++;
-    
-    updateBlocIndices();
-    attachEvents();
-});
-
 // Fonction pour ajouter une ligne de produit secondaire
 function addProduitSecondaireRow(tbody, index) {
     const newRow = document.createElement('tr');
@@ -244,7 +215,7 @@ function addProduitSecondaireRow(tbody, index) {
             <select name="produit_secondaire_${index}[]" class="form-select produit-secondaire">
                 <option value="">Choisir un accessoire</option>
                 {% for produit in produits %}
-                <option value="{{ produit.id }}">{{ produit.nom_produit }}</option>
+                <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>
                 {% endfor %}
             </select>
         </td>
@@ -296,6 +267,35 @@ function attachEvents() {
         });
     });
 }
+
+// Ajouter un nouveau bloc
+document.getElementById('addBloc').addEventListener('click', function() {
+    const container = document.getElementById('blocsContainer');
+    const firstBloc = container.children[0];
+    const newBloc = firstBloc.cloneNode(true);
+    
+    // Réinitialiser les valeurs
+    newBloc.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    
+    newBloc.querySelectorAll('input[type="number"]').forEach(input => {
+        input.value = '1';
+    });
+    
+    // Vider les produits secondaires (garder une ligne)
+    const tbody = newBloc.querySelector('.produits-secondaires-body');
+    tbody.innerHTML = '';
+    
+    // Ajouter une première ligne de produit secondaire
+    addProduitSecondaireRow(tbody, blocIndex);
+    
+    container.appendChild(newBloc);
+    blocIndex++;
+    
+    updateBlocIndices();
+    attachEvents();
+});
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {

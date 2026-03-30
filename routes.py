@@ -849,7 +849,6 @@ def delete_lot():
 
 
 
-
 @app.route("/stock/ajouter", methods=["GET", "POST"])
 @login_required
 def ajouter_stock():
@@ -860,7 +859,7 @@ def ajouter_stock():
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     magasins = request.form.getlist("magasin_id[]")
-    model_noms = request.form.getlist("model_nom[]")  # Récupérer les noms des modèles
+    model_noms = request.form.getlist("model_nom[]")
     nouveaux_magasins = request.form.getlist("nouveau_magasin[]")
     types = request.form.getlist("type_conditionnement[]")
 
@@ -885,7 +884,7 @@ def ajouter_stock():
             if quantite <= 0:
                 continue
 
-            # 🎯 Gestion du magasin
+            # Gestion du magasin
             nouveau_nom = nouveau_nom.strip() if nouveau_nom else ""
 
             if nouveau_nom:
@@ -905,7 +904,7 @@ def ajouter_stock():
                 except (ValueError, TypeError):
                     continue
 
-            # 🎯 Conversion string → Enum
+            # Conversion string → Enum
             try:
                 type_conditionnement = TypeConditionnement(type_cond)
             except ValueError:
@@ -920,38 +919,39 @@ def ajouter_stock():
                 flash(f"Le modèle {model_nom} ne correspond pas au produit sélectionné", "danger")
                 continue
 
-            numero_lot = produit.code_produit
-
-            # 🔎 Vérifier si stock existe déjà avec le même modèle
+            # Vérifier si stock existe déjà avec les mêmes critères
             stock_existant = Stock.query.filter_by(
                 produit_id=produit_id,
                 magasin_id=magasin_id,
                 type_conditionnement=type_conditionnement
             ).first()
             
-            # Note: Puisque le modèle fait partie du produit, 
-            # on n'a pas besoin de le filtrer séparément car chaque produit a son propre modèle
-
             if stock_existant:
+                # Si le stock existe, on ajoute juste la quantité sans créer de nouveau lot
                 stock_existant.quantite += quantite
             else:
+                # Créer un nouveau stock avec un numéro de lot automatique
                 nouveau_stock = Stock(
-                    numero_lot=numero_lot, 
+                    # numero_lot sera généré automatiquement par le constructeur
                     produit_id=produit_id,
                     quantite=quantite,
                     magasin_id=magasin_id,
                     type_conditionnement=type_conditionnement
                 )
                 db.session.add(nouveau_stock)
+                
+                # Afficher le numéro de lot généré
+                flash(f"Stock ajouté avec succès ✅ - Lot N°{nouveau_stock.numero_lot}", "success")
 
         db.session.commit()
-        flash("Stock enregistré avec succès ✅", "success")
+        flash("Tous les stocks ont été enregistrés avec succès ✅", "success")
 
     except Exception as e:
         db.session.rollback()
         flash(f"Erreur lors de l'enregistrement ❌ : {str(e)}", "danger")
 
     return redirect(url_for("etat_stock"))
+
 
 
 @app.route('/vente/nouvelle', methods=['GET', 'POST'])
