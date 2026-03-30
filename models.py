@@ -162,6 +162,7 @@ class LigneAchat(db.Model):
 
     achat_id = db.Column(db.Integer, db.ForeignKey("achat.id"), nullable=False)
     produit_id = db.Column(db.Integer, db.ForeignKey("produit.id"), nullable=False)
+    stock_id = db.Column(db.Integer, db.ForeignKey("stock.id", name="fk_ligne_achat_stock_id"), nullable=True)
 
     quantite = db.Column(db.Integer, nullable=False)
     prix_unitaire = db.Column(db.Float, nullable=False)
@@ -176,6 +177,7 @@ class LigneAchat(db.Model):
         nullable=False
     )
 
+    stock = db.relationship("Stock", backref="ligne_achat")
     achat = db.relationship("Achat", back_populates="lignes")
     produit = db.relationship("Produit", back_populates="lignes_achat")
 
@@ -191,6 +193,8 @@ class Stock(db.Model):
         db.ForeignKey("produit.id"),
         nullable=False
     )
+
+    lignes_achat = db.relationship("LigneAchat", back_populates="stock")
     numero_lot = db.Column(db.String(100))
     quantite = db.Column(db.Integer, nullable=False, default=0)
     seuil_alerte = db.Column(db.Integer, default=5)

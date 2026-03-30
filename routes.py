@@ -820,6 +820,8 @@ def edit_stock(id):
 @login_required
 @role_required("admin")
 def delete_lot():
+    from models import LigneVente  # ou app.models selon votre structure
+    
     stock_ids = request.form.getlist("stock_ids[]")
 
     if not stock_ids:
@@ -827,24 +829,46 @@ def delete_lot():
         return redirect(url_for("etat_stock"))
 
     stocks = Stock.query.filter(Stock.id.in_(stock_ids)).all()
-
-    stocks_bloques = []
+    
+    stocks_supprimes = []
+    stocks_bloques_achat = []
+    stocks_bloques_vente = []
 
     for stock in stocks:
-        if stock.lignes:   # 🔥 relation backref
-            stocks_bloques.append(stock.numero_lot)
+        # Vérifier les achats
+        nb_achats = 0
+        if hasattr(stock, 'lignes_achat') and stock.lignes_achat:
+            nb_achats = len(stock.lignes_achat)
         else:
-            db.session.delete(stock)
-
-    if stocks_bloques:
-        flash(
-            f"Suppression partielle ❌ — Lots liés à des ventes : {', '.join(stocks_bloques)}",
-            "danger"
-        )
-    else:
-        flash("Stocks supprimés avec succès 🗑️", "success")
+            nb_achats = LigneAchat.query.filter_by(stock_id=stock.id).count()
+        
+        # Vérifier les ventes
+        nb_ventes = LigneVente.query.filter_by(stock_id=stock.id).count()
+        
+        if nb_achats > 0:
+            stocks_bloques_achat.append(f"{stock.numero_lot} ({nb_achats} achat(s))")
+            continue
+        
+        if nb_ventes > 0:
+            stocks_bloques_vente.append(f"{stock.numero_lot} ({nb_ventes} vente(s))")
+            continue
+        
+        # Supprimer le stock
+        db.session.delete(stock)
+        stocks_supprimes.append(stock.numero_lot)
 
     db.session.commit()
+    
+    # Messages
+    if stocks_supprimes:
+        flash(f"✅ Lots supprimés : {', '.join(stocks_supprimes)}", "success")
+    
+    if stocks_bloques_achat:
+        flash(f"❌ Lots liés à des achats : {', '.join(stocks_bloques_achat)}", "danger")
+    
+    if stocks_bloques_vente:
+        flash(f"❌ Lots liés à des ventes : {', '.join(stocks_bloques_vente)}", "danger")
+    
     return redirect(url_for("etat_stock"))
 
 
@@ -1149,6 +1173,7 @@ def nouvelle_vente():
 @app.route("/ventes/supprimer", methods=["POST"])
 @login_required
 def supprimer_ventes():
+    """Supprimer des ventes avec vérification des paiements et BL associés"""
 
     vente_ids = request.form.getlist("vente_ids")
 
@@ -1156,45 +1181,50 @@ def supprimer_ventes():
         flash("Aucune vente sélectionnée", "warning")
         return redirect(url_for("nouvelle_vente"))
 
-    ventes_refusees = []
+    ventes_refusees_paiement = []
+    ventes_refusees_bl = []
     ventes_supprimees = 0
 
     try:
         ventes = Vente.query.filter(Vente.id.in_(vente_ids)).all()
 
         for vente in ventes:
-
-            # 🔒 INTERDICTION ABSOLUE
+            # 🔥 Vérifier si la vente a des paiements
             if vente.montant_paye > 0 or vente.statut_paiement != "impaye":
-                ventes_refusees.append(str(vente.id))
+                ventes_refusees_paiement.append(str(vente.id))
+                continue
+            
+            # 🔥 Vérifier si la vente est liée à un bon de livraison
+            if vente.bon_livraison_id:
+                ventes_refusees_bl.append(str(vente.id))
                 continue
 
-            # 🔁 Réintégrer le stock (vente jamais payée)
+            # Réintégrer le stock
             for ligne in vente.lignes:
                 if ligne.stock:
                     ligne.stock.ajouter(ligne.quantite)
+
+            # Supprimer la facture associée
+            if vente.facture:
+                db.session.delete(vente.facture)
 
             db.session.delete(vente)
             ventes_supprimees += 1
 
         db.session.commit()
 
-        if ventes_refusees:
-            flash(
-                "Suppression refusée ❌ pour les ventes avec paiement : "
-                + ", ".join(ventes_refusees),
-                "danger"
-            )
+        if ventes_refusees_paiement:
+            flash(f"❌ Suppression refusée pour les ventes avec paiement : {', '.join(ventes_refusees_paiement)}", "danger")
+        
+        if ventes_refusees_bl:
+            flash(f"❌ Suppression refusée pour les ventes liées à un bon de livraison : {', '.join(ventes_refusees_bl)}", "danger")
 
         if ventes_supprimees:
-            flash(
-                f"{ventes_supprimees} vente(s) supprimée(s) avec succès",
-                "success"
-            )
+            flash(f"✅ {ventes_supprimees} vente(s) supprimée(s) avec succès - Stock restauré", "success")
 
     except Exception as e:
         db.session.rollback()
-        flash(str(e), "danger")
+        flash(f"❌ Erreur: {str(e)}", "danger")
 
     return redirect(url_for("nouvelle_vente"))
 
@@ -1253,7 +1283,6 @@ def nouveau_achat():
 
 @app.route("/achat/nouveau", methods=["POST"])
 def ajouter_achat():
-
     fournisseur_id = request.form.get("fournisseur_id")
     magasin_id = request.form.get("magasin_id")
     taxe_douane = float(request.form.get("taxe_douane") or 0)
@@ -1270,6 +1299,7 @@ def ajouter_achat():
     )
 
     db.session.add(achat)
+    db.session.flush()
 
     for produit_id, quantite, prix_unitaire, type_conditionnement in zip(
         produits, quantites, prix, types
@@ -1281,18 +1311,7 @@ def ajouter_achat():
         quantite = int(quantite)
         prix_unitaire = float(prix_unitaire)
 
-        ligne = LigneAchat(
-            achat=achat,
-            produit_id=produit_id,
-            quantite=quantite,
-            prix_unitaire=prix_unitaire,
-            total_ligne=quantite * prix_unitaire,
-            type_conditionnement=type_conditionnement
-        )
-
-        db.session.add(ligne)
-
-        # 🔥 Mise à jour Stock
+        # Gestion du stock
         stock = Stock.query.filter_by(
             produit_id=produit_id,
             magasin_id=magasin_id,
@@ -1309,10 +1328,22 @@ def ajouter_achat():
                 type_conditionnement=type_conditionnement
             )
             db.session.add(stock)
+            db.session.flush()  # 🔥 Pour obtenir stock.id
 
-    # 🔥 Calcul total global
+        # 🔥 CRÉER LA LIGNE AVEC LE LIEN VERS LE STOCK
+        ligne = LigneAchat(
+            achat_id=achat.id,
+            produit_id=produit_id,
+            quantite=quantite,
+            prix_unitaire=prix_unitaire,
+            total_ligne=quantite * prix_unitaire,
+            type_conditionnement=type_conditionnement,
+            stock_id=stock.id  # 🔥 AJOUTER CETTE LIGNE !
+        )
+
+        db.session.add(ligne)
+
     achat.calculer_totaux()
-
     db.session.commit()
 
     flash("Achat enregistré avec succès", "success")
@@ -1448,11 +1479,11 @@ def update_achat(id):
 @app.route("/achat/supprimer/<int:id>", methods=["POST"])
 @login_required
 def supprimer_achat(id):
-    """Supprime un achat et ajuste le stock"""
+    """Supprime un achat et RESTAURE le stock"""
     achat = Achat.query.get_or_404(id)
     
     try:
-        # Retirer les quantités du stock avant suppression
+        # 🔥 RESTAURER les quantités dans le stock (AJOUTER, pas retirer)
         for ligne in achat.lignes:
             stock = Stock.query.filter_by(
                 produit_id=ligne.produit_id,
@@ -1461,20 +1492,20 @@ def supprimer_achat(id):
             ).first()
             
             if stock:
-                stock.retirer(ligne.quantite)
+                # 🔥 CORRECTION : Ajouter les quantités au stock
+                stock.ajouter(ligne.quantite)
+                print(f"Stock restauré pour produit {ligne.produit_id}: +{ligne.quantite}")
         
-        # Supprimer les lignes d'achat
-        for ligne in achat.lignes:
-            db.session.delete(ligne)
-        
-        # Supprimer l'achat
+        # Supprimer l'achat (les lignes sont supprimées par cascade)
         db.session.delete(achat)
         db.session.commit()
         
-        flash("Achat supprimé avec succès", "success")
+        flash("✅ Achat supprimé avec succès - Stock restauré", "success")
+        
     except Exception as e:
         db.session.rollback()
-        flash(f"Erreur lors de la suppression : {str(e)}", "danger")
+        flash(f"❌ Erreur lors de la suppression : {str(e)}", "danger")
+        print(f"Erreur: {str(e)}")
     
     return redirect(url_for("nouveau_achat"))
 
@@ -1887,6 +1918,7 @@ def creer_vente_depuis_bon_livraison(bon_id):
 @app.route("/bon-livraison/delete", methods=["POST"])
 @login_required
 def delete_bon_livraisons():
+    """Supprimer des bons de livraison avec vérification des ventes associées"""
 
     ids = request.form.getlist("bons_ids[]")
 
@@ -1895,80 +1927,73 @@ def delete_bon_livraisons():
         return redirect(url_for("liste_bons_livraison"))
 
     commandes_a_verifier = set()
-    bons_supprimes = []
+    bl_supprimes = []
+    bl_bloques = []
     
     try:
         for id in ids:
             bon = BonLivraison.query.get(id)
             
-            if bon:
-                commandes_a_verifier.add(bon.commande_id)
-                bons_supprimes.append(bon)
-                
-                # =========================
-                # 🔥 RESTAURER LE STOCK
-                # =========================
-                for ligne in bon.lignes:
-                    if ligne.stock_id:
-                        stock = Stock.query.get(ligne.stock_id)
-                        if stock:
-                            # Réintégrer les quantités dans le stock
-                            stock.quantite += ligne.quantite
-                            print(f"Stock restauré pour lot {stock.numero_lot}: +{ligne.quantite}")
-                    
-                    # Supprimer la ligne (sera fait par cascade ou manuellement)
-                    # LigneBonLivraison.query.filter_by(bon_id=bon.id).delete()
-                
-                # Supprimer le BL (les lignes seront supprimées par cascade)
-                db.session.delete(bon)
+            if not bon:
+                continue
+            
+            # 🔥 Vérifier si le BL a une vente associée
+            from app.models import Vente
+            vente_associee = Vente.query.filter_by(bon_livraison_id=bon.id).first()
+            if vente_associee:
+                bl_bloques.append({
+                    'numero': bon.numero,
+                    'vente_id': vente_associee.id,
+                    'raison': 'vente_associee'
+                })
+                continue
+            
+            commandes_a_verifier.add(bon.commande_id)
+            bl_supprimes.append(bon)
+            
+            # RESTAURER LE STOCK
+            for ligne in bon.lignes:
+                if ligne.stock_id:
+                    stock = Stock.query.get(ligne.stock_id)
+                    if stock:
+                        stock.quantite += ligne.quantite
+                        print(f"Stock restauré pour lot {stock.numero_lot}: +{ligne.quantite}")
+            
+            # Supprimer le BL
+            db.session.delete(bon)
 
-        db.session.flush()  # Pour s'assurer que les suppressions sont prises en compte
+        db.session.flush()
 
-        # =========================
-        # 🔹 Mettre à jour les statuts des commandes
-        # =========================
+        # Mettre à jour les statuts des commandes
         for commande_id in commandes_a_verifier:
             commande = BonCommande.query.get(commande_id)
-            
             if not commande:
                 continue
             
-            # Recalculer les quantités totales commandées
-            quantite_commande = {
-                l.produit_id: l.quantite
-                for l in commande.lignes
-            }
-            
-            # Recalculer les quantités livrées (après suppression)
+            # Recalculer les quantités
+            quantite_commande = {l.produit_id: l.quantite for l in commande.lignes}
             quantite_livree = {}
             
             for bl in commande.livraisons:
                 for ligne in bl.lignes:
-                    quantite_livree[ligne.produit_id] = \
-                        quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
+                    quantite_livree[ligne.produit_id] = quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
             
             # Déterminer le nouveau statut
             if not quantite_livree:
-                # Plus aucune livraison
                 commande.status = "confirmee"
             else:
-                # Vérifier si la commande est complètement livrée
-                complete = True
-                for pid, qte in quantite_commande.items():
-                    if quantite_livree.get(pid, 0) < qte:
-                        complete = False
-                        break
-                
-                if complete:
-                    commande.status = "livree"
-                else:
-                    commande.status = "livraison_partielle"
-            
-            print(f"Commande {commande.numero} nouveau statut: {commande.status}")
+                complete = all(quantite_livree.get(pid, 0) >= qte for pid, qte in quantite_commande.items())
+                commande.status = "livree" if complete else "livraison_partielle"
 
         db.session.commit()
         
-        flash(f"✅ {len(ids)} bon(s) de livraison supprimé(s) avec succès - Stock restauré", "success")
+        # Messages
+        if bl_supprimes:
+            flash(f"✅ {len(bl_supprimes)} bon(s) de livraison supprimé(s) avec succès - Stock restauré", "success")
+        
+        if bl_bloques:
+            for bl in bl_bloques:
+                flash(f"❌ Impossible de supprimer le BL {bl['numero']} : vente N°{bl['vente_id']} associée", "danger")
         
     except Exception as e:
         db.session.rollback()
@@ -3297,7 +3322,8 @@ def delete_bons_commande():
                 blocked_bons.append({
                     'numero': bon.numero,
                     'bl_count': len(bon.livraisons),
-                    'bl_list': [bl.numero for bl in bon.livraisons]
+                    'bl_list': [bl.numero for bl in bon.livraisons],
+                    'raison': 'livraisons'
                 })
                 error_count += 1
                 continue
@@ -3307,7 +3333,8 @@ def delete_bons_commande():
                 blocked_bons.append({
                     'numero': bon.numero,
                     'bl_count': 0,
-                    'bl_list': []
+                    'bl_list': [],
+                    'raison': 'deja_livre'
                 })
                 error_count += 1
                 continue
@@ -3324,7 +3351,7 @@ def delete_bons_commande():
         
         if blocked_bons:
             for blocked in blocked_bons:
-                if blocked['bl_count'] > 0:
+                if blocked['raison'] == 'livraisons':
                     flash(f"⚠️ Impossible de supprimer le bon {blocked['numero']} : {blocked['bl_count']} bon(s) de livraison associé(s) ({', '.join(blocked['bl_list'])})", "danger")
                 else:
                     flash(f"⚠️ Impossible de supprimer le bon {blocked['numero']} : déjà livré", "danger")
