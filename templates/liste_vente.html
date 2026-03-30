@@ -50,12 +50,12 @@
             {{ vente.client.nom_client }}
           </td>
 
-          <!-- 🔥 VENDEUR -->
+          <!-- VENDEUR -->
           <td class="fw-bold text-dark">
             {{ vente.vendeur.nom }}
           </td>
 
-          <!-- 🔥 COMPAGNIE -->
+          <!-- COMPAGNIE -->
           <td>
             <span class="badge bg-info text-dark">
               {{ vente.compagnie.nom }}
@@ -156,7 +156,7 @@
       <div class="modal-body">
         <form method="post" action="{{ url_for('nouvelle_vente') }}">
 
-          <!-- 🔥 CLIENT + VENDEUR + COMPAGNIE -->
+          <!-- CLIENT + VENDEUR + COMPAGNIE -->
           <div class="row mb-3">
 
              <div class="col-md-3">
@@ -215,40 +215,29 @@
             <tbody id="lignesVente">
             <tr class="ligne-vente">
 
-              <!-- 🔹 PRODUIT -->
+              <!-- PRODUIT - UNIQUEMENT CEUX AVEC STOCK -->
               <td>
                 <select class="form-select produit-select" required>
                   <option value="">-- Produit --</option>
-                  {% for p in produits %}
-                    <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                  {% for p in produits_avec_stock %}
+                    <option value="{{ p.id }}">{{ p.nom_produit }} - {{ p.model }}</option>
                   {% endfor %}
                 </select>
               </td>
 
-              <!-- 🔹 CONDITIONNEMENT -->
+              <!-- CONDITIONNEMENT -->
               <td>
                 <select class="form-select conditionnement-select" required>
                   <option value="">-- Conditionnement --</option>
-                  {% for s in stocks %}
-                    <option value="{{ s.type_conditionnement.value }}"
-                            data-produit="{{ s.produit_id }}">
-                      {{ s.type_conditionnement.value|capitalize }}
-                    </option>
-                  {% endfor %}
+                  <!-- Les options seront remplies dynamiquement par JS -->
                 </select>
               </td>
 
-              <!-- 🔹 LOT (SEUL stock_id envoyé) -->
+              <!-- LOT -->
               <td>
                 <select name="stock_id[]" class="form-select stock-select" required>
                   <option value="">-- Lot --</option>
-                  {% for s in stocks %}
-                    <option value="{{ s.id }}"
-                            data-produit="{{ s.produit_id }}"
-                            data-conditionnement="{{ s.type_conditionnement.value }}">
-                      {{ s.numero_lot }} ({{ s.quantite }})
-                    </option>
-                  {% endfor %}
+                  <!-- Les options seront remplies dynamiquement par JS -->
                 </select>
               </td>
 
@@ -296,7 +285,6 @@
   </div>
 </div>
 
-<!-- JS inchangé -->
 <script>
 function ouvrirEdition(row) {
   const id = row.dataset.id;
@@ -309,76 +297,116 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const tbody = document.getElementById("lignesVente");
   const btnAjouter = document.getElementById("ajouterLigneVente");
+  
+  // Données des stocks disponibles
+  const stocksData = {{ stocks_data|tojson }};
 
-  // 🔹 Ajouter nouvelle ligne
+  // Ajouter nouvelle ligne
   btnAjouter.addEventListener("click", () => {
     const ligne = tbody.querySelector(".ligne-vente").cloneNode(true);
     ligne.querySelectorAll("input").forEach(i => i.value = "");
     ligne.querySelectorAll("select").forEach(s => {
+      s.innerHTML = s.querySelector("option").outerHTML;
       s.selectedIndex = 0;
-      s.querySelectorAll("option").forEach(opt => opt.style.display = "block");
     });
     tbody.appendChild(ligne);
   });
 
-  // 🔹 Supprimer ligne
+  // Supprimer ligne
   tbody.addEventListener("click", e => {
     if (e.target.classList.contains("supprimer") && tbody.children.length > 1) {
       e.target.closest("tr").remove();
     }
   });
 
-  // 🔹 Logique Produit → Conditionnement → Lot
-  document.addEventListener("change", e => {
+  // Logique de filtrage produit -> conditionnement -> lot
+  function filtrerConditionnements(row, produitId) {
+    const conditionSelect = row.querySelector(".conditionnement-select");
+    const lotSelect = row.querySelector(".stock-select");
+    
+    // Récupérer les conditionnements disponibles pour ce produit
+    const conditionnements = new Set();
+    stocksData.forEach(stock => {
+      if (stock.produit_id == produitId && stock.quantite > 0) {
+        conditionnements.add(stock.type_conditionnement);
+      }
+    });
+    
+    // Reconstruire le select conditionnement
+    let options = '<option value="">-- Conditionnement --</option>';
+    conditionnements.forEach(cond => {
+      options += `<option value="${cond}">${cond.charAt(0).toUpperCase() + cond.slice(1)}</option>`;
+    });
+    conditionSelect.innerHTML = options;
+    conditionSelect.value = "";
+    lotSelect.innerHTML = '<option value="">-- Lot --</option>';
+  }
+  
+  function filtrerLots(row, produitId, conditionnement) {
+    const lotSelect = row.querySelector(".stock-select");
+    
+    // Filtrer les lots disponibles
+    let options = '<option value="">-- Lot --</option>';
+    stocksData.forEach(stock => {
+      if (stock.produit_id == produitId && 
+          stock.type_conditionnement === conditionnement && 
+          stock.quantite > 0) {
+        options += `<option value="${stock.id}" data-quantite="${stock.quantite}">${stock.numero_lot} (${stock.quantite} restant)</option>`;
+      }
+    });
+    lotSelect.innerHTML = options;
+  }
 
+  // Gestionnaire d'événements pour les changements
+  document.addEventListener("change", e => {
     const row = e.target.closest("tr");
     if (!row) return;
 
-    const produitSelect = row.querySelector(".produit-select");
-    const conditionSelect = row.querySelector(".conditionnement-select");
-    const lotSelect = row.querySelector(".stock-select");
-
-    // 🔹 1️⃣ Filtrer conditionnement selon produit
+    // Changement de produit
     if (e.target.classList.contains("produit-select")) {
-
-      const produitId = produitSelect.value;
-
-      conditionSelect.value = "";
-      lotSelect.value = "";
-
-      conditionSelect.querySelectorAll("option").forEach(opt => {
-        if (!opt.dataset.produit) return;
-        opt.style.display =
-          opt.dataset.produit === produitId ? "block" : "none";
-      });
-
-      lotSelect.querySelectorAll("option").forEach(opt => {
-        if (!opt.dataset.produit) return;
-        opt.style.display = "none";
-      });
+      const produitId = e.target.value;
+      if (produitId) {
+        filtrerConditionnements(row, produitId);
+      } else {
+        // Réinitialiser si aucun produit sélectionné
+        const conditionSelect = row.querySelector(".conditionnement-select");
+        const lotSelect = row.querySelector(".stock-select");
+        conditionSelect.innerHTML = '<option value="">-- Conditionnement --</option>';
+        lotSelect.innerHTML = '<option value="">-- Lot --</option>';
+      }
     }
-
-    // 🔹 2️⃣ Filtrer lot selon produit + conditionnement
+    
+    // Changement de conditionnement
     if (e.target.classList.contains("conditionnement-select")) {
-
+      const produitSelect = row.querySelector(".produit-select");
+      const conditionnement = e.target.value;
       const produitId = produitSelect.value;
-      const condition = conditionSelect.value;
-
-      lotSelect.value = "";
-
-      lotSelect.querySelectorAll("option").forEach(opt => {
-
-        if (!opt.dataset.produit) return;
-
-        const matchProduit = opt.dataset.produit === produitId;
-        const matchCondition = opt.dataset.conditionnement === condition;
-
-        opt.style.display =
-          matchProduit && matchCondition ? "block" : "none";
-      });
+      
+      if (produitId && conditionnement) {
+        filtrerLots(row, produitId, conditionnement);
+      }
     }
-
+    
+    // Changement de lot - mettre à jour la quantité max disponible
+    if (e.target.classList.contains("stock-select")) {
+      const selectedOption = e.target.options[e.target.selectedIndex];
+      const quantiteMax = selectedOption.getAttribute("data-quantite");
+      const quantiteInput = row.querySelector('input[name="quantite[]"]');
+      if (quantiteMax) {
+        quantiteInput.max = quantiteMax;
+        quantiteInput.placeholder = `Max: ${quantiteMax}`;
+      }
+    }
   });
+  
+  // Initialiser la première ligne
+  const premiereLigne = tbody.querySelector(".ligne-vente");
+  if (premiereLigne) {
+    const produitSelect = premiereLigne.querySelector(".produit-select");
+    if (produitSelect.value) {
+      filtrerConditionnements(premiereLigne, produitSelect.value);
+    }
+  }
 
 });
 </script>

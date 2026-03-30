@@ -963,16 +963,29 @@ def nouvelle_vente():
     # 🔹 DONNÉES POUR AFFICHAGE
     # =========================
     clients = Client.query.order_by(Client.nom_client).all()
-    produits = Produit.query.order_by(Produit.nom_produit).all()
     vendeurs = Vendeur.query.order_by(Vendeur.nom).all()
     compagnies = VendeurCompagnie.query.order_by(VendeurCompagnie.nom).all()
-
-    stocks = (
-        Stock.query
-        .options(joinedload(Stock.produit))
-        .order_by(Stock.id.desc())
-        .all()
-    )
+    
+    # 🔥 Filtrer les stocks avec quantité > 0
+    stocks_disponibles = Stock.query.filter(Stock.quantite > 0).all()
+    
+    # 🔥 Obtenir les produits qui ont au moins un stock disponible
+    produits_avec_stock_ids = set([s.produit_id for s in stocks_disponibles])
+    produits_avec_stock = Produit.query.filter(Produit.id.in_(produits_avec_stock_ids)).order_by(Produit.nom_produit).all()
+    
+    # 🔥 Données pour le JavaScript
+    stocks_data = [
+        {
+            'id': s.id,
+            'produit_id': s.produit_id,
+            'type_conditionnement': s.type_conditionnement.value,
+            'quantite': s.quantite,
+            'numero_lot': s.numero_lot,
+            'nom_produit': s.produit.nom_produit if s.produit else ''
+        }
+        for s in stocks_disponibles
+        if s.produit
+    ]
 
     ventes = (
         Vente.query
@@ -989,7 +1002,7 @@ def nouvelle_vente():
     )
 
     # =========================
-    # 🔹 ENREGISTREMENT VENTE
+    # 🔹 ENREGISTREMENT VENTE (SANS IMPACT STOCK)
     # =========================
     if request.method == 'POST':
 
@@ -1008,9 +1021,12 @@ def nouvelle_vente():
             return redirect(url_for('nouvelle_vente'))
 
         try:
-
-            vendeur = Vendeur.query.get(int(vendeur_id))
-            compagnie = VendeurCompagnie.query.get(int(compagnie_id))
+            client_id = int(client_id)
+            vendeur_id = int(vendeur_id)
+            compagnie_id = int(compagnie_id)
+            
+            vendeur = Vendeur.query.get(vendeur_id)
+            compagnie = VendeurCompagnie.query.get(compagnie_id)
 
             if not vendeur:
                 raise ValueError("Vendeur invalide")
@@ -1022,49 +1038,52 @@ def nouvelle_vente():
             # 🔹 1️⃣ CRÉATION VENTE
             # =========================
             vente = Vente(
-                client_id=int(client_id),
+                client_id=client_id,
                 vendeur_id=vendeur.id,
                 compagnie_id=compagnie.id,
                 date_vente=datetime.fromisoformat(date_vente_str),
                 total=Decimal("0.00"),
                 montant_paye=Decimal("0.00"),
                 reste_a_payer=Decimal("0.00"),
-                statut_paiement="impaye"
+                statut_paiement="impaye",
+                statut_livraison="non_livre"  # 🔥 Nouveau champ si vous l'avez ajouté
             )
 
             db.session.add(vente)
-            db.session.flush()  # 🔥 obtenir vente.id
+            db.session.flush()
 
             total_vente = Decimal("0.00")
+            lignes_vente = []
 
             # =========================
-            # 🔹 2️⃣ LIGNES DE VENTE
+            # 🔹 2️⃣ LIGNES DE VENTE (SANS MODIFIER LE STOCK)
             # =========================
-            for stock_id, qte, pu in zip(stock_ids, quantites, prix_unitaires):
-
-                stock = (
-                    db.session.query(Stock)
-                    .filter_by(id=int(stock_id))
-                    .with_for_update()
-                    .first()
-                )
+            for i, (stock_id, qte, pu) in enumerate(zip(stock_ids, quantites, prix_unitaires)):
+                
+                if not stock_id or not qte or not pu:
+                    continue
+                    
+                # Vérifier que le stock existe et a assez de quantité
+                stock = Stock.query.get(int(stock_id))
 
                 if not stock:
-                    raise ValueError("Lot invalide")
+                    raise ValueError(f"Lot {stock_id} invalide")
 
                 qte = int(qte)
                 pu = Decimal(pu)
 
                 if qte <= 0:
-                    raise ValueError("Quantité invalide")
+                    raise ValueError(f"Quantité invalide pour le lot {stock.numero_lot}")
 
+                # 🔥 Vérifier la quantité mais ne pas modifier le stock
                 if qte > stock.quantite:
                     raise ValueError(
-                        f"Stock insuffisant pour le lot {stock.numero_lot}"
+                        f"Stock insuffisant pour le lot {stock.numero_lot}. "
+                        f"Disponible: {stock.quantite}, Demandé: {qte}"
                     )
 
-                # 🔹 Décrémentation stock
-                stock.retirer(qte)
+                if not stock.produit:
+                    raise ValueError(f"Le produit du lot {stock.numero_lot} n'existe plus")
 
                 sous_total = qte * pu
                 total_vente += sous_total
@@ -1073,20 +1092,25 @@ def nouvelle_vente():
                     vente_id=vente.id,
                     stock_id=stock.id,
                     quantite=qte,
-                    prix_unitaire=pu
+                    prix_unitaire=pu,
+                    quantite_livree=0  # 🔥 Suivi des quantités livrées
                 )
-
+                
+                lignes_vente.append(ligne)
                 db.session.add(ligne)
 
-            # =========================
-            # 🔹 3️⃣ FINALISATION
-            # =========================
+            if not lignes_vente:
+                raise ValueError("Aucune ligne de vente valide")
+
             vente.total = total_vente
             vente.reste_a_payer = total_vente
 
+            # Générer le numéro de facture provisoire
+            numero_facture = generate_numero_facture(vente.id)
+            
             facture = Facture(
                 vente_id=vente.id,
-                numero="FAC-" + generate_numero_facture(vente.id),
+                numero=numero_facture,
                 date_facture=datetime.now(timezone.utc),
                 total=vente.total,
                 montant_paye=vente.montant_paye,
@@ -1098,25 +1122,26 @@ def nouvelle_vente():
 
             db.session.commit()
 
-            flash("Vente enregistrée avec succès ✅", "success")
+            flash(f"Vente enregistrée avec succès ✅ - Facture N°{numero_facture}", "success")
             return redirect(url_for('nouvelle_vente'))
 
-        except Exception as e:
+        except ValueError as e:
             db.session.rollback()
             flash(str(e), "danger")
             return redirect(url_for('nouvelle_vente'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erreur lors de l'enregistrement de la vente ❌: {str(e)}", "danger")
+            return redirect(url_for('nouvelle_vente'))
 
-    # =========================
-    # 🔹 AFFICHAGE PAGE
-    # =========================
     return render_template(
         'liste_vente.html',
         clients=clients,
-        produits=produits,
+        produits_avec_stock=produits_avec_stock,
         vendeurs=vendeurs,
         compagnies=compagnies,
         ventes=ventes,
-        stocks=stocks,
+        stocks_data=stocks_data,
         now=datetime.now()
     )
 
@@ -1572,41 +1597,40 @@ def ajuster_stock_apres_modification(produit_id, magasin_id, ancienne_quantite, 
         )
 
 
-@app.route("/bon-livraison/nouveau/<int:commande_id>")
+@app.route("/bon-livraison/nouveau/<int:commande_id>", methods=["GET"])
 @login_required
 def nouveau_bon_livraison(commande_id):
-
+    """Afficher le formulaire de création de bon de livraison"""
+    
     commande = BonCommande.query.get_or_404(commande_id)
-
+    
+    # Récupérer tous les stocks disponibles (avec quantité > 0)
+    stocks_disponibles = Stock.query.filter(Stock.quantite > 0).all()
+    
     return render_template(
-        "bon_livraison_nouveau.html",
-        commande=commande
+        'bon_livraison_nouveau.html',
+        commande=commande,
+        stocks_disponibles=stocks_disponibles
     )
 
 
 @app.route("/bon-livraison/create", methods=["POST"])
 @login_required
 def create_bon_livraison():
-
+    """Créer un bon de livraison depuis un bon de commande avec impact sur le stock"""
+    
     commande_id = request.form.get("commande_id")
     commande = BonCommande.query.get_or_404(commande_id)
 
-    # -----------------------
-    # Quantité commandée
-    # -----------------------
-
+    # =========================
+    # 🔹 Quantités commandées et déjà livrées
+    # =========================
     quantite_commande = {}
-
     for ligne in commande.lignes:
         quantite_commande[ligne.produit_id] = \
             quantite_commande.get(ligne.produit_id, 0) + ligne.quantite
 
-    # -----------------------
-    # Quantité déjà livrée
-    # -----------------------
-
     quantite_livree = {}
-
     livraisons = BonLivraison.query.filter_by(
         commande_id=commande.id
     ).all()
@@ -1616,21 +1640,19 @@ def create_bon_livraison():
             quantite_livree[ligne.produit_id] = \
                 quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
 
-    # -----------------------
-    # Données formulaire
-    # -----------------------
-
+    # =========================
+    # 🔹 Données du formulaire
+    # =========================
     lignes_commande_ids = request.form.getlist("ligne_commande_id[]")
     produits_ids = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     numeros_series = request.form.getlist("numero_serie[]")
+    stock_ids = request.form.getlist("stock_id[]")  # 🔥 Lots sélectionnés
 
-    # -----------------------
-    # Vérifier dépassement
-    # -----------------------
-
+    # =========================
+    # 🔹 Vérifier dépassement de la commande
+    # =========================
     for pid, qte in zip(produits_ids, quantites):
-
         pid = int(pid)
         qte = int(qte or 0)
 
@@ -1638,34 +1660,38 @@ def create_bon_livraison():
         commande_qte = quantite_commande.get(pid, 0)
 
         if deja_livre + qte > commande_qte:
+            flash("❌ Vous ne pouvez pas livrer plus que la quantité commandée", "danger")
+            return redirect(url_for("nouveau_bon_livraison", commande_id=commande.id))
 
-            flash(
-                "❌ Vous ne pouvez pas livrer plus que la quantité commandée",
-                "danger"
-            )
+    # =========================
+    # 🔹 Vérifier le stock disponible pour chaque lot
+    # =========================
+    for stock_id, qte in zip(stock_ids, quantites):
+        if stock_id:
+            stock = Stock.query.get(int(stock_id))
+            qte = int(qte or 0)
+            
+            if not stock:
+                flash(f"❌ Lot introuvable", "danger")
+                return redirect(url_for("nouveau_bon_livraison", commande_id=commande.id))
+            
+            if stock.quantite < qte:
+                flash(f"❌ Stock insuffisant pour le lot {stock.numero_lot}. Disponible: {stock.quantite}", "danger")
+                return redirect(url_for("nouveau_bon_livraison", commande_id=commande.id))
 
-            return redirect(
-                url_for("nouveau_bon_livraison", commande_id=commande.id)
-            )
+    # =========================
+    # 🔹 Générer numéro BL
+    # =========================
+    numero = generate_code_bon_livraison(commande, produits_ids, quantites)
 
-    # -----------------------
-    # Générer numéro BL
-    # -----------------------
-
-    numero = generate_code_bon_livraison(
-        commande,
-        produits_ids,
-        quantites
-    )
-
-    # -----------------------
-    # Création BL
-    # -----------------------
-
+    # =========================
+    # 🔹 Création du BL
+    # =========================
     bon = BonLivraison(
         numero=numero,
         client_id=commande.client_id,
-        commande_id=commande.id
+        commande_id=commande.id,
+        status="confirmee"  # Statut direct confirmé
     )
 
     db.session.add(bon)
@@ -1673,15 +1699,15 @@ def create_bon_livraison():
 
     lignes_creees = 0
 
-    # -----------------------
-    # Ajouter lignes BL
-    # -----------------------
-
-    for ligne_commande_id, pid, qte, ns in zip(
+    # =========================
+    # 🔹 Ajouter lignes BL et IMPACTER LE STOCK
+    # =========================
+    for ligne_commande_id, pid, qte, ns, stock_id in zip(
         lignes_commande_ids,
         produits_ids,
         quantites,
-        numeros_series
+        numeros_series,
+        stock_ids
     ):
 
         qte = int(qte or 0)
@@ -1694,43 +1720,48 @@ def create_bon_livraison():
         if not ligne_commande:
             continue
 
+        # 🔥 Récupérer et impacter le stock
+        stock = None
+        if stock_id:
+            stock = Stock.query.get(int(stock_id))
+            
+            if stock:
+                # 🔥 IMPACTER LE STOCK (décrémentation)
+                stock.quantite -= qte
+                
+                # Si le stock devient nul, on peut garder l'enregistrement
+                if stock.quantite == 0:
+                    # Optionnel: log ou notification
+                    pass
+
+        # Créer la ligne du bon de livraison
         ligne = LigneBonLivraison(
             bon_id=bon.id,
             produit_id=int(pid),
             quantite=qte,
             ligne_commande_id=ligne_commande.id,
-            numero_serie=ns
+            numero_serie=ns if ns else None,
+            stock_id=stock.id if stock else None
         )
 
         db.session.add(ligne)
-
         lignes_creees += 1
 
-        quantite_livree[int(pid)] = \
-            quantite_livree.get(int(pid), 0) + qte
+        quantite_livree[int(pid)] = quantite_livree.get(int(pid), 0) + qte
 
-    # -----------------------
-    # Empêcher BL vide
-    # -----------------------
-
+    # =========================
+    # 🔹 Empêcher BL vide
+    # =========================
     if lignes_creees == 0:
-
         db.session.rollback()
-
         flash("⚠ Aucun produit à livrer", "warning")
+        return redirect(url_for("nouveau_bon_livraison", commande_id=commande.id))
 
-        return redirect(
-            url_for("nouveau_bon_livraison", commande_id=commande.id)
-        )
-
-    # -----------------------
-    # Statut BL
-    # -----------------------
-
+    # =========================
+    # 🔹 Mettre à jour statut BL
+    # =========================
     bl_complet = True
-
     for pid, qte in quantite_commande.items():
-
         if quantite_livree.get(pid, 0) < qte:
             bl_complet = False
             break
@@ -1740,14 +1771,11 @@ def create_bon_livraison():
     else:
         bon.status = "partielle"
 
-    # -----------------------
-    # Statut commande
-    # -----------------------
-
+    # =========================
+    # 🔹 Mettre à jour statut commande
+    # =========================
     commande_complete = True
-
     for pid, qte in quantite_commande.items():
-
         if quantite_livree.get(pid, 0) < qte:
             commande_complete = False
             break
@@ -1759,11 +1787,101 @@ def create_bon_livraison():
 
     db.session.commit()
 
-    flash("Bon de livraison créé avec succès", "success")
+    flash(f"✅ Bon de livraison {bon.numero} créé avec succès - Stock mis à jour", "success")
 
-    return redirect(
-        url_for("detail_bon_livraison", id=bon.id)
-    )
+    return redirect(url_for("detail_bon_livraison", id=bon.id))
+
+
+@app.route("/bon-livraison/<int:bon_id>/creer_vente", methods=["POST"])
+@login_required
+def creer_vente_depuis_bon_livraison(bon_id):
+    """Créer une vente après la livraison (le stock est déjà impacté)"""
+    
+    bon = BonLivraison.query.get_or_404(bon_id)
+    
+    # Vérifier que le BL est livré
+    if bon.status not in ["livree", "partielle"]:
+        flash("❌ Seuls les bons de livraison validés peuvent être transformés en vente", "danger")
+        return redirect(url_for("detail_bon_livraison", id=bon.id))
+    
+    # Vérifier si une vente existe déjà pour ce BL
+    vente_existante = Vente.query.filter_by(bon_livraison_id=bon.id).first()
+    if vente_existante:
+        flash("❌ Une vente a déjà été créée pour ce bon de livraison", "danger")
+        return redirect(url_for("detail_bon_livraison", id=bon.id))
+    
+    try:
+        # =========================
+        # 🔹 Créer la vente
+        # =========================
+        vente = Vente(
+            client_id=bon.client_id,
+            date_vente=datetime.now(timezone.utc),
+            total=Decimal("0.00"),
+            montant_paye=Decimal("0.00"),
+            reste_a_payer=Decimal("0.00"),
+            statut_paiement="impaye",
+            bon_livraison_id=bon.id  # Lier au BL
+        )
+        
+        db.session.add(vente)
+        db.session.flush()
+        
+        total_vente = Decimal("0.00")
+        
+        # =========================
+        # 🔹 Créer les lignes de vente
+        # =========================
+        for ligne_bl in bon.lignes:
+            
+            # Récupérer le prix depuis la ligne de commande
+            prix_unitaire = ligne_bl.ligne_commande.prix_unitaire if ligne_bl.ligne_commande else Decimal("0.00")
+            
+            # Créer la ligne de vente
+            ligne_vente = LigneVente(
+                vente_id=vente.id,
+                stock_id=ligne_bl.stock_id,  # Le lot déjà utilisé
+                quantite=ligne_bl.quantite,
+                prix_unitaire=prix_unitaire
+            )
+            
+            db.session.add(ligne_vente)
+            
+            sous_total = ligne_bl.quantite * prix_unitaire
+            total_vente += sous_total
+        
+        # Mettre à jour le total de la vente
+        vente.total = total_vente
+        vente.reste_a_payer = total_vente
+        
+        # =========================
+        # 🔹 Créer la facture
+        # =========================
+        from app.helpers import generate_numero_facture
+        
+        numero_facture = generate_numero_facture(vente.id)
+        
+        facture = Facture(
+            vente_id=vente.id,
+            numero=numero_facture,
+            date_facture=datetime.now(timezone.utc),
+            total=vente.total,
+            montant_paye=vente.montant_paye,
+            reste_a_payer=vente.reste_a_payer,
+            statut=vente.statut_paiement
+        )
+        
+        db.session.add(facture)
+        
+        db.session.commit()
+        
+        flash(f"✅ Vente créée avec succès - Facture N°{numero_facture}", "success")
+        return redirect(url_for('voir_facture', vente_id=vente.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la création de la vente: {str(e)}", "danger")
+        return redirect(url_for("detail_bon_livraison", id=bon.id))
 
 
 @app.route("/bon-livraison/delete", methods=["POST"])
@@ -1777,116 +1895,235 @@ def delete_bon_livraisons():
         return redirect(url_for("liste_bons_livraison"))
 
     commandes_a_verifier = set()
+    bons_supprimes = []
+    
+    try:
+        for id in ids:
+            bon = BonLivraison.query.get(id)
+            
+            if bon:
+                commandes_a_verifier.add(bon.commande_id)
+                bons_supprimes.append(bon)
+                
+                # =========================
+                # 🔥 RESTAURER LE STOCK
+                # =========================
+                for ligne in bon.lignes:
+                    if ligne.stock_id:
+                        stock = Stock.query.get(ligne.stock_id)
+                        if stock:
+                            # Réintégrer les quantités dans le stock
+                            stock.quantite += ligne.quantite
+                            print(f"Stock restauré pour lot {stock.numero_lot}: +{ligne.quantite}")
+                    
+                    # Supprimer la ligne (sera fait par cascade ou manuellement)
+                    # LigneBonLivraison.query.filter_by(bon_id=bon.id).delete()
+                
+                # Supprimer le BL (les lignes seront supprimées par cascade)
+                db.session.delete(bon)
 
-    for id in ids:
+        db.session.flush()  # Pour s'assurer que les suppressions sont prises en compte
 
-        bon = BonLivraison.query.get(id)
-
-        if bon:
-
-            commandes_a_verifier.add(bon.commande_id)
-
-            # supprimer lignes
-            LigneBonLivraison.query.filter_by(
-                bon_id=bon.id
-            ).delete()
-
-            # supprimer BL
-            db.session.delete(bon)
-
-    db.session.commit()
-
-    # -----------------------------
-    # Recalcul du statut commande
-    # -----------------------------
-
-    for commande_id in commandes_a_verifier:
-
-        commande = BonCommande.query.get(commande_id)
-
-        if not commande:
-            continue
-
-        quantite_commande = {
-            l.produit_id: l.quantite
-            for l in commande.lignes
-        }
-
-        quantite_livree = {}
-
-        for bl in commande.livraisons:
-            for ligne in bl.lignes:
-                quantite_livree[ligne.produit_id] = \
-                    quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
-
-        if not quantite_livree:
-            commande.status = "confirmee"
-
-        else:
-            complete = True
-
-            for pid, qte in quantite_commande.items():
-
-                if quantite_livree.get(pid, 0) < qte:
-                    complete = False
-                    break
-
-            if complete:
-                commande.status = "livree"
+        # =========================
+        # 🔹 Mettre à jour les statuts des commandes
+        # =========================
+        for commande_id in commandes_a_verifier:
+            commande = BonCommande.query.get(commande_id)
+            
+            if not commande:
+                continue
+            
+            # Recalculer les quantités totales commandées
+            quantite_commande = {
+                l.produit_id: l.quantite
+                for l in commande.lignes
+            }
+            
+            # Recalculer les quantités livrées (après suppression)
+            quantite_livree = {}
+            
+            for bl in commande.livraisons:
+                for ligne in bl.lignes:
+                    quantite_livree[ligne.produit_id] = \
+                        quantite_livree.get(ligne.produit_id, 0) + ligne.quantite
+            
+            # Déterminer le nouveau statut
+            if not quantite_livree:
+                # Plus aucune livraison
+                commande.status = "confirmee"
             else:
-                commande.status = "livraison_partielle"
+                # Vérifier si la commande est complètement livrée
+                complete = True
+                for pid, qte in quantite_commande.items():
+                    if quantite_livree.get(pid, 0) < qte:
+                        complete = False
+                        break
+                
+                if complete:
+                    commande.status = "livree"
+                else:
+                    commande.status = "livraison_partielle"
+            
+            print(f"Commande {commande.numero} nouveau statut: {commande.status}")
 
-    db.session.commit()
-
-    flash("Bons de livraison supprimés avec succès", "success")
-
+        db.session.commit()
+        
+        flash(f"✅ {len(ids)} bon(s) de livraison supprimé(s) avec succès - Stock restauré", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la suppression: {str(e)}", "danger")
+        print(f"Erreur: {str(e)}")
+    
     return redirect(url_for("liste_bons_livraison"))
 
 
 @app.route("/bon-livraison/<int:id>")
 @login_required
 def detail_bon_livraison(id):
-
+    """Afficher les détails d'un bon de livraison"""
+    
     bon = BonLivraison.query.get_or_404(id)
-
+    
+    # Calculer le pourcentage de livraison pour cette commande
+    if bon.commande:
+        pourcentage_livre = bon.commande.pourcentage_livre if hasattr(bon.commande, 'pourcentage_livre') else 0
+    else:
+        pourcentage_livre = 0
+    
     return render_template(
         "bon_livraison_detail.html",
-        bon=bon
+        bon=bon,
+        pourcentage_livre=pourcentage_livre
     )
 
 
 @app.route("/bon-livraison")
 @login_required
 def liste_bons_livraison():
-
+    """Liste des bons de livraison avec filtres"""
+    
     status = request.args.get("status")
-
+    commande_id = request.args.get("commande_id")
+    
     query = BonLivraison.query
-
+    
     if status:
         query = query.filter_by(status=status)
-
+    
+    if commande_id:
+        query = query.filter_by(commande_id=commande_id)
+    
     bons = query.order_by(
         BonLivraison.date_creation.desc()
     ).all()
-
+    
+    # Statistiques
+    stats = {
+        'total': BonLivraison.query.count(),
+        'livrees': BonLivraison.query.filter_by(status='livree').count(),
+        'partielles': BonLivraison.query.filter_by(status='partielle').count(),
+        'brouillons': BonLivraison.query.filter_by(status='brouillon').count()
+    }
+    
     return render_template(
         "bon_livraison_liste.html",
         bons=bons,
-        status=status
+        status=status,
+        stats=stats,
+        commande_id=commande_id
     )
 
 
 @app.route("/bon-livraison/partiel/<int:commande_id>")
 @login_required
 def livraison_partielle(commande_id):
-
+    """Afficher le formulaire pour une livraison partielle"""
+    
     commande = BonCommande.query.get_or_404(commande_id)
-
+    
+    # Vérifier qu'il reste des produits à livrer
+    produits_restants = [l for l in commande.lignes if l.reste_a_livrer > 0]
+    
+    if not produits_restants:
+        flash("⚠ Cette commande est déjà entièrement livrée", "warning")
+        return redirect(url_for('detail_bon_commande', bon_id=commande.id))
+    
+    # Récupérer les stocks disponibles pour les produits restants
+    produits_ids = [l.produit_id for l in produits_restants]
+    stocks_disponibles = Stock.query.filter(
+        Stock.produit_id.in_(produits_ids),
+        Stock.quantite > 0
+    ).all()
+    
     return render_template(
         "bon_livraison_partiel.html",
-        commande=commande
+        commande=commande,
+        produits_restants=produits_restants,
+        stocks_disponibles=stocks_disponibles
     )
+
+
+@app.route("/bon-commande/<int:commande_id>/recapitulatif-livraisons")
+@login_required
+def recapitulatif_livraisons(commande_id):
+    """Afficher le récapitulatif de toutes les livraisons d'une commande"""
+    
+    commande = BonCommande.query.get_or_404(commande_id)
+    
+    # Récupérer tous les bons de livraison de cette commande
+    bons_livraison = BonLivraison.query.filter_by(
+        commande_id=commande.id
+    ).order_by(BonLivraison.date_creation).all()
+    
+    # 🔥 Alternative avec sum() et compréhension
+    total_quantite = sum(
+        ligne.quantite 
+        for bl in bons_livraison 
+        for ligne in bl.lignes
+    )
+    
+    total_lignes = sum(
+        len(bl.lignes) 
+        for bl in bons_livraison
+    )
+    
+    # Regrouper par produit pour le récapitulatif
+    recap_par_produit = {}
+    for bl in bons_livraison:
+        for ligne in bl.lignes:
+            produit_id = ligne.produit_id
+            if produit_id not in recap_par_produit:
+                recap_par_produit[produit_id] = {
+                    'produit': ligne.produit,
+                    'quantite_commandee': 0,
+                    'quantite_livree': 0,
+                    'livraisons': []
+                }
+            recap_par_produit[produit_id]['quantite_livree'] += ligne.quantite
+            recap_par_produit[produit_id]['livraisons'].append({
+                'bl_numero': bl.numero,
+                'bl_date': bl.date_creation,
+                'quantite': ligne.quantite,
+                'lot': ligne.stock.numero_lot if ligne.stock else '-',
+                'numero_serie': ligne.numero_serie or '-'
+            })
+    
+    # Ajouter les quantités commandées
+    for ligne_commande in commande.lignes:
+        if ligne_commande.produit_id in recap_par_produit:
+            recap_par_produit[ligne_commande.produit_id]['quantite_commandee'] = ligne_commande.quantite
+    
+    return render_template(
+        'recapitulatif_livraisons.html',
+        commande=commande,
+        bons_livraison=bons_livraison,
+        recap_par_produit=recap_par_produit,
+        total_quantite=total_quantite,
+        total_lignes=total_lignes,
+        now=datetime.now() 
+    )
+
 
 
 @app.route("/bon-livraison/<int:id>/pdf")
@@ -1909,6 +2146,76 @@ def bon_livraison_pdf(id):
     response.headers["Content-Disposition"] = \
         f"inline; filename=bon_livraison_{bon.id}.pdf"
 
+    return response
+
+
+
+@app.route("/bon-commande/<int:commande_id>/recapitulatif-livraisons/pdf")
+@login_required
+def recapitulatif_livraisons_pdf(commande_id):
+    """Générer le PDF du récapitulatif des livraisons"""
+    
+    compagnie = Compagnie.query.first()
+    commande = BonCommande.query.get_or_404(commande_id)
+    
+    # Récupérer tous les bons de livraison de cette commande
+    bons_livraison = BonLivraison.query.filter_by(
+        commande_id=commande.id
+    ).order_by(BonLivraison.date_creation).all()
+    
+    # 🔥 CORRECTION : Calculer les totaux correctement
+    total_quantite = 0
+    total_lignes = 0
+    for bl in bons_livraison:
+        for ligne in bl.lignes:
+            total_quantite += ligne.quantite
+            total_lignes += 1
+    
+    # Regrouper par produit pour le récapitulatif
+    recap_par_produit = {}
+    for bl in bons_livraison:
+        for ligne in bl.lignes:
+            produit_id = ligne.produit_id
+            if produit_id not in recap_par_produit:
+                recap_par_produit[produit_id] = {
+                    'produit': ligne.produit,
+                    'quantite_commandee': 0,
+                    'quantite_livree': 0,
+                    'livraisons': []
+                }
+            recap_par_produit[produit_id]['quantite_livree'] += ligne.quantite
+            recap_par_produit[produit_id]['livraisons'].append({
+                'bl_numero': bl.numero,
+                'bl_date': bl.date_creation,
+                'quantite': ligne.quantite,
+                'lot': ligne.stock.numero_lot if ligne.stock else '-',
+                'numero_serie': ligne.numero_serie or '-'
+            })
+    
+    # Ajouter les quantités commandées
+    for ligne_commande in commande.lignes:
+        if ligne_commande.produit_id in recap_par_produit:
+            recap_par_produit[ligne_commande.produit_id]['quantite_commandee'] = ligne_commande.quantite
+    
+    html = render_template(
+        "recapitulatif_livraisons_pdf.html",
+        compagnie=compagnie,
+        commande=commande,
+        bons_livraison=bons_livraison,
+        recap_par_produit=recap_par_produit,
+        total_quantite=total_quantite,
+        total_lignes=total_lignes,
+        now=datetime.now(),
+        pdf_mode=True
+    )
+    
+    pdf = HTML(string=html, base_url=request.root_url).write_pdf()
+    
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = \
+        f"inline; filename=recapitulatif_livraisons_{commande.numero}.pdf"
+    
     return response
 
 
@@ -2796,14 +3103,41 @@ def liste_bons_commandes():
 @app.route("/bon-commande/nouveau")
 @login_required
 def nouveau_bon_commande():
-
+    """Afficher le formulaire de création de bon de commande avec uniquement les produits en stock"""
+    
+    # 🔥 Récupérer uniquement les produits qui ont du stock disponible
+    produits_avec_stock = (
+        db.session.query(Produit)
+        .join(Stock)
+        .filter(Stock.quantite > 0)
+        .distinct()
+        .order_by(Produit.nom_produit)
+        .all()
+    )
+    
+    # Récupérer aussi le stock total pour chaque produit (pour affichage)
+    for produit in produits_avec_stock:
+        stock_total = db.session.query(
+            db.func.sum(Stock.quantite)
+        ).filter(
+            Stock.produit_id == produit.id,
+            Stock.quantite > 0
+        ).scalar() or 0
+        produit.stock_disponible = stock_total
+        
+        # Récupérer les lots disponibles
+        lots = Stock.query.filter(
+            Stock.produit_id == produit.id,
+            Stock.quantite > 0
+        ).all()
+        produit.lots_disponibles = lots
+    
     clients = Client.query.order_by(Client.nom_client).all()
-    produits = Produit.query.order_by(Produit.nom_produit).all()
 
     return render_template(
         "bon_commande_nouveau.html",
         clients=clients,
-        produits=produits,
+        produits=produits_avec_stock,  # 🔥 Utiliser la liste filtrée
         TypeConditionnement=TypeConditionnement
     )
 
@@ -2811,56 +3145,116 @@ def nouveau_bon_commande():
 @app.route("/bon-commande/create", methods=["POST"])
 @login_required
 def create_bon_commande():
-
+    """Créer un bon de commande avec vérification du stock disponible"""
+    
     client_id = request.form.get("client_id")
+    
+    if not client_id:
+        flash("❌ Client requis", "danger")
+        return redirect(url_for("nouveau_bon_commande"))
 
-    bon = BonCommande(
-        numero="TEMP",
-        client_id=client_id,
-        status="confirmee"
-    )
-
-    db.session.add(bon)
-    db.session.flush()
-
-    bon.numero = generate_code_bon_commande(bon.id)
-
-    total = 0
-
+    # Récupérer les données du formulaire
     produits_ids = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     prix = request.form.getlist("prix_unitaire[]")
     conditionnements = request.form.getlist("type_conditionnement[]")
-
+    
+    # Filtrer les lignes valides
+    lignes_valides = []
     for pid, qte, pu, cond in zip(produits_ids, quantites, prix, conditionnements):
-
-        if not pid or not qte or not pu:
-            continue
-
-        qte = int(qte)
-        pu = float(pu)
-
-        sous_total = qte * pu
-        total += sous_total
-
-        ligne = LigneBonCommande(
-            bon_id=bon.id,
-            produit_id=int(pid),
-            quantite=qte,
-            prix_unitaire=pu,
-            sous_total=sous_total,
-            type_conditionnement=TypeConditionnement(cond)
+        if pid and qte and pu and cond:
+            try:
+                pid_int = int(pid)
+                qte_int = int(qte)
+                pu_float = float(pu)
+                
+                if qte_int > 0 and pu_float > 0:
+                    lignes_valides.append({
+                        'produit_id': pid_int,
+                        'quantite': qte_int,
+                        'prix_unitaire': pu_float,
+                        'conditionnement': cond
+                    })
+            except (ValueError, TypeError):
+                continue
+    
+    if not lignes_valides:
+        flash("❌ Aucune ligne valide", "danger")
+        return redirect(url_for("nouveau_bon_commande"))
+    
+    # =========================
+    # 🔥 VÉRIFICATION DU STOCK POUR CHAQUE PRODUIT
+    # =========================
+    for ligne in lignes_valides:
+        produit_id = ligne['produit_id']
+        quantite_demandee = ligne['quantite']
+        
+        # Calculer le stock total disponible pour ce produit
+        stock_total = db.session.query(
+            db.func.sum(Stock.quantite)
+        ).filter(
+            Stock.produit_id == produit_id,
+            Stock.quantite > 0
+        ).scalar() or 0
+        
+        if quantite_demandee > stock_total:
+            produit = Produit.query.get(produit_id)
+            flash(
+                f"❌ Stock insuffisant pour {produit.nom_produit}. "
+                f"Disponible: {stock_total}, Demandé: {quantite_demandee}",
+                "danger"
+            )
+            return redirect(url_for("nouveau_bon_commande"))
+    
+    try:
+        # =========================
+        # 🔹 CRÉATION DU BON DE COMMANDE
+        # =========================
+        bon = BonCommande(
+            numero="TEMP",
+            client_id=int(client_id),
+            status="confirmee"
         )
-
-        db.session.add(ligne)
-
-    bon.total = total
-
-    db.session.commit()
-
-    flash("Bon de commande créé", "success")
-
-    return redirect(url_for("details_bon_commande", bon_id=bon.id))
+        
+        db.session.add(bon)
+        db.session.flush()
+        
+        # Générer le numéro final
+        bon.numero = generate_code_bon_commande(bon.id)
+        
+        total = Decimal("0.00")
+        
+        # =========================
+        # 🔹 CRÉATION DES LIGNES
+        # =========================
+        for ligne in lignes_valides:
+            qte = Decimal(str(ligne['quantite']))
+            pu = Decimal(str(ligne['prix_unitaire']))
+            sous_total = qte * pu
+            total += sous_total
+            
+            ligne_bon = LigneBonCommande(
+                bon_id=bon.id,
+                produit_id=ligne['produit_id'],
+                quantite=int(qte),
+                prix_unitaire=pu,
+                sous_total=sous_total,
+                type_conditionnement=TypeConditionnement(ligne['conditionnement'])
+            )
+            
+            db.session.add(ligne_bon)
+        
+        bon.total = total
+        
+        db.session.commit()
+        
+        flash(f"✅ Bon de commande N°{bon.numero} créé avec succès", "success")
+        return redirect(url_for("details_bon_commande", bon_id=bon.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la création: {str(e)}", "danger")
+        return redirect(url_for("nouveau_bon_commande"))
 
 
 @app.route("/bon-commande/<int:bon_id>")
@@ -2873,6 +3267,343 @@ def details_bon_commande(bon_id):
         "details_bon_commande.html",
         bon=bon
     )
+
+
+@app.route("/bon-commande/delete", methods=["POST"])
+@login_required
+def delete_bons_commande():
+    """Supprimer des bons de commande (un ou plusieurs)"""
+    
+    bon_ids = request.form.getlist("bon_ids[]")
+    
+    if not bon_ids:
+        flash("Veuillez sélectionner au moins un bon de commande", "warning")
+        return redirect(url_for('liste_bons_commandes'))
+    
+    success_count = 0
+    error_count = 0
+    blocked_bons = []
+    
+    try:
+        for bon_id in bon_ids:
+            bon = BonCommande.query.get(int(bon_id))
+            
+            if not bon:
+                error_count += 1
+                continue
+            
+            # 🔥 Vérifier si le bon a des livraisons associées
+            if bon.livraisons and len(bon.livraisons) > 0:
+                blocked_bons.append({
+                    'numero': bon.numero,
+                    'bl_count': len(bon.livraisons),
+                    'bl_list': [bl.numero for bl in bon.livraisons]
+                })
+                error_count += 1
+                continue
+            
+            # Vérifier si le bon est déjà livré
+            if bon.status == 'livree':
+                blocked_bons.append({
+                    'numero': bon.numero,
+                    'bl_count': 0,
+                    'bl_list': []
+                })
+                error_count += 1
+                continue
+            
+            # Supprimer le bon (les lignes seront supprimées par cascade)
+            db.session.delete(bon)
+            success_count += 1
+        
+        db.session.commit()
+        
+        # Messages de résultat
+        if success_count > 0:
+            flash(f"✅ {success_count} bon(s) de commande supprimé(s) avec succès", "success")
+        
+        if blocked_bons:
+            for blocked in blocked_bons:
+                if blocked['bl_count'] > 0:
+                    flash(f"⚠️ Impossible de supprimer le bon {blocked['numero']} : {blocked['bl_count']} bon(s) de livraison associé(s) ({', '.join(blocked['bl_list'])})", "danger")
+                else:
+                    flash(f"⚠️ Impossible de supprimer le bon {blocked['numero']} : déjà livré", "danger")
+        
+        if error_count > 0 and not blocked_bons:
+            flash(f"⚠️ {error_count} bon(s) n'ont pas pu être supprimés", "warning")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la suppression: {str(e)}", "danger")
+    
+    return redirect(url_for('liste_bons_commandes'))
+
+
+# ==================================================
+# ROUTE POUR SUPPRIMER UN BON DE COMMANDE AVEC SES BL
+# ==================================================
+@app.route("/bon-commande/<int:bon_id>/delete-with-bl", methods=["POST"])
+@login_required
+def delete_bon_commande_with_bl(bon_id):
+    """Supprimer un bon de commande et tous ses bons de livraison associés"""
+    
+    bon = BonCommande.query.get_or_404(bon_id)
+    
+    try:
+        # Vérifier s'il y a des BL associés
+        bl_count = len(bon.livraisons)
+        
+        if bl_count > 0:
+            # Demander confirmation
+            if not request.form.get('confirm_delete'):
+                flash(f"⚠️ Ce bon de commande a {bl_count} bon(s) de livraison associé(s). Pour le supprimer, vous devez d'abord supprimer les BL.", "warning")
+                return redirect(url_for('details_bon_commande', bon_id=bon.id))
+            
+            # 🔥 Supprimer d'abord tous les BL associés
+            for bl in bon.livraisons:
+                # Restaurer le stock pour chaque BL
+                for ligne_bl in bl.lignes:
+                    if ligne_bl.stock_id:
+                        stock = Stock.query.get(ligne_bl.stock_id)
+                        if stock:
+                            stock.quantite += ligne_bl.quantite
+                
+                db.session.delete(bl)
+            
+            flash(f"🗑️ {bl_count} bon(s) de livraison supprimé(s) avec succès - Stock restauré", "info")
+        
+        # Supprimer le bon de commande
+        db.session.delete(bon)
+        db.session.commit()
+        
+        flash(f"✅ Bon de commande {bon.numero} et ses {bl_count} BL supprimés avec succès", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la suppression: {str(e)}", "danger")
+    
+    return redirect(url_for('liste_bons_commandes'))
+
+
+
+@app.route("/bon-commande/<int:bon_id>/edit", methods=["GET", "POST"])
+@login_required
+def modifier_bon_commande(bon_id):
+    """Modifier un bon de commande existant (avec gestion des livraisons)"""
+    
+    bon = BonCommande.query.get_or_404(bon_id)
+    
+    # Vérifier si le bon peut être modifié
+    if bon.status == 'livree':
+        flash("❌ Ce bon de commande est déjà complètement livré, il ne peut plus être modifié", "danger")
+        return redirect(url_for('details_bon_commande', bon_id=bon.id))
+    
+    # Récupérer les lignes avec livraisons
+    lignes_avec_livraisons = [l for l in bon.lignes if l.quantite_livree > 0]
+    lignes_sans_livraisons = [l for l in bon.lignes if l.quantite_livree == 0]
+    
+    if request.method == "GET":
+        clients = Client.query.order_by(Client.nom_client).all()
+        produits = Produit.query.order_by(Produit.nom_produit).all()
+        
+        # Filtrer les produits disponibles en stock
+        produits_avec_stock = []
+        for produit in produits:
+            stock_total = db.session.query(db.func.sum(Stock.quantite)).filter(
+                Stock.produit_id == produit.id,
+                Stock.quantite > 0
+            ).scalar() or 0
+            if stock_total > 0:
+                produit.stock_disponible = stock_total
+                produits_avec_stock.append(produit)
+        
+        return render_template(
+            "modifier_bon_commande.html",
+            bon=bon,
+            clients=clients,
+            produits=produits_avec_stock,
+            lignes_avec_livraisons=lignes_avec_livraisons,
+            lignes_sans_livraisons=lignes_sans_livraisons,
+            TypeConditionnement=TypeConditionnement,
+            has_livraisons=len(lignes_avec_livraisons) > 0
+        )
+    
+    # =========================
+    # TRAITEMENT POST (MODIFICATION)
+    # =========================
+    client_id = request.form.get("client_id")
+    produits_ids = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    prix = request.form.getlist("prix_unitaire[]")
+    conditionnements = request.form.getlist("type_conditionnement[]")
+    
+    if not client_id:
+        flash("❌ Client requis", "danger")
+        return redirect(url_for('modifier_bon_commande', bon_id=bon.id))
+    
+    try:
+        # Mettre à jour le client (toujours possible)
+        bon.client_id = int(client_id)
+        
+        # Dictionnaire des lignes existantes
+        lignes_existantes = {l.produit_id: l for l in bon.lignes}
+        lignes_modifiees = {}
+        nouvelles_lignes = []
+        erreurs = []
+        
+        # =========================
+        # 1. Traiter les modifications
+        # =========================
+        for pid, qte, pu, cond in zip(produits_ids, quantites, prix, conditionnements):
+            if not pid or not qte or not pu:
+                continue
+            
+            pid = int(pid)
+            qte = int(qte)
+            pu = float(pu)
+            
+            ligne_existante = lignes_existantes.get(pid)
+            
+            if ligne_existante:
+                # Ligne existante
+                quantite_livree = ligne_existante.quantite_livree
+                
+                # 🔥 Vérifier si on peut modifier
+                if qte < quantite_livree:
+                    erreurs.append(f"❌ Impossible de réduire la quantité du produit {ligne_existante.produit.nom_produit} de {ligne_existante.quantite} à {qte}. Déjà {quantite_livree} livrée(s).")
+                    continue
+                
+                # Mettre à jour la ligne
+                ligne_existante.quantite = qte
+                ligne_existante.prix_unitaire = pu
+                ligne_existante.sous_total = qte * pu
+                ligne_existante.type_conditionnement = TypeConditionnement(cond)
+                lignes_modifiees[pid] = ligne_existante
+            else:
+                # Nouvelle ligne
+                nouvelles_lignes.append({
+                    'produit_id': pid,
+                    'quantite': qte,
+                    'prix_unitaire': pu,
+                    'sous_total': qte * pu,
+                    'conditionnement': cond
+                })
+        
+        # =========================
+        # 2. Gérer les lignes supprimées
+        # =========================
+        produits_dans_form = set([int(pid) for pid in produits_ids if pid])
+        lignes_a_supprimer = []
+        
+        for ligne in bon.lignes:
+            if ligne.produit_id not in produits_dans_form:
+                if ligne.quantite_livree > 0:
+                    erreurs.append(f"❌ Impossible de supprimer le produit {ligne.produit.nom_produit} car déjà livré ({ligne.quantite_livree} unité(s)).")
+                else:
+                    lignes_a_supprimer.append(ligne)
+        
+        # =========================
+        # 3. Afficher les erreurs si nécessaire
+        # =========================
+        if erreurs:
+            for err in erreurs:
+                flash(err, "danger")
+            return redirect(url_for('modifier_bon_commande', bon_id=bon.id))
+        
+        # =========================
+        # 4. Appliquer les modifications
+        # =========================
+        
+        # Supprimer les lignes autorisées
+        for ligne in lignes_a_supprimer:
+            db.session.delete(ligne)
+        
+        # Ajouter les nouvelles lignes
+        for new in nouvelles_lignes:
+            ligne = LigneBonCommande(
+                bon_id=bon.id,
+                produit_id=new['produit_id'],
+                quantite=new['quantite'],
+                prix_unitaire=new['prix_unitaire'],
+                sous_total=new['sous_total'],
+                type_conditionnement=TypeConditionnement(new['conditionnement'])
+            )
+            db.session.add(ligne)
+        
+        # Recalculer le total
+        total = sum(l.sous_total for l in bon.lignes)
+        bon.total = total
+        
+        # Mettre à jour le statut
+        quantite_totale_livree = sum(l.quantite_livree for l in bon.lignes)
+        quantite_totale = sum(l.quantite for l in bon.lignes)
+        
+        if quantite_totale_livree == 0:
+            bon.status = "confirmee"
+        elif quantite_totale_livree < quantite_totale:
+            bon.status = "livraison_partielle"
+        else:
+            bon.status = "livree"
+        
+        db.session.commit()
+        
+        # Message de succès avec détails
+        modifications = []
+        if lignes_modifiees:
+            modifications.append(f"{len(lignes_modifiees)} produit(s) modifié(s)")
+        if nouvelles_lignes:
+            modifications.append(f"{len(nouvelles_lignes)} nouveau(x) produit(s) ajouté(s)")
+        if lignes_a_supprimer:
+            modifications.append(f"{len(lignes_a_supprimer)} produit(s) supprimé(s)")
+        
+        flash(f"✅ Bon de commande {bon.numero} modifié avec succès : {', '.join(modifications)}", "success")
+        
+        # Si des lignes ont été modifiées et qu'il y a des livraisons, informer
+        if lignes_avec_livraisons and (lignes_modifiees or nouvelles_lignes):
+            flash("ℹ️ Les livraisons existantes n'ont pas été affectées par cette modification.", "info")
+        
+        return redirect(url_for('details_bon_commande', bon_id=bon.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la modification: {str(e)}", "danger")
+        return redirect(url_for('modifier_bon_commande', bon_id=bon.id))
+
+
+
+@app.route("/api/produit/<int:produit_id>/stock", methods=["GET"])
+@login_required
+def api_produit_stock(produit_id):
+    """API pour récupérer le stock disponible d'un produit"""
+    
+    # Stock total
+    stock_total = db.session.query(
+        db.func.sum(Stock.quantite)
+    ).filter(
+        Stock.produit_id == produit_id,
+        Stock.quantite > 0
+    ).scalar() or 0
+    
+    # Lots disponibles
+    lots = Stock.query.filter(
+        Stock.produit_id == produit_id,
+        Stock.quantite > 0
+    ).all()
+    
+    lots_data = [
+        {
+            'id': lot.id,
+            'numero_lot': lot.numero_lot,
+            'quantite': lot.quantite,
+            'conditionnement': lot.type_conditionnement.value
+        }
+        for lot in lots
+    ]
+    
+    return jsonify({
+        'stock': stock_total,
+        'lots': lots_data
+    })
 
 
 @app.route("/bon-commande/<int:bon_id>/pdf")

@@ -11,84 +11,217 @@
 <input type="hidden" name="commande_id" value="{{ commande.id }}">
 
 <p>
-<strong>Client :</strong>
-{{ commande.client.nom_client }}
+<strong>Client :</strong> {{ commande.client.nom_client }}
+<br>
+<strong>Bon de commande N° :</strong> {{ commande.numero }}
 </p>
 
 <table class="table table-bordered">
 
-<thead class="table-light">
-
-<tr>
-<th>Produit</th>
-<th>Commandé</th>
-<th>Livrer</th>
-<th>N° Série</th>
-</tr>
-
+<thead class="table-dark">
+   <tr>
+      <th>Produit</th>
+      <th>Conditionnement</th>
+      <th>Commandé</th>
+      <th>Déjà livré</th>
+      <th>Reste à livrer</th>
+      <th>Quantité à livrer</th>
+      <th>Lot à utiliser</th>
+      <th>N° Série</th>
+   </tr>
 </thead>
 
 <tbody>
-
 {% for ligne in commande.lignes if ligne.reste_a_livrer > 0 %}
-
 <tr>
-
-<td>
-
-{{ ligne.produit.nom_produit }}
-
-<input type="hidden"
-name="produit_id[]"
-value="{{ ligne.produit.id }}">
-
-<input type="hidden"
-name="ligne_commande_id[]"
-value="{{ ligne.id }}">
-
-</td>
-
-<td>
-
-{{ ligne.quantite }}
-
-</td>
-
-<td>
-
-<input type="number"
-name="quantite[]"
-class="form-control"
-value="{{ ligne.reste_a_livrer }}"
-min="0"
-max="{{ ligne.reste_a_livrer }}">
-
-</td>
-
-<td>
-
-<input type="text"
-name="numero_serie[]"
-class="form-control">
-
-</td>
-
+   <td>
+      {{ ligne.produit.nom_produit }} - {{ ligne.produit.model }}
+      <input type="hidden" name="produit_id[]" value="{{ ligne.produit.id }}">
+      <input type="hidden" name="ligne_commande_id[]" value="{{ ligne.id }}">
+   </td>
+   <td>
+      <span class="badge bg-info">
+         {{ ligne.type_conditionnement.value|capitalize }}
+      </span>
+   </td>
+   <td class="text-center">{{ ligne.quantite }}</td>
+   <td class="text-center">{{ ligne.quantite_livree }}</td>
+   <td class="text-center fw-bold text-primary">{{ ligne.reste_a_livrer }}</td>
+   <td>
+      <input type="number"
+             name="quantite[]"
+             class="form-control quantite-livree"
+             value="{{ ligne.reste_a_livrer }}"
+             min="0"
+             max="{{ ligne.reste_a_livrer }}"
+             data-reste="{{ ligne.reste_a_livrer }}"
+             data-produit="{{ ligne.produit.id }}"
+             required>
+   </td>
+   <td>
+      <select name="stock_id[]" 
+              class="form-select lot-select" 
+              data-produit="{{ ligne.produit.id }}"
+              required>
+         <option value="">-- Choisir un lot --</option>
+         {% for stock in stocks_disponibles %}
+            {% if stock.produit_id == ligne.produit.id and stock.quantite > 0 %}
+               <option value="{{ stock.id }}" 
+                       data-quantite="{{ stock.quantite }}"
+                       data-lot="{{ stock.numero_lot }}">
+                  {{ stock.numero_lot }} (Disponible: {{ stock.quantite }})
+               </option>
+            {% endif %}
+         {% endfor %}
+      </select>
+   </td>
+   <td>
+      <input type="text"
+             name="numero_serie[]"
+             class="form-control"
+             placeholder="Optionnel">
+   </td>
 </tr>
-
 {% endfor %}
-
 </tbody>
 
 </table>
 
-<button class="btn btn-success">
+<div class="alert alert-info">
+   <i class="bi bi-info-circle"></i>
+   <strong>Information :</strong> La création du bon de livraison va :
+   <ul class="mb-0 mt-2">
+      <li>✅ Déduire les quantités du stock</li>
+      <li>✅ Mettre à jour les quantités livrées de la commande</li>
+      <li>✅ Générer un numéro de bon de livraison unique</li>
+   </ul>
+</div>
 
-Créer livraison
-
+<button type="submit" class="btn btn-success">
+   <i class="bi bi-truck"></i> Créer le bon de livraison
 </button>
+
+<a href="{{ url_for('liste_bons_commandes') }}" class="btn btn-secondary">
+   <i class="bi bi-arrow-left"></i> Annuler
+</a>
 
 </form>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Récupérer tous les selects de lots et les inputs de quantité
+    const lotsSelects = document.querySelectorAll('.lot-select');
+    const quantiteInputs = document.querySelectorAll('.quantite-livree');
+    
+    // Fonction pour mettre à jour la quantité max en fonction du lot choisi
+    function updateQuantiteMax(select, quantiteInput) {
+        const selectedOption = select.options[select.selectedIndex];
+        const quantiteMaxLot = selectedOption.getAttribute('data-quantite');
+        const reste = quantiteInput.getAttribute('data-reste');
+        
+        if (selectedOption.value && quantiteMaxLot) {
+            // La quantité ne peut pas dépasser ni le reste à livrer, ni le stock disponible
+            const maxQuantite = Math.min(parseInt(reste), parseInt(quantiteMaxLot));
+            quantiteInput.max = maxQuantite;
+            
+            // Si la quantité actuelle dépasse la nouvelle limite, l'ajuster
+            if (parseInt(quantiteInput.value) > maxQuantite) {
+                quantiteInput.value = maxQuantite;
+                alert(`⚠️ La quantité a été limitée à ${maxQuantite} car le stock du lot est insuffisant.`);
+            }
+        } else {
+            // Si aucun lot sélectionné, la quantité max est le reste à livrer
+            quantiteInput.max = reste;
+        }
+    }
+    
+    // Fonction pour vérifier la quantité par rapport au stock
+    function validateQuantite(quantiteInput, select) {
+        const selectedOption = select.options[select.selectedIndex];
+        const quantiteMaxLot = selectedOption.getAttribute('data-quantite');
+        const qte = parseInt(quantiteInput.value);
+        
+        if (selectedOption.value && quantiteMaxLot && qte > parseInt(quantiteMaxLot)) {
+            alert(`❌ La quantité (${qte}) dépasse le stock disponible du lot (${quantiteMaxLot})`);
+            quantiteInput.value = quantiteMaxLot;
+            return false;
+        }
+        return true;
+    }
+    
+    // Ajouter les événements pour chaque ligne
+    lotsSelects.forEach((select, index) => {
+        const quantiteInput = quantiteInputs[index];
+        
+        // Événement changement de lot
+        select.addEventListener('change', function() {
+            updateQuantiteMax(this, quantiteInput);
+        });
+        
+        // Événement changement de quantité
+        quantiteInput.addEventListener('change', function() {
+            validateQuantite(this, select);
+        });
+        
+        // Initialiser la première ligne
+        if (select.value) {
+            updateQuantiteMax(select, quantiteInput);
+        }
+    });
+    
+    // Validation avant soumission du formulaire
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        let hasError = false;
+        
+        lotsSelects.forEach((select, index) => {
+            const quantiteInput = quantiteInputs[index];
+            const qte = parseInt(quantiteInput.value);
+            
+            if (qte > 0 && !select.value) {
+                alert(`⚠️ Veuillez sélectionner un lot pour le produit ${select.closest('tr').cells[0].innerText}`);
+                hasError = true;
+                e.preventDefault();
+                return;
+            }
+            
+            if (qte > 0 && select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                const quantiteMaxLot = selectedOption.getAttribute('data-quantite');
+                
+                if (qte > parseInt(quantiteMaxLot)) {
+                    alert(`❌ Quantité insuffisante en stock pour le lot ${selectedOption.getAttribute('data-lot')}`);
+                    hasError = true;
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+        
+        if (hasError) {
+            e.preventDefault();
+        }
+    });
+    
+});
+</script>
+
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    
+    .lot-select option:disabled {
+        color: #999;
+    }
+    
+    .alert-info {
+        background-color: #e7f3ff;
+        border-color: #b8daff;
+    }
+</style>
 
 {% endblock %}

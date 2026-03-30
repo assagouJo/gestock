@@ -1,0 +1,366 @@
+{% extends "base_print.html" %}
+{% block title %}Récapitulatif des livraisons - Commande {{ commande.numero }}{% endblock %}
+
+{% block styles %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background: white;
+        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        font-size: 12px;
+        color: #333;
+    }
+    
+    .recap-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+    }
+    
+    /* Header */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 20px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid #2c3e50;
+    }
+    
+    .company-info {
+        text-align: right;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #555;
+    }
+    
+    .company-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    /* Titre */
+    .doc-title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 30px 0 20px;
+        text-transform: uppercase;
+    }
+    
+    .doc-title small {
+        font-size: 12px;
+        color: #7f8c8d;
+        font-weight: normal;
+        display: block;
+        margin-top: 8px;
+    }
+    
+    /* Infos */
+    .info-grid {
+        display: flex;
+        justify-content: space-between;
+        background: #f8f9fa;
+        padding: 15px 20px;
+        margin: 20px 0;
+        border-left: 4px solid #2c3e50;
+    }
+    
+    .info-block {
+        flex: 1;
+    }
+    
+    .info-block h4 {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #7f8c8d;
+        margin-bottom: 8px;
+    }
+    
+    .info-block p {
+        margin: 5px 0;
+        font-size: 13px;
+    }
+    
+    .info-block strong {
+        color: #2c3e50;
+    }
+    
+    /* Tableau */
+    .table-container {
+        margin: 25px 0;
+        overflow-x: auto;
+    }
+    
+    .recap-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+    
+    .recap-table th {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px 8px;
+        text-align: center;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .recap-table td {
+        border: 1px solid #dee2e6;
+        padding: 10px 8px;
+        vertical-align: middle;
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        font-size: 11px;
+        border-radius: 3px;
+    }
+    
+    .badge-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    /* Liste BL */
+    .bl-section {
+        margin: 25px 0;
+        padding: 15px;
+        background: #f8f9fa;
+    }
+    
+    .bl-section h4 {
+        font-size: 12px;
+        color: #2c3e50;
+        margin-bottom: 12px;
+    }
+    
+    .bl-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .bl-card {
+        background: white;
+        padding: 8px 15px;
+        border: 1px solid #dee2e6;
+        border-left: 3px solid #2c3e50;
+        font-size: 11px;
+    }
+    
+    /* Signatures */
+    .signatures {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+        padding-top: 30px;
+        gap: 40px;
+    }
+    
+    .signature-block {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .signature-line {
+        border-top: 1px solid #adb5bd;
+        padding-top: 12px;
+        margin-top: 40px;
+        font-size: 10px;
+        color: #6c757d;
+    }
+    
+    .footer-note {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 10px;
+        color: #adb5bd;
+        border-top: 1px solid #e9ecef;
+        padding-top: 15px;
+    }
+    
+    /* Boutons */
+    .btn-container {
+        margin-top: 30px;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-primary {
+        background: #2c3e50;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    @media print {
+        body {
+            background: white;
+        }
+        .recap-wrapper {
+            padding: 20px;
+        }
+        .btn-container {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="recap-wrapper">
+    
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            {% if compagnie and compagnie.logo %}
+                <img src="{{ compagnie.logo }}" height="60" alt="Logo">
+            {% else %}
+                <div style="width:60px; height:60px; background:#f8f9fa;"></div>
+            {% endif %}
+        </div>
+        <div class="company-info">
+            <div class="company-name">TIME INTERNATIONAL CO. LTD</div>
+            <div>I-MEDICAL - REPRESENTATION A ABIDJAN</div>
+            <div>MARCORY BOULEVARD VGE, COTE D'IVOIRE</div>
+            <div>📞 (225) 27 21 59 38 82 | ✉ info@imboe.com</div>
+        </div>
+    </div>
+    
+    <!-- TITRE -->
+    <div class="doc-title">
+        RÉCAPITULATIF DES LIVRAISONS
+        <small>Bon de commande n° {{ commande.numero }}</small>
+    </div>
+    
+    <!-- INFOS COMMANDE -->
+    <div class="info-grid">
+        <div class="info-block">
+            <h4>CLIENT</h4>
+            <p><strong>{{ commande.client.nom_client }}</strong></p>
+            {% if commande.client.telephone %}
+            <p>📞 {{ commande.client.telephone }}</p>
+            {% endif %}
+        </div>
+        <div class="info-block">
+            <h4>COMMANDE</h4>
+            <p>Date: {{ commande.date_creation.strftime('%d/%m/%Y') }}</p>
+            <p>Statut: <span class="badge badge-success">Livrée</span></p>
+        </div>
+        <div class="info-block">
+            <h4>LIVRAISONS</h4>
+            <p>{{ bons_livraison|length }} bon(s) de livraison</p>
+            <p>{{ total_quantite }} articles livrés</p>
+        </div>
+    </div>
+    
+    <!-- TABLEAU DES PRODUITS LIVRÉS -->
+    <div class="table-container">
+        <table class="recap-table">
+            <thead>
+                <tr>
+                    <th style="width: 35%">DÉSIGNATION</th>
+                    <th style="width: 15%">MODÈLE</th>
+                    <th style="width: 15%">MARQUE</th>
+                    <th style="width: 15%">QUANTITÉ</th>
+                    <th style="width: 20%">N° SÉRIE</th>
+                </thead>
+            <tbody>
+                {% for produit_id, data in recap_par_produit.items() %}
+                    {% for liv in data.livraisons %}
+                    <tr>
+                        <td>{{ data.produit.nom_produit }}</td>
+                        <td class="text-center">{{ data.produit.model or '-' }}</td>
+                        <td class="text-center">{{ data.produit.marque or '-' }}</td>
+                        <td class="text-center">{{ liv.quantite }}</td>
+                        <td class="text-center">{{ liv.numero_serie or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- LISTE DES BONS DE LIVRAISON -->
+    <div class="bl-section">
+        <h4>BONS DE LIVRAISON ASSOCIÉS</h4>
+        <div class="bl-list">
+            {% for bl in bons_livraison %}
+            <div class="bl-card">
+                <strong>{{ bl.numero }}</strong><br>
+                <small>{{ bl.date_creation.strftime('%d/%m/%Y') }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- SIGNATURES -->
+    <div class="signatures">
+        <div class="signature-block">
+            <div class="signature-line">LE CLIENT (Cachet et signature)</div>
+        </div>
+        <div class="signature-block">
+            <div class="signature-line">SERVICE LIVRAISON</div>
+        </div>
+    </div>
+    
+    <!-- FOOTER -->
+    <div class="footer-note">
+        Document généré le {{ now.strftime('%d/%m/%Y à %H:%M') }}
+    </div>
+</div>
+
+<!-- BOUTONS -->
+<div class="btn-container">
+    <a href="{{ url_for('details_bon_commande', bon_id=commande.id) }}" class="btn btn-secondary">
+        ⬅ Retour
+    </a>
+    <a href="{{ url_for('recapitulatif_livraisons_pdf', commande_id=commande.id) }}" target="_blank" class="btn btn-primary">
+        📄 Exporter PDF
+    </a>
+    <button onclick="window.print()" class="btn btn-success">
+        🖨 Imprimer
+    </button>
+</div>
+
+{% endblock %}

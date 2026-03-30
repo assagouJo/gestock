@@ -14,10 +14,128 @@
     <script src="{{url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <style>
+        /* Style pour fixer la structure */
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Empêche le défilement global */
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Header fixe */
+        header {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: inherit;
+        }
+        
+        /* Main prend tout l'espace restant */
+        main {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Row principale avec hauteur complète */
+        main .row {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* Menu latéral fixe */
+        nav {
+            height: 100%;
+            overflow-y: auto; /* Permet au menu de défiler si nécessaire */
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
+        }
+        
+        /* Zone de contenu défilante */
+        section {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+        
+        /* Footer fixe en bas */
+        footer {
+            flex-shrink: 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 1030;
+        }
+        
+        /* Personnalisation de la scrollbar pour le contenu */
+        section::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        section::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        section::-webkit-scrollbar-thumb {
+            background: #28a745;
+            border-radius: 4px;
+        }
+        
+        section::-webkit-scrollbar-thumb:hover {
+            background: #218838;
+        }
+        
+        /* Style pour le menu si nécessaire */
+        nav::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        nav::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        nav::-webkit-scrollbar-thumb {
+            background: #28a745;
+            border-radius: 4px;
+        }
+        
+        /* Ajustement pour les petits écrans */
+        @media (max-width: 768px) {
+            nav {
+                overflow-y: visible;
+            }
+            
+            section {
+                height: auto;
+                overflow-y: visible;
+            }
+            
+            body {
+                overflow: auto;
+            }
+            
+            main .row {
+                flex-direction: column;
+            }
+        }
+    </style>
+    
     {% block head %}{% endblock %}
     {% block styles %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100 bg-gradient-success">   
+<body class="bg-gradient-success">   
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-container">
@@ -29,16 +147,17 @@
         </div>
       {% endif %}
     {% endwith %}     
+    
     <header class="container-fluid py-2">
         <div class="row align-items-between">
             <div class="col-2 gap-2 d-flex align-items-center">
-                    <i class="bi bi-columns-gap text-light fs-3"></i>
+                <i class="bi bi-columns-gap text-light fs-3"></i>
                 <span class="fs-5 px-1 fw-semibold text-success">
                     Gestock
                 </span>
             </div>
     
-        <!-- USER AUTH -->
+            <!-- USER AUTH -->
             <div class="col-10 d-flex gap-4 justify-content-end align-items-center">
                 {% if current_user.is_authenticated %}
                     <div class="d-flex justify-content-end align-items-center ">
@@ -57,141 +176,141 @@
             </div>
         </div>
     </header>
-        <!-- CONTENU PRINCIPAL -->
+    
+    <!-- CONTENU PRINCIPAL -->
     <main class="container-fluid flex-fill">
-            <!-- NAV VERTICAL -->
-            <div class="row">
-                {% if current_user.is_authenticated %}
+        <!-- NAV VERTICAL -->
+        <div class="row">
+            {% if current_user.is_authenticated %}
                 {% if request.path.startswith('/gestion_materiel') %}
-                <nav class="col-3 col-md-2 p-1">
-                            {% set active_pages = ['paiement', 'produit', 'client', 'dashboard', 'transaction', 'facture', 'stock', 'user'] %}
+                    <nav class="col-3 col-md-2 p-1">
+                        {% set active_pages = ['paiement', 'produit', 'client', 'dashboard', 'transaction', 'facture', 'stock', 'user'] %}
                         <ul class="nav flex-column gap-1">
                             {% if current_user.role in ["superadmin","admin","operateur","finance"] %}
-                            <li class="nav-item bg-nav border">
-                                <!-- Bouton principal -->
-                                <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
-                                data-bs-toggle="collapse"
-                                href="#menuParam"
-                                role="button"
-                                aria-expanded="false">
-                                    <div>
-                                        <i class="bi bi-folder-fill fs-4 me-2"></i>
-                                        Gestion des Paramètres
+                                <li class="nav-item bg-nav border">
+                                    <!-- Bouton principal -->
+                                    <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
+                                    data-bs-toggle="collapse"
+                                    href="#menuParam"
+                                    role="button"
+                                    aria-expanded="false">
+                                        <div>
+                                            <i class="bi bi-folder-fill fs-4 me-2"></i>
+                                            Gestion des Paramètres
+                                        </div>
+                                        <i class="bi bi-caret-down-fill fs-3"></i>
+                                    </a>
+
+                                    <!-- Sous-menu -->
+                                    <div class="collapse {% if is_active('client') 
+                                                            or is_active('fournisseur') 
+                                                            or is_active('produit')
+                                                            or is_active('magasin') 
+                                                            or is_active('liste_vendeurs') %}show{% endif %}"
+                                        id="menuParam">
+
+                                        <ul class="nav flex-column">
+                                            {% if current_user.role in ["superadmin","admin","operateur"] %}
+                                                <li class="nav-item border-2 border-top">
+                                                    <a class="nav-link text-light {% if is_active('fournisseur') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('fournisseur') }}">
+                                                        Gestion Fournisseurs
+                                                    </a>
+                                                </li>
+                                                
+                                                <li class="nav-item border-2 border-top">
+                                                    <a class="nav-link text-light {% if is_active('produit') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('produit') }}">
+                                                        Gestion Produits
+                                                    </a>
+                                                </li>
+                                                
+                                                <li class="nav-item border-2 border-top">
+                                                    <a class="nav-link text-light {% if is_active('magasin') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('magasin') }}">
+                                                        Gestion Magasins
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+
+                                            {% if current_user.role in ["superadmin","admin","finance","operateur"] %}
+                                                <li class="nav-item border-2 border-top">
+                                                    <a class="nav-link text-light {% if is_active('client') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('client') }}">
+                                                        Gestion Clients
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                            {% if current_user.role in ["superadmin","admin","finance"] %}
+                                                <li class="nav-item border-2 border-top">
+                                                    <a class="nav-link text-light {% if is_active('liste_vendeurs') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('liste_vendeurs') }}">
+                                                        Gestion Vendeurs
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
                                     </div>
-                                    <i class="bi bi-caret-down-fill fs-3"></i>
-                                </a>
-
-                                <!-- Sous-menu -->
-                                <div class="collapse {% if is_active('client') 
-                                                        or is_active('fournisseur') 
-                                                        or is_active('produit')
-                                                        or is_active('magasin') 
-                                                        or is_active('liste_vendeurs') %}show{% endif %}"
-                                    id="menuParam">
-
-                                    <ul class="nav flex-column">
-                                        {% if current_user.role in ["superadmin","admin","operateur"] %}
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('fournisseur') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('fournisseur') }}">
-                                                Gestion Fournisseurs
-                                            </a>
-                                        </li>
-                                        
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('produit') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('produit') }}">
-                                            Gestion Produits
-                                        </a>
-                                    </li>
-                                    
-                                    <li class="nav-item border-2 border-top">
-                                        <a class="nav-link text-light {% if is_active('magasin') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('magasin') }}">
-                                            Gestion Magasins
-                                        </a>
-                                    </li>
-                                    {% endif %}
-
-                                    {% if current_user.role in ["superadmin","admin","finance","operateur"] %}
-                                    <li class="nav-item border-2 border-top">
-                                        <a class="nav-link text-light {% if is_active('client') %}bg-nav2{% endif %}"
-                                        href="{{ url_for('client') }}">
-                                            Gestion Clients
-                                        </a>
-                                    </li>
-                                    {% endif %}
-                                    {% if current_user.role in ["superadmin","admin","finance"] %}
-
-                                        <li class="nav-item border-2 border-top">
-                                            <a class="nav-link text-light {% if is_active('liste_vendeurs') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('liste_vendeurs') }}">
-                                                Gestion Vendeurs
-                                            </a>
-                                        </li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                            </li>
+                                </li>
                             {% endif %}
                             {% if current_user.role in ["admin","superadmin","finance","operateur"] %}                   
-                            <li class="{{ 'bg-nav2' if is_active('compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-building fs-3 text-light"></i>
-                                <a class="nav-link text-light" href="{{url_for('compagnie')}}">Ma Compagnie</a>
-                            </li>
+                                <li class="{{ 'bg-nav2' if is_active('compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-building fs-3 text-light"></i>
+                                    <a class="nav-link text-light" href="{{url_for('compagnie')}}">Ma Compagnie</a>
+                                </li>
                             {% endif %}
                             {% if current_user.role in ["admin","superadmin"] %}
-                            <li class="{{ 'bg-nav2' if is_active('user') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-people fs-3 text-light"></i>
-                                <a class="nav-link text-light" href="{{url_for('user')}}">Gestion Utilisateurs</a>
-                            </li>
+                                <li class="{{ 'bg-nav2' if is_active('user') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-people fs-3 text-light"></i>
+                                    <a class="nav-link text-light" href="{{url_for('user')}}">Gestion Utilisateurs</a>
+                                </li>
                             {% endif %}
                             {% if current_user.role in ["superadmin","admin","operateur","finance"] %}
-                            <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-arrow-left-square-fill text-light fs-3"></i>
-                                {% if current_user.role in ["admin","superadmin"] %}
-                                    <a class="nav-link text-light"  href="{{url_for('dashboard')}}">Retour</a>
-                                {% elif current_user.role == "finance" %}
-                                    <a class="nav-link text-light"  href="{{url_for('nouvelle_vente')}}">Retour</a>
-                                {% else %}
-                                    <a class="nav-link text-light"  href="{{url_for('nouveau_achat')}}">Retour</a>
-                                {% endif %}
-                            </li>
+                                <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-arrow-left-square-fill text-light fs-3"></i>
+                                    {% if current_user.role in ["admin","superadmin"] %}
+                                        <a class="nav-link text-light" href="{{url_for('dashboard')}}">Retour</a>
+                                    {% elif current_user.role == "finance" %}
+                                        <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Retour</a>
+                                    {% else %}
+                                        <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Retour</a>
+                                    {% endif %}
+                                </li>
                             {% endif %}
                         </ul>
                     </nav>
-                    {% else %}
+                {% else %}
                     <nav class="col-3 col-md-2 p-1">
                         <ul class="nav flex-column gap-1">
                             {% if current_user.role in ["admin","superadmin"] %}
-                            <li class=" {{ 'bg-nav2' if is_active('dashboard') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-speedometer text-light fs-3"></i>
-                                <a class="nav-link active text-light" href="{{ url_for('dashboard') }}">Dashboard</a>
-                            </li>
+                                <li class=" {{ 'bg-nav2' if is_active('dashboard') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-speedometer text-light fs-3"></i>
+                                    <a class="nav-link active text-light" href="{{ url_for('dashboard') }}">Dashboard</a>
+                                </li>
                             {% endif %}
                             {% if current_user.role in ["admin","superadmin"] %}
-                            <li class=" {{ 'bg-nav2' if is_active('etat_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-box-seam text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('etat_stock')}}">Entree Stock</a>
-                            </li>
+                                <li class=" {{ 'bg-nav2' if is_active('etat_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-box-seam text-light fs-3"></i>
+                                    <a class="nav-link text-light" href="{{url_for('etat_stock')}}">Entree Stock</a>
+                                </li>
                             {% endif %}
                             {% if current_user.role in ["admin","superadmin","operateur"] %}
-                            <li class="{{ 'bg-nav2' if is_active('nouvelle_achat') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-cart-plus text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Achat</a>
-                            </li>
+                                <li class="{{ 'bg-nav2' if is_active('nouvelle_achat') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-cart-plus text-light fs-3"></i>
+                                    <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Achat</a>
+                                </li>
                             {% endif %}
 
                             {% if current_user.role in ["admin","superadmin","finance"] %}
-                            <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                <i class="bi bi-cash-coin text-light fs-3"></i>
-                                <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
-                            </li>
+                                <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
+                                    <i class="bi bi-cash-coin text-light fs-3"></i>
+                                    <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
+                                </li>
                             {% endif %}
+                            
                             <!-- documents -->
-
                             <li class="nav-item bg-nav">
-                        <!-- Bouton principal -->
+                                <!-- Bouton principal -->
                                 <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
                                 data-bs-toggle="collapse"
                                 href="#menuBonLivraison"
@@ -215,7 +334,6 @@
                                     id="menuBonLivraison">
 
                                     <ul class="nav flex-column">
-                                        
                                         <li class="nav-item border-2 border-top bg-transparent">
                                             <a class="nav-link fw-bold border-light text-black {% if is_active('liste_bons_livraison') %}bg-nav2{% endif %}"
                                             href="{{ url_for('liste_bons_livraison') }}">
@@ -250,100 +368,93 @@
                                 </div>
                             </li>
 
-                            <!-- documents -->
+                            <!-- rapports -->
                             {% if current_user.role in ["admin","superadmin","finance"] %}
-                            <li class="nav-item bg-nav">
-                        <!-- Bouton principal -->
-                                <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
-                                data-bs-toggle="collapse"
-                                href="#menuRapports"
-                                role="button"
-                                aria-expanded="false">
-                                    <div class="">
-                                        <i class="bi bi-bar-chart-line fs-2"></i>
-                                        Rapports
+                                <li class="nav-item bg-nav">
+                                    <!-- Bouton principal -->
+                                    <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
+                                    data-bs-toggle="collapse"
+                                    href="#menuRapports"
+                                    role="button"
+                                    aria-expanded="false">
+                                        <div class="">
+                                            <i class="bi bi-bar-chart-line fs-2"></i>
+                                            Rapports
+                                        </div>
+                                        <i class="bi bi-caret-down-fill fs-3"></i>
+                                    </a>
+
+                                    <!-- Sous-menu -->
+                                    <div class="collapse 
+                                        {% if is_active('rapport_stock') 
+                                            or is_active('rapport_vendeur') 
+                                            or is_active('rapport_client')
+                                            or is_active('logs') 
+                                            or is_active('etat_propositions') %}show{% endif %}"
+                                        id="menuRapports">
+
+                                        <ul class="nav flex-column">
+                                            {% if current_user.role in ["admin","superadmin"] %}
+                                                <li class="nav-item border-2 border-top bg-transparent">
+                                                    <a class="nav-link fw-bold border-light text-black {% if is_active('rapport_stock') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('rapport_stock') }}">
+                                                        Rapport Stock
+                                                    </a>
+                                                </li>
+
+                                                <li class="nav-item border-2 border-top bg-transparent">
+                                                    <a class="nav-link fw-bold text-black {% if is_active('rapport_vendeur') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('rapport_vendeur') }}">
+                                                        Rapport Vendeurs
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                            <li class="nav-item border-2 border-top bg-transparent">
+                                                <a class="nav-link fw-bold text-black {% if is_active('rapport_client') %}bg-nav2{% endif %}"
+                                                href="{{ url_for('rapport_client') }}">
+                                                    Rapport Clients
+                                                </a>
+                                            </li>
+
+                                            <li class="nav-item border-2 border-top bg-transparent">
+                                                <a class="nav-link fw-bold text-black {% if is_active('etat_propositions') %}bg-nav2{% endif %}"
+                                                href="{{ url_for('etat_propositions') }}">
+                                                    Etat des Propositions
+                                                </a>
+                                            </li>
+                                            {% if current_user.role in "superadmin" %}
+                                                <li class="nav-item border-2 border-top bg-transparent">
+                                                    <a class="nav-link fw-bold text-black {% if is_active('logs') %}bg-nav2{% endif %}"
+                                                    href="{{ url_for('logs') }}">
+                                                        Logs
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
                                     </div>
-                                    <i class="bi bi-caret-down-fill fs-3"></i>
-                                </a>
-
-                                <!-- Sous-menu -->
-                                <div class="collapse 
-                                    {% if is_active('rapport_stock') 
-                                        or is_active('rapport_vendeur') 
-                                        or is_active('rapport_client')
-                                        or is_active('logs') 
-                                        or is_active('etat_propositions') %}show{% endif %}"
-                                    id="menuRapports">
-
-                                    <ul class="nav flex-column">
-                                        
-                                        {% if current_user.role in ["admin","superadmin"] %}
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold border-light text-black {% if is_active('rapport_stock') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('rapport_stock') }}">
-                                                Rapport Stock
-                                            </a>
-                                        </li>
-
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold text-black {% if is_active('rapport_vendeur') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('rapport_vendeur') }}">
-                                                Rapport Vendeurs
-                                            </a>
-                                        </li>
-                                        {% endif %}
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold text-black {% if is_active('rapport_client') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('rapport_client') }}">
-                                                
-                                                Rapport Clients
-                                            </a>
-                                        </li>
-
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold text-black {% if is_active('etat_propositions') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('etat_propositions') }}">
-                                                
-                                                Etat des Propositions
-                                            </a>
-                                        </li>
-                                        {% if current_user.role in "superadmin" %}
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold text-black {% if is_active('logs') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('logs') }}">
-                                                
-                                                Logs
-                                            </a>
-                                        </li>
-                                        {% endif %}
-
-                                    </ul>
-                                </div>
-
-                            </li>
-
-                                </ul>
-                            </li>                    
+                                </li>
                             {% endif %}
+                            
                             {% if current_user.role in ["admin","operateur","superadmin","finance"] %}
-                            <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex gap-2 flex-fill justify-content-start mt-1 align-items-center">
-                                <i class="bi bi-gear-wide-connected text-light fs-3"></i>
-                                {% if current_user.role in ["admin","operateur","superadmin"] %}
-                                    <a class="nav-link text-light" href="{{url_for('fournisseur')}}">Parametre de Base</a>
-                                {% else %}
-                                    <a class="nav-link text-light" href="{{url_for('client')}}">Parametre de Base</a>
-                                {% endif %}
-                            </li>
+                                <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex gap-2 flex-fill justify-content-start mt-1 align-items-center">
+                                    <i class="bi bi-gear-wide-connected text-light fs-3"></i>
+                                    {% if current_user.role in ["admin","operateur","superadmin"] %}
+                                        <a class="nav-link text-light" href="{{url_for('fournisseur')}}">Parametre de Base</a>
+                                    {% else %}
+                                        <a class="nav-link text-light" href="{{url_for('client')}}">Parametre de Base</a>
+                                    {% endif %}
+                                </li>
                             {% endif %}
                         </ul>
                     </nav>
-                    {% endif %}
-                 {% endif %}
-                 <!-- CONTENU DES PAGES -->
-                  <section class="{% if current_user.is_authenticated %}col-9 col-md-10{% else %}col-12{% endif %}">
-                     {% block content %}{% endblock %}
-                  </section>
-             </div>
+                {% endif %}
+            {% endif %}
+            
+            <!-- CONTENU DES PAGES - SEULE PARTIE DEFILANTE -->
+            <section class="{% if current_user.is_authenticated %}col-9 col-md-10{% else %}col-12{% endif %}">
+                {% block content %}{% endblock %}
+            </section>
+        </div>
     </main>
 
     <!-- FOOTER -->
@@ -351,7 +462,6 @@
         <p class="mb-0">© 2026 - GESTSTOCK - Keeping safe the flow of your goods </p>
     </footer>
 
-    
     <script>
         setTimeout(() => {
             const flashes = document.querySelectorAll(".flash");
@@ -362,6 +472,7 @@
             });
         }, 5000); // 5 secondes
     </script>
-{% block script %}{% endblock %}
+    
+    {% block script %}{% endblock %}
 </body>
 </html>

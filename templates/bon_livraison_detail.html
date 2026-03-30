@@ -241,6 +241,17 @@
         font-size: 13px;
     }
     
+    .lot-badge {
+        display: inline-block;
+        background: #f3e5f5;
+        color: #7b1fa2;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 11px;
+        font-family: monospace;
+    }
+    
     /* ========== RÉCAPITULATIF & TOTAUX ========== */
     .summary-section {
         background: #f8f9fc;
@@ -341,7 +352,14 @@
         text-align: center;
     }
     
-
+    .signature-line {
+        border-top: 2px dashed #aaa;
+        padding-top: 15px;
+        margin-top: 40px;
+        font-size: 11px;
+        color: #777;
+        font-style: italic;
+    }
     
     /* ========== PIED DE PAGE ========== */
     @page{
@@ -463,7 +481,7 @@
     <!-- TITRE -->
     <div class="bon-title">
         BON DE LIVRAISON
-        {% if bon.type_livraison == 'partiel' %}
+        {% if bon.status == 'partielle' %}
             <span class="badge-partiel">Livraison Partielle</span>
         {% else %}
             <span class="badge-partiel badge-complet">Livraison Complète</span>
@@ -512,12 +530,14 @@
         <div class="info-card">
             <h4>🚚 INFORMATIONS LIVRAISON</h4>
             <div class="info-row">
-                <div class="info-label">Type livraison</div>
+                <div class="info-label">Statut</div>
                 <div class="info-value">
-                    {% if bon.type_livraison == 'partiel' %}
+                    {% if bon.status == 'partielle' %}
                         <span style="color:#ff9800; font-weight:bold;">⚡ Livraison partielle</span>
-                    {% else %}
+                    {% elif bon.status == 'livree' %}
                         <span style="color:#4caf50; font-weight:bold;">✓ Livraison complète</span>
+                    {% else %}
+                        <span style="color:#999;">{{ bon.status }}</span>
                     {% endif %}
                 </div>
             </div>
@@ -540,10 +560,11 @@
             <thead>
                 <tr>
                     <th style="width: 30%">DÉSIGNATION</th>
-                    <th style="width: 25%">QTÉ LIVRÉE</th>
+                    <th style="width: 15%">LOT</th>
+                    <th style="width: 15%">QTÉ LIVRÉE</th>
                     <th style="width: 20%">N° SÉRIE</th>
                     <th style="width: 10%">MARQUE</th>
-                    <th style="width: 15%">MODÈLE</th>
+                    <th style="width: 10%">MODÈLE</th>
                 </tr>
             </thead>
             <tbody>
@@ -551,7 +572,14 @@
                 <tr>
                     <td class="product-name"><strong>{{ ligne.produit.nom_produit }}</strong></td>
                     <td>
-                        <span class="quantity-badge">{{ ligne.quantite }} {{ ligne.unite or 'pièce(s)' }}</span>
+                        {% if ligne.stock %}
+                            <span class="lot-badge">Lot: {{ ligne.stock.numero_lot }}</span>
+                        {% else %}
+                            <span style="color:#999;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="quantity-badge">{{ ligne.quantite }} pièce(s)</span>
                     </td>
                     <td>
                         {% if ligne.numero_serie %}
@@ -561,13 +589,33 @@
                         {% endif %}
                     </td>
                     <td>{{ ligne.produit.marque or '-' }}</td>
-                    {% if ligne.produit.model %}
                     <td>{{ ligne.produit.model or '-' }}</td>
-                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    
+    <!-- RÉCAPITULATIF -->
+    <div class="summary-section">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">TOTAL PRODUITS</div>
+                <div class="summary-value">{{ bon.lignes|length }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">QUANTITÉ TOTALE</div>
+                <div class="summary-value">{{ bon.lignes|sum(attribute='quantite') }}</div>
+            </div>
+            {% if bon.commande %}
+            <div class="summary-card">
+                <div class="summary-label">PROGRESSION COMMANDE</div>
+                <div class="summary-value small">
+                    {{ bon.commande.quantite_totale_livree }}/{{ bon.commande.quantite_totale }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
     
     <!-- NOTES COMPLÉMENTAIRES -->
@@ -589,7 +637,9 @@
     </div>
     
     <!-- PIED DE PAGE -->
-    
+    <div class="mention">
+        <small>Merci de vérifier la conformité de la marchandise à réception.</small>
+    </div>
 </div>
 
 <!-- BOUTONS D'ACTION -->
@@ -601,9 +651,11 @@
     <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}" target="_blank" class="btn btn-success">
         🖨 Exporter en PDF
     </a>
-    <a href="{{ url_for('certificat_installation', id=bon.id) }}" target="_blank" class="btn btn-primary">
-        📄 Certificat d'installation
+    {% if bon.status == 'partielle' and bon.commande %}
+    <a href="{{ url_for('livraison_partielle', commande_id=bon.commande.id) }}" class="btn btn-warning">
+        ➕ Compléter la livraison
     </a>
+    {% endif %}
     <button onclick="window.print()" class="btn btn-info">
         🖨 Imprimer
     </button>

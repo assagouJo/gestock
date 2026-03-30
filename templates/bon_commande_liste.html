@@ -6,101 +6,226 @@
 
 <h4 class="fw-bold">Bons de commande</h4>
 
-<a href="{{ url_for('nouveau_bon_commande') }}" class="btn btn-primary mb-3">
-Nouveau bon
-</a>
+<div class="d-flex gap-2 mb-3">
+    <a href="{{ url_for('nouveau_bon_commande') }}" class="btn btn-primary">
+        ➕ Nouveau bon
+    </a>
+    
+    <button type="button" class="btn btn-danger" id="delete-selected-btn" style="display: none;" onclick="deleteSelected()">
+        🗑 Supprimer la sélection
+    </button>
+</div>
 
 {% if bons %}
 
+<form method="POST" id="delete-form" action="{{ url_for('delete_bons_commande') }}">
 <div class="card">
 
 <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
     <table class="table table-hover table-bordered align-middle">
         <thead class="table-dark sticky-top">
+            <th width="30">
+                <input type="checkbox" id="select-all">
+            </th>
+            <th>Numéro</th>
+            <th>Client</th>
+            <th>Quantité</th>
+            <th>Livré</th>
+            <th>Reste</th>
+            <th>BL associés</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </thead>
 
-<tr>
-<th>Numéro</th>
-<th>Client</th>
-<th>quantite</th>
-<th>Livré</th>
-<th>Reste</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for bon in bons %}
-
-<tr>
-
-<td class="small fw-light">{{ bon.numero }}</td>
-
-<td class="small fw-light">{{ bon.client.nom_client }}</td>
-
-<td>{{ bon.lignes | sum(attribute='quantite') }}</td>
-
-<td>
-{{ bon.lignes | sum(attribute='quantite_livree') }}
-</td>
-
-<td>
-{{ bon.lignes | sum(attribute='reste_a_livrer') }}
-</td>
-
-<td>
-
-<span class="badge
-{% if bon.status == 'livree' %}
-bg-success
-{% elif bon.status == 'livraison_partielle' %}
-bg-warning
-{% elif bon.status == 'annulee' %}
-bg-danger
-{% elif bon.status == 'confirmee' %}
-bg-info
-{% else %}
-bg-secondary
-{% endif %}
-">
-
-{{ bon.status }}
-
-</span>
-
-</td>
-
-<td>
-
-<a href="{{ url_for('details_bon_commande', bon_id=bon.id) }}"
-class="btn btn-sm btn-info">
-Voir
-</a>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+        <tbody>
+            {% for bon in bons %}
+            <tr>
+                <td class="text-center">
+                    <input type="checkbox" name="bon_ids[]" value="{{ bon.id }}" class="bon-checkbox">
+                 </td>
+                <td class="small fw-light">{{ bon.numero }}</td>
+                <td class="small fw-light">{{ bon.client.nom_client }}</td>
+                <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</td>
+                <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</td>
+                <td class="text-center">
+                    {% set reste = bon.lignes | sum(attribute='reste_a_livrer') %}
+                    {% if reste > 0 %}
+                        <span class="badge bg-warning text-dark">{{ reste }}</span>
+                    {% else %}
+                        <span class="badge bg-success">0</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if bon.livraisons|length > 0 %}
+                        <span class="badge bg-info">{{ bon.livraisons|length }} BL</span>
+                        <button type="button" class="btn btn-sm btn-link" onclick="showBLList({{ bon.livraisons|map(attribute='numero')|list|tojson }})">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    {% else %}
+                        <span class="badge bg-secondary">Aucun</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <span class="badge
+                        {% if bon.status == 'livree' %}
+                            bg-success
+                        {% elif bon.status == 'livraison_partielle' %}
+                            bg-warning text-dark
+                        {% elif bon.status == 'annulee' %}
+                            bg-danger
+                        {% elif bon.status == 'confirmee' %}
+                            bg-info
+                        {% else %}
+                            bg-secondary
+                        {% endif %}
+                    ">
+                        {{ bon.status }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('details_bon_commande', bon_id=bon.id) }}" 
+                           class="btn btn-sm btn-info" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if bon.status != 'livree' and bon.livraisons|length == 0 %}
+                        <a href="{{ url_for('modifier_bon_commande', bon_id=bon.id) }}" 
+                           class="btn btn-sm btn-warning" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% endif %}
+                        <button type="button" 
+                                onclick="confirmDelete({{ bon.id }}, '{{ bon.numero }}', {{ bon.livraisons|length }})" 
+                                class="btn btn-sm btn-danger" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 </div>
+</form>
 
 {% else %}
 
 <div class="alert alert-warning text-center">
-Aucun bon de commande enregistré.
+    Aucun bon de commande enregistré.
 </div>
 
 {% endif %}
 
 </div>
+
+<script>
+// Sélectionner tous les checkboxes
+document.getElementById('select-all')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.bon-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+    toggleDeleteButton();
+});
+
+// Gérer l'affichage du bouton de suppression multiple
+document.querySelectorAll('.bon-checkbox').forEach(cb => {
+    cb.addEventListener('change', toggleDeleteButton);
+});
+
+function toggleDeleteButton() {
+    const checkboxes = document.querySelectorAll('.bon-checkbox:checked');
+    const deleteBtn = document.getElementById('delete-selected-btn');
+    if (deleteBtn) {
+        deleteBtn.style.display = checkboxes.length > 0 ? 'inline-block' : 'none';
+    }
+}
+
+// Fonction pour confirmer la suppression
+function confirmDelete(bonId, bonNumero, blCount) {
+    let message = `Voulez-vous vraiment supprimer le bon de commande ${bonNumero} ?`;
+    
+    if (blCount > 0) {
+        message = `⚠️ ATTENTION : Le bon ${bonNumero} a ${blCount} bon(s) de livraison associé(s).\n\n`;
+        message += `La suppression est impossible tant que ces BL existent.\n`;
+        message += `Voulez-vous d'abord supprimer les BL associés ?\n\n`;
+        message += `(Cliquez sur OK pour aller voir les BL, Annuler pour rester)`;
+        
+        if (confirm(message)) {
+            // Rediriger vers les BL de cette commande
+            window.location.href = `/bon-livraison?commande_id=${bonId}`;
+        }
+        return;
+    }
+    
+    if (confirm(message)) {
+        // Créer un formulaire temporaire
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("delete_bons_commande") }}';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'bon_ids[]';
+        input.value = bonId;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Supprimer les bons sélectionnés
+function deleteSelected() {
+    const selected = document.querySelectorAll('.bon-checkbox:checked');
+    const selectedBons = [];
+    let hasBL = false;
+    
+    selected.forEach(cb => {
+        const row = cb.closest('tr');
+        const blCount = row.cells[6].innerText;
+        if (blCount !== 'Aucun' && !blCount.includes('0')) {
+            hasBL = true;
+        }
+        const bonNumero = row.cells[1].innerText;
+        selectedBons.push(bonNumero);
+    });
+    
+    if (selected.length === 0) {
+        alert('Veuillez sélectionner au moins un bon de commande');
+        return;
+    }
+    
+    if (hasBL) {
+        alert(`⚠️ Impossible de supprimer les bons sélectionnés car certains ont des bons de livraison associés.\n\nVeuillez d'abord supprimer les BL avant de supprimer les bons de commande.`);
+        return;
+    }
+    
+    if (confirm(`Voulez-vous vraiment supprimer ${selected.length} bon(s) de commande ?\n\n${selectedBons.join(', ')}`)) {
+        document.getElementById('delete-form').submit();
+    }
+}
+
+// Afficher la liste des BL
+function showBLList(blList) {
+    alert(`Bons de livraison associés :\n\n${blList.join('\n')}`);
+}
+</script>
+
+<style>
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .btn-link {
+        text-decoration: none;
+        padding: 0 5px;
+    }
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+</style>
 
 {% endblock %}

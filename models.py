@@ -618,6 +618,27 @@ class BonCommande(db.Model):
         back_populates="commande"
     )
 
+    @property
+    def quantite_totale(self):
+        """Quantité totale commandée"""
+        if not self.lignes:
+            return 0
+        return sum(ligne.quantite for ligne in self.lignes)
+    
+    @property
+    def quantite_totale_livree(self):
+        """Quantité totale déjà livrée"""
+        if not self.lignes:
+            return 0
+        return sum(ligne.quantite_livree for ligne in self.lignes)
+    
+    @property
+    def pourcentage_livre(self):
+        """Pourcentage de livraison"""
+        if self.quantite_totale == 0:
+            return 0
+        return (self.quantite_totale_livree / self.quantite_totale) * 100
+
 
 
 class LigneBonCommande(db.Model):
@@ -738,6 +759,7 @@ class BonLivraison(db.Model):
     
     
 
+# Ajouter dans LigneBonLivraison
 class LigneBonLivraison(db.Model):
     __tablename__ = "ligne_bon_livraison"
 
@@ -765,6 +787,13 @@ class LigneBonLivraison(db.Model):
     quantite = db.Column(db.Integer, nullable=False)
 
     numero_serie = db.Column(db.String(120))
+    
+    # 🔥 NOUVEAU : Lien vers le stock (lot) utilisé
+    stock_id = db.Column(
+        db.Integer,
+        db.ForeignKey("stock.id", name='fk_ligne_bon_livraison_stock'),
+        nullable=True  # Peut être null si pas de gestion de lot
+    )
 
     bon = db.relationship(
         "BonLivraison",
@@ -779,6 +808,12 @@ class LigneBonLivraison(db.Model):
     ligne_commande = db.relationship(
         "LigneBonCommande",
         back_populates="livraisons"
+    )
+    
+    # 🔥 NOUVEAU : Relation avec le stock
+    stock = db.relationship(
+        "Stock",
+        backref="lignes_bon_livraison"
     )
 
 # bon de livraison
