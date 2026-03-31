@@ -112,7 +112,9 @@
                                                 <option value="">Choisir</option>
                                                 {% for produit in produits %}
                                                 <option value="{{ produit.id }}" {% if produit.id == ligne.produit_id %}selected{% endif %}>
-                                                    {{ produit.nom_produit }}
+                                                    {{ produit.nom_produut }}
+                                                    {% if produit.marque %} - {{ produit.marque }}{% endif %}
+                                                    {% if produit.model %} - {{ produit.model }}{% endif %}
                                                 </option>
                                                 {% endfor %}
                                             </select>
@@ -161,12 +163,14 @@
                                 <tbody id="hors-bloc-lignes">
                                     {% for ligne in produits_hors_bloc %}
                                     <tr class="ligne-produit">
-                                        <td>
+                                        <tr>
                                             <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
                                                 <option value="">Choisir</option>
                                                 {% for produit in produits %}
                                                 <option value="{{ produit.id }}" {% if produit.id == ligne.produit_id %}selected{% endif %}>
                                                     {{ produit.nom_produit }}
+                                                    {% if produit.marque %} - {{ produit.marque }}{% endif %}
+                                                    {% if produit.model %} - {{ produit.model }}{% endif %}
                                                 </option>
                                                 {% endfor %}
                                             </select>
@@ -228,14 +232,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <!-- Passer les données produits au JavaScript -->
-
 <script>
-    // Définir les données produits une seule fois en dehors des fonctions
+    // Définir les données produits avec marque et modèle
     const produitsData = [
     {% for produit in produits %}
     {
         id: {{ produit.id }},
-        nom: "{{ produit.nom_produit|replace('"', '\\"')|safe }}"
+        nom: "{{ produit.nom_produit|replace('"', '\\"')|safe }}",
+        marque: "{{ produit.marque|replace('"', '\\"')|safe if produit.marque else '' }}",
+        model: "{{ produit.model|replace('"', '\\"')|safe if produit.model else '' }}"
     }{% if not loop.last %},{% endif %}
     {% endfor %}
 ];
@@ -245,9 +250,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     let blocCounter = {{ blocs_dict|length }};
     
+    // Fonction pour obtenir le nom complet du produit
+    function getNomComplet(produit) {
+        let nomComplet = produit.nom;
+        if (produit.marque && produit.marque !== 'null' && produit.marque !== '') {
+            nomComplet += ` - ${produit.marque}`;
+        }
+        if (produit.model && produit.model !== 'null' && produit.model !== '') {
+            nomComplet += ` - ${produit.model}`;
+        }
+        return nomComplet;
+    }
+    
+    // Fonction pour créer les options de produits
+    function getProduitsOptions(selectedId = null) {
+        let options = '<option value="">Choisir</option>';
+        produitsData.forEach(produit => {
+            const selected = (selectedId && produit.id === selectedId) ? 'selected' : '';
+            const nomComplet = getNomComplet(produit);
+            options += `<option value="${produit.id}" ${selected}>${nomComplet}</option>`;
+        });
+        return options;
+    }
+    
     // Initialiser Sortable pour le conteneur des blocs
     const blocsContainer = document.getElementById('blocsContainer');
-    let sortable = null;  // Ajouté pour éviter l'erreur "sortable declared but never used"
+    let sortable = null;
     
     if (blocsContainer) {
         sortable = new Sortable(blocsContainer, {
@@ -257,16 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 mettreAJourOrdreBlocs();
             }
         });
-    }
-    
-    // Fonction pour créer les options de produits
-    function getProduitsOptions(selectedId = null) {
-        let options = '<option value="">Choisir</option>';
-        produitsData.forEach(produit => {
-            const selected = (selectedId && produit.id === selectedId) ? 'selected' : '';
-            options += `<option value="${produit.id}" ${selected}>${produit.nom}</option>`;
-        });
-        return options;
     }
     
     // Fonction pour mettre à jour l'ordre des blocs
@@ -379,25 +397,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newRow = document.createElement('tr');
                 newRow.className = 'ligne-produit';
                 newRow.innerHTML = `
-                    <td>
-                        <select name="produit_${blocId}[]" class="form-select form-select-sm" required>
-                            ${getProduitsOptions()}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" name="quantite_${blocId}[]" class="form-control form-control-sm" value="1" min="1" required>
-                    </td>
-                    <td>
-                        <select name="type_${blocId}[]" class="form-select form-select-sm">
-                            <option value="principal">Principal</option>
-                            <option value="secondaire" selected>Accessoire</option>
-                        </select>
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm remove-ligne">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </td>
+                    <tr>
+                        <td>
+                            <select name="produit_${blocId}[]" class="form-select form-select-sm" required>
+                                ${getProduitsOptions()}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="quantite_${blocId}[]" class="form-control form-control-sm" value="1" min="1" required>
+                        </td>
+                        <td>
+                            <select name="type_${blocId}[]" class="form-select form-select-sm">
+                                <option value="principal">Principal</option>
+                                <option value="secondaire" selected>Accessoire</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
                 `;
                 tbody.appendChild(newRow);
                 attachLigneEvents(newRow);
@@ -463,19 +483,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const newRow = document.createElement('tr');
             newRow.className = 'ligne-produit';
             newRow.innerHTML = `
-                <td>
-                    <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
-                        ${getProduitsOptions()}
-                    </select>
-                </td>
-                <td>
-                    <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="1" min="1" required>
-                </td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-danger btn-sm remove-ligne">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </td>
+                <tr>
+                    <td>
+                        <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
+                            ${getProduitsOptions()}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="1" min="1" required>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
             `;
             tbody.appendChild(newRow);
             

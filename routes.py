@@ -464,15 +464,26 @@ def edit_produit(id):
             flash("Le nom du produit est obligatoire", "danger")
             return redirect(url_for('produit'))
         
-        # Vérifier si un autre produit avec le même nom existe (sauf celui-ci)
+        # ✅ Vérifier si un produit avec les mêmes caractéristiques existe (sauf celui-ci)
         existing = Produit.query.filter(
             Produit.nom_produit == nom_produit,
+            Produit.marque == marque,
+            Produit.model == model,
             Produit.id != id
         ).first()
         
         if existing:
-            flash(f"Un produit avec le nom '{nom_produit}' existe déjà", "danger")
+            flash(f"⚠️ Un produit '{nom_produit}' avec la même marque '{marque}' et le même modèle '{model}' existe déjà (Code: {existing.code_produit})", "danger")
             return redirect(url_for('produit'))
+        
+        # ✅ Vérifier si le nom existe avec des caractéristiques différentes (avertissement)
+        existing_name = Produit.query.filter(
+            Produit.nom_produit == nom_produit,
+            Produit.id != id
+        ).first()
+        
+        if existing_name and (existing_name.marque != marque or existing_name.model != model):
+            flash(f"⚠️ Attention : Un produit nommé '{nom_produit}' existe déjà avec une marque/modèle différent. Vous créez une variante.", "warning")
         
         # Mise à jour
         produit.nom_produit = nom_produit
@@ -599,7 +610,8 @@ def client():
      nouveau_client = Client(
       nom_client = form.nom_client.data,
       telephone = form.telephone.data,
-      adresse = form.adresse.data,      
+      adresse = form.adresse.data,
+      attn = form.attn.data
      )
      db.session.add(nouveau_client)
      db.session.commit()
@@ -2768,6 +2780,90 @@ def nouveau_kit_proforma():
     )
 
 
+@app.route("/kit-proforma/create", methods=["POST"])
+@login_required
+def create_kit_proforma():
+    try:
+        client_id = request.form.get("client_id")
+        prix_global = request.form.get("prix_global")
+        attn = request.form.get("attn")
+        condition_paiement = request.form.get("condition_paiement")
+        delai_livraison = request.form.get("delai_livraison")
+        garantie = request.form.get("garantie")
+
+        numero = f"{datetime.now().strftime('%Y%m%M%S')}"
+
+        # Création du kit
+        kit = KitProforma(
+            numero=numero,
+            client_id=client_id,
+            prix_global=prix_global,
+            attn=attn,
+            condition_paiement=condition_paiement,
+            delai_livraison=delai_livraison,
+            garantie=garantie
+        )
+        db.session.add(kit)
+        db.session.flush()
+
+        # Récupérer le nombre de blocs
+        bloc_indices = set()
+        for key in request.form.keys():
+            if key.startswith('produit_principal_'):
+                bloc_indices.add(int(key.split('_')[2]))
+        
+        # Pour chaque bloc
+        for i in sorted(bloc_indices):
+            # Récupérer le produit principal et sa quantité
+            produit_principal_id = request.form.get(f"produit_principal_{i}")
+            quantite_principale = request.form.get(f"quantite_principale_{i}", 1)
+            
+            if produit_principal_id and produit_principal_id.strip():
+                # Créer un nom de bloc basé sur le produit principal
+                produit = Produit.query.get(int(produit_principal_id))
+                nom_bloc = produit.nom_produit if produit else f"Bloc {i+1}"
+                
+                # Créer le bloc
+                bloc = BlocKit(
+                    kit_id=kit.id,
+                    nom=nom_bloc
+                )
+                db.session.add(bloc)
+                db.session.flush()
+                
+                # Ajouter la ligne pour le produit principal
+                ligne_principale = LigneKitProforma(
+                    kit_id=kit.id,
+                    bloc_id=bloc.id,
+                    produit_id=int(produit_principal_id),
+                    quantite=int(quantite_principale) if quantite_principale else 1
+                )
+                db.session.add(ligne_principale)
+                
+                # Récupérer les produits secondaires
+                produits_secondaires = request.form.getlist(f"produit_secondaire_{i}[]")
+                quantites_secondaires = request.form.getlist(f"quantite_secondaire_{i}[]")
+                
+                # Ajouter les produits secondaires
+                for j, produit_id in enumerate(produits_secondaires):
+                    if produit_id and produit_id.strip():
+                        quantite = quantites_secondaires[j] if j < len(quantites_secondaires) else 1
+                        ligne_secondaire = LigneKitProforma(
+                            kit_id=kit.id,
+                            bloc_id=bloc.id,
+                            produit_id=int(produit_id),
+                            quantite=int(quantite) if quantite else 1
+                        )
+                        db.session.add(ligne_secondaire)
+
+        db.session.commit()
+        flash(f"Kit proforma {kit.numero} créé avec succès!", "success")
+        return redirect(url_for("details_kit_proforma", kit_id=kit.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la création du kit: {str(e)}", "danger")
+        return redirect(url_for("nouveau_kit_proforma"))
 
 # Route pour modifier un kit
 @app.route('/modifier-kit-proforma/<int:kit_id>', methods=['GET', 'POST'])
@@ -2909,90 +3005,6 @@ def supprimer_kit_proforma(kit_id):
 
 
 
-@app.route("/kit-proforma/create", methods=["POST"])
-@login_required
-def create_kit_proforma():
-    try:
-        client_id = request.form.get("client_id")
-        prix_global = request.form.get("prix_global")
-        attn = request.form.get("attn")
-        condition_paiement = request.form.get("condition_paiement")
-        delai_livraison = request.form.get("delai_livraison")
-        garantie = request.form.get("garantie")
-
-        numero = f"{datetime.now().strftime('%Y%m%M%S')}"
-
-        # Création du kit
-        kit = KitProforma(
-            numero=numero,
-            client_id=client_id,
-            prix_global=prix_global,
-            attn=attn,
-            condition_paiement=condition_paiement,
-            delai_livraison=delai_livraison,
-            garantie=garantie
-        )
-        db.session.add(kit)
-        db.session.flush()
-
-        # Récupérer le nombre de blocs
-        bloc_indices = set()
-        for key in request.form.keys():
-            if key.startswith('produit_principal_'):
-                bloc_indices.add(int(key.split('_')[2]))
-        
-        # Pour chaque bloc
-        for i in sorted(bloc_indices):
-            # Récupérer le produit principal et sa quantité
-            produit_principal_id = request.form.get(f"produit_principal_{i}")
-            quantite_principale = request.form.get(f"quantite_principale_{i}", 1)
-            
-            if produit_principal_id and produit_principal_id.strip():
-                # Créer un nom de bloc basé sur le produit principal
-                produit = Produit.query.get(int(produit_principal_id))
-                nom_bloc = produit.nom_produit if produit else f"Bloc {i+1}"
-                
-                # Créer le bloc
-                bloc = BlocKit(
-                    kit_id=kit.id,
-                    nom=nom_bloc
-                )
-                db.session.add(bloc)
-                db.session.flush()
-                
-                # Ajouter la ligne pour le produit principal
-                ligne_principale = LigneKitProforma(
-                    kit_id=kit.id,
-                    bloc_id=bloc.id,
-                    produit_id=int(produit_principal_id),
-                    quantite=int(quantite_principale) if quantite_principale else 1
-                )
-                db.session.add(ligne_principale)
-                
-                # Récupérer les produits secondaires
-                produits_secondaires = request.form.getlist(f"produit_secondaire_{i}[]")
-                quantites_secondaires = request.form.getlist(f"quantite_secondaire_{i}[]")
-                
-                # Ajouter les produits secondaires
-                for j, produit_id in enumerate(produits_secondaires):
-                    if produit_id and produit_id.strip():
-                        quantite = quantites_secondaires[j] if j < len(quantites_secondaires) else 1
-                        ligne_secondaire = LigneKitProforma(
-                            kit_id=kit.id,
-                            bloc_id=bloc.id,
-                            produit_id=int(produit_id),
-                            quantite=int(quantite) if quantite else 1
-                        )
-                        db.session.add(ligne_secondaire)
-
-        db.session.commit()
-        flash(f"Kit proforma {kit.numero} créé avec succès!", "success")
-        return redirect(url_for("details_kit_proforma", kit_id=kit.id))
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Erreur lors de la création du kit: {str(e)}", "danger")
-        return redirect(url_for("nouveau_kit_proforma"))
 
 
 @app.route("/kit-proforma")
