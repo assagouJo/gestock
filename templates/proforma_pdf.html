@@ -3,7 +3,7 @@
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
 <style>
-    /* Styles simples et propres */
+    /* Styles identiques à kit_proforma */
     * {
         box-sizing: border-box;
         margin: 0;
@@ -26,8 +26,8 @@
     }
     
     .left img {
-        max-height: 70px;
-        width: auto;
+        height: 80px;
+        width: 80px;
     }
     
     .right {
@@ -55,8 +55,8 @@
         display: flex;
         justify-content: space-between;
         background: #f2f2f2;
-        padding: 10px 15px;
-        margin-bottom: 20px;
+        padding: 5px;
+        margin-bottom: 8px;
         border-radius: 4px;
     }
     
@@ -64,8 +64,8 @@
         display: flex;
         justify-content: space-between;
         border: 1px solid #999;
-        padding: 15px;
-        margin-bottom: 20px;
+        padding: 5px;
+        margin-bottom: 8px;
         border-radius: 4px;
     }
     
@@ -74,7 +74,7 @@
     }
     
     .conditions-box {
-        margin-bottom: 20px;
+        margin-bottom: 5px;
     }
     
     .conditions-table {
@@ -83,7 +83,7 @@
     }
     
     .conditions-table td {
-        padding: 8px 10px;
+        padding: 5px;
         border: 1px solid #999;
     }
     
@@ -105,8 +105,7 @@
         color: white;
         padding: 10px;
         text-align: left;
-        font-size: 11px;
-        text-transform: uppercase;
+        font-size: 12px;
     }
     
     .table-produits td {
@@ -116,77 +115,61 @@
     }
     
     .col-photo {
-        width: 100px;
+        width: 25%;
         text-align: center;
+
     }
     
     .col-produit {
-        width: 30%;
+        width: 35%;
     }
     
-    .col-quantite, .col-prix {
-        width: 5%;
+    .col-quantite  {
+        width: 10%;
         text-align:center;
     }
     
-    .col-soustotal {
-        width: 12%;
+    .col-soustotal .col-prix{
+        width: 15%;
         text-align: right;
     }
     
     .produit-photo {
-        width: 130px;
-        height: 130px;
+        width: 140px;
+        height: 140px;
         object-fit: cover;
-       
-    }
-    
-    .no-photo {
-        width: 60px;
-        height: 60px;
-        background: #f0f0f0;
         border: 1px solid #ddd;
         border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        color: #999;
-        margin: 0 auto;
+         border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
     
-    .produit-info {
-        margin-bottom: 5px;
-    }
+
     
     .produit-nom {
         font-weight: bold;
-        font-size: 13px;
+        font-size: 16px;
+        display: block;
+        margin-bottom: 5px;
     }
     
-    .produit-details {
-        display: flex; 
-        justify-content: start; 
-        align-items: center;
+    .details-vertical {
+        margin-top: 8px;
+    }
+    
+    .detail-item {
+        margin-bottom: 4px;
         font-size: 11px;
-        color: #555;
-        margin-top: 3px;
+        line-height: 1.4;
     }
     
-    /* .produit-details span {
+    .detail-label {
+        font-weight: bold;
+        min-width: 20px;
         display: inline-block;
-        margin-right: 10px;
-    } */
-    
-    .produit-caracs {
-        margin-top: 5px;
-        padding-left: 15px;
-        font-size: 10px;
     }
     
-    .produit-caracs li {
-        margin-bottom: 2px;
-    }
     
     .total-row {
         background: #f2f2f2;
@@ -194,7 +177,7 @@
     }
     
     .total-row td {
-        padding: 12px 8px !important;
+        padding: 6px !important;
     }
     
     .total-row .total {
@@ -204,10 +187,11 @@
     
     .montant-lettre {
         background: #f9f9f9;
-        padding: 5px;
+        padding: 10px 15px;
         margin-bottom: 10px;
         border-left: 4px solid #333;
         font-size: 13px;
+        border-radius: 4px;
     }
     
     .montant-lettre p {
@@ -222,7 +206,7 @@
     .footer {
         display: flex;
         justify-content: space-between;
-        margin-top: 30px;
+        margin-top: 20px;
         padding-top: 5px;
     }
     
@@ -237,11 +221,6 @@
         text-transform: uppercase;
     }
     
-    .signature-line {
-        margin-top: 30px;
-        font-size: 10px;
-        color: #666;
-    }
     
     .mention {
         text-align: center;
@@ -297,24 +276,24 @@
 
 <!-- INFOS PROFORMA -->
 <div class="info-doc">
-    <div><strong>Date :</strong> {{ proforma.date.strftime('%d/%m/%Y') if proforma.date else '' }}</div>
-    <div><strong>N° :</strong> {{ proforma.numero }}</div>
+    <div><span style="font-size: 12px;">Date : {{ proforma.date.strftime('%d/%m/%Y') if proforma.date else '' }}</span></div>
+    <div><span style="font-size: 12px;">N° :{{ proforma.numero }}</span></div>
 </div>
 
 <!-- INFOS CLIENT -->
 <div class="client-box">
     <div>
-        <strong>DOIT :</strong> <span style="font-size: 13px;color: red;">{{ proforma.client.nom_client if proforma.client else '' }}</span><br>
+        <span style="font-size: 14px;">DOIT :</span> <strong style="font-size: 12px;color: red;">{{ proforma.client.nom_client if proforma.client else '' }}</strong><br>
         {% if proforma.client and proforma.attn %}
-        <strong>ATTN :</strong> {{ proforma.attn or '' }}
+        <span style="font-size: 14px;">ATTN :</span> <span style="font-size: 12px;">{{ proforma.attn or '' }}</span>
         {% endif %}
     </div>
     <div>
         {% if proforma.client and proforma.client.telephone %}
-        <strong>Tél :</strong> {{ proforma.client.telephone if proforma.client else '' }}<br>
+        <span style="font-size: 14px;">Tél : {{ proforma.client.telephone if proforma.client else '' }} </span><br>
         {% endif %}
         {% if proforma.client and proforma.client.adresse %}
-        <strong>Ville :</strong> {{ proforma.client.adresse if proforma.client else '' }}
+        <span style="font-size: 14px;">Ville : {{ proforma.client.adresse if proforma.client else '' }} </span>
         {% endif %}
     </div>
 </div>
@@ -351,10 +330,10 @@
 <table class="table-produits">
     <thead>
         <tr>
-            <th class="col-produit">DÉSIGNATION</th>
-            <th class="col-quantite">QTÉ</th>
+            <th class="col-produit">Désignation</th>
+            <th class="col-quantite">Quantité</th>
             <th class="col-prix">P.U (F CFA)</th>
-            <th class="col-soustotal">SOUS-TOTAL (F CFA)</th>
+            <th class="col-soustotal">Sous-Total(F CFA)</th>
             <th class="col-photo"></th>
         </tr>
     </thead>
@@ -363,32 +342,45 @@
         <tr>                       
             <!-- COLONNE PRODUIT -->
             <td class="col-produit">
-                <div class="produit-info">
-                    <span class="produit-nom">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</span>                                    
+                <div>
+                    <span class="produit-nom">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</span>
+                    
                     {% if ligne.produit %}
-                        {% if ligne.produit.marque or ligne.produit.model or ligne.produit.origine %}
-                        <div class="produit-details" >
-                            {% if ligne.produit.marque %}<span><strong>Marque: </strong>{{ ligne.produit.marque }}</span>{% endif %}
-                            {% if ligne.produit.model %}<span><strong>Modèle: </strong>{{ ligne.produit.model }}</span>{% endif %}
-                            {% if ligne.produit.origine %}<span><strong>Origine: </strong>{{ ligne.produit.origine }}</span>{% endif %}
+                    <div class="details-vertical">
+                        {% if ligne.produit.marque %}
+                        <div class="detail-item">
+                            <span class="detail-label">Marque :</span>
+                            <span class="detail-value">{{ ligne.produit.marque }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if ligne.produit.model %}
+                        <div class="detail-item">
+                            <span class="detail-label">Modèle :</span>
+                            <span class="detail-value">{{ ligne.produit.model }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if ligne.produit.origine %}
+                        <div class="detail-item">
+                            <span class="detail-label">Origine :</span>
+                            <span class="detail-value">{{ ligne.produit.origine }}</span>
                         </div>
                         {% endif %}
                         
                         {% if ligne.produit.description %}
-                        <div class="produit-caracs">
-                            <strong>Caractéristiques:</strong><br>
-                           <ul style="margin: 5px 0 0 20px; padding-left: 0; list-style-type: disc;">
-                                {# Remplacer d'abord les points par des virgules, puis splitter #}
-                                {% set desc_with_commas = produit_principal.produit.description.replace('.', ',') %}
-                                {% for desc in desc_with_commas.split(',') %}
-                                    {% set desc_clean = desc.strip() %}
-                                    {% if desc_clean and desc_clean != '.' %}
-                                        <li style="font-size: 12px; margin-bottom: 3px;">{{ desc_clean }}</li>
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
-                                                </div>
+                        <div class="detail-item">
+                            <span class="detail-label desc">Description:</span><br>
+                                <ul style="margin: 5px 0 0 20px; padding-left: 0;">
+                                    {% for desc in ligne.produit.description.split(',') %}
+                                        {% if desc.strip() %}
+                                        <li style="font-size: 12px; margin-bottom: 3px;">{{ desc.strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                        </div>
                         {% endif %}
+                    </div>
                     {% endif %}
                 </div>
             </td>
@@ -401,15 +393,15 @@
             
             <!-- SOUS-TOTAL -->
             <td class="col-soustotal">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }}</td>
-             <!-- COLONNE PHOTO -->
+            
+            <!-- COLONNE PHOTO -->
             <td class="col-photo">
                 {% if ligne.produit and ligne.produit.image %}
                     <img src="{{ ligne.produit.image }}" 
                          alt="{{ ligne.produit.nom_produit }}"
-                         class="produit-photo"
-                         onerror="this.onerror=null; this.style.display='none'; this.parentNode.innerHTML='<div class=\'no-photo\'>Pas d\'image</div>';">
+                         class="produit-photo">
                 {% else %}
-                    <p></p>
+                    <div>-</div>
                 {% endif %}
             </td>
         </tr>
@@ -427,7 +419,7 @@
 <div class="montant-lettre">
     <p>
         <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <span style="font-style: italic; color: red;font-size: 14px;">{{ total_lettre }} francs CFA</span>
+        <strong style="font-style: italic; color: red; font-size: 16px;">{{ total_lettre }} francs CFA</strong>
     </p>
 </div>
 
@@ -440,6 +432,5 @@
         <strong>LE RESPONSABLE COMMERCIAL</strong>
     </div>
 </div>
-
 
 {% endblock %}
