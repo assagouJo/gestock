@@ -7,7 +7,7 @@ Create Date: 2026-04-01 12:18:00.338619
 """
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.sql import text
 
 # revision identifiers, used by Alembic.
 revision = '82a7a69e2896'
@@ -17,28 +17,43 @@ depends_on = None
 
 
 def upgrade():
-    # ... votre code existant ...
-    
-    # 🔥 Remplacer INSERT OR IGNORE par la syntaxe PostgreSQL
+    # 🔥 1. Insérer les données par défaut avec TOUTES les colonnes requises
+    # Pour la compagnie
     op.execute("""
         INSERT INTO vendeur_compagnie (id, nom)
         VALUES (1, 'Compagnie par défaut')
         ON CONFLICT (id) DO NOTHING
     """)
     
-    # Même chose pour vendeur si nécessaire
-    op.execute("""
-        INSERT INTO vendeur (id, nom)
-        VALUES (1, 'Vendeur par défaut')
-        ON CONFLICT (id) DO NOTHING
-    """)
+    # 🔥 Pour le vendeur - inclure telephone et autres colonnes requises
+    # D'abord, vérifions quelles colonnes existent dans la table vendeur
+    conn = op.get_bind()
     
-    # Étape 2: Ajouter les colonnes comme NULL d'abord
+    # Vérifier si la colonne telephone existe
+    inspector = sa.inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns('vendeur')]
+    
+    # Construire la requête d'insertion en fonction des colonnes disponibles
+    if 'telephone' in columns:
+        op.execute("""
+            INSERT INTO vendeur (id, nom, telephone, email, adresse)
+            VALUES (1, 'Vendeur par défaut', '00000000', 'vendeur@default.com', 'Adresse par défaut')
+            ON CONFLICT (id) DO NOTHING
+        """)
+    else:
+        # Si telephone n'existe pas encore, insérer seulement ce qui est disponible
+        op.execute("""
+            INSERT INTO vendeur (id, nom)
+            VALUES (1, 'Vendeur par défaut')
+            ON CONFLICT (id) DO NOTHING
+        """)
+    
+    # 🔥 2. Ajouter les colonnes dans bon_commande
     with op.batch_alter_table('bon_commande', schema=None) as batch_op:
         batch_op.add_column(sa.Column('vendeur_id', sa.Integer(), nullable=True))
         batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=True))
     
-    # Étape 3: Mettre à jour les données existantes avec les valeurs par défaut
+    # 🔥 3. Mettre à jour les données existantes avec les valeurs par défaut
     op.execute("""
         UPDATE bon_commande 
         SET vendeur_id = 1,
@@ -46,17 +61,17 @@ def upgrade():
         WHERE vendeur_id IS NULL
     """)
     
-    # Étape 4: Ajouter les clés étrangères
+    # 🔥 4. Ajouter les clés étrangères
     with op.batch_alter_table('bon_commande', schema=None) as batch_op:
         batch_op.create_foreign_key('fk_bon_commande_vendeur_id', 'vendeur', ['vendeur_id'], ['id'])
         batch_op.create_foreign_key('fk_bon_commande_compagnie_id', 'vendeur_compagnie', ['compagnie_id'], ['id'])
     
-    # Étape 5: Rendre les colonnes NOT NULL
+    # 🔥 5. Rendre les colonnes NOT NULL
     with op.batch_alter_table('bon_commande', schema=None) as batch_op:
         batch_op.alter_column('vendeur_id', nullable=False)
         batch_op.alter_column('compagnie_id', nullable=False)
     
-    # Étape 6: Ajouter la colonne dans ligne_bon_commande
+    # 🔥 6. Ajouter la colonne dans ligne_bon_commande
     with op.batch_alter_table('ligne_bon_commande', schema=None) as batch_op:
         batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=True))
     
@@ -72,7 +87,7 @@ def upgrade():
         batch_op.create_foreign_key('fk_ligne_bon_commande_compagnie_id', 'vendeur_compagnie', ['compagnie_id'], ['id'])
         batch_op.alter_column('compagnie_id', nullable=False)
     
-    # Étape 7: Ajouter la colonne dans produit
+    # 🔥 7. Ajouter la colonne dans produit
     with op.batch_alter_table('produit', schema=None) as batch_op:
         batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=True))
     
@@ -88,7 +103,7 @@ def upgrade():
         batch_op.create_foreign_key('fk_produit_compagnie_id', 'vendeur_compagnie', ['compagnie_id'], ['id'])
         batch_op.alter_column('compagnie_id', nullable=False)
     
-    # Étape 8: Ajouter la colonne dans vendeur
+    # 🔥 8. Ajouter la colonne dans vendeur
     with op.batch_alter_table('vendeur', schema=None) as batch_op:
         batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=True))
     
@@ -104,7 +119,7 @@ def upgrade():
         batch_op.create_foreign_key('fk_vendeur_compagnie_id', 'vendeur_compagnie', ['compagnie_id'], ['id'])
         batch_op.alter_column('compagnie_id', nullable=False)
     
-    # Étape 9: Ajouter l'index pour vente
+    # 🔥 9. Ajouter l'index pour vente
     with op.batch_alter_table('vente', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_vente_bon_livraison_id'), ['bon_livraison_id'], unique=False)
 
