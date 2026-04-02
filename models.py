@@ -84,12 +84,6 @@ class Produit(db.Model):
     model = db.Column(db.String(128), index=True)
     marque = db.Column(db.String(128), index=True)
 
-    compagnie_id = db.Column(
-        db.Integer,
-        db.ForeignKey("vendeur_compagnie.id", name="fk_produit_compagnie_id"),  # Nom explicite
-        nullable=False
-    )
-
     code_produit = db.Column(db.String(256), unique=True, nullable=False)
 
     description = db.Column(db.Text)

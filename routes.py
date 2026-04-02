@@ -454,6 +454,8 @@ def produit():
     
     return render_template('produit.html', form=form, produits=produits)
 
+
+
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
 def edit_produit(id):
