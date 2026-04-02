@@ -134,7 +134,7 @@
                             </button>
                         {% endif %}
                         {% if bon.status == 'confirmee' %}
-                            <a href="{{ url_for('creer_bon_livraison_depuis_commande', commande_id=bon.id) }}" 
+                            <a href="{{ url_for('create_bon_livraison', commande_id=bon.id) }}" 
                                class="btn btn-sm btn-primary" title="Créer BL">
                                 <i class="bi bi-truck"></i>
                             </a>
