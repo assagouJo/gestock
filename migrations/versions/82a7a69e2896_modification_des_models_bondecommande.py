@@ -17,17 +17,20 @@ depends_on = None
 
 
 def upgrade():
-    # Étape 1: Créer des données par défaut
-    # Créer une compagnie par défaut
+    # ... votre code existant ...
+    
+    # 🔥 Remplacer INSERT OR IGNORE par la syntaxe PostgreSQL
     op.execute("""
-        INSERT OR IGNORE INTO vendeur_compagnie (id, nom) 
+        INSERT INTO vendeur_compagnie (id, nom)
         VALUES (1, 'Compagnie par défaut')
+        ON CONFLICT (id) DO NOTHING
     """)
     
-    # Créer un vendeur par défaut
+    # Même chose pour vendeur si nécessaire
     op.execute("""
-        INSERT OR IGNORE INTO vendeur (id, nom, telephone) 
-        VALUES (1, 'Vendeur par défaut', '00000000')
+        INSERT INTO vendeur (id, nom)
+        VALUES (1, 'Vendeur par défaut')
+        ON CONFLICT (id) DO NOTHING
     """)
     
     # Étape 2: Ajouter les colonnes comme NULL d'abord
