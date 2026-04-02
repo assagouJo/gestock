@@ -31,6 +31,48 @@
     </div>
 </div>
 
+<!-- ================================================= -->
+<!-- 🔥 FORMULAIRE POUR COMPLÉTER VENDEUR ET COMPAGNIE -->
+<!-- ================================================= -->
+{% if not vente.vendeur_id or not vente.compagnie_id %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Information manquante :</strong> Cette vente provient d'un bon de livraison. Veuillez sélectionner le vendeur et la compagnie.
+</div>
+
+<form method="POST" action="{{ url_for('completer_vente_vendeur_compagnie', vente_id=vente.id) }}" class="card card-body mb-4 bg-light">
+    <h5 class="fw-bold mb-3">👤 Informations de la vente</h5>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label fw-bold">Vendeur <span class="text-danger">*</span></label>
+            <select name="vendeur_id" class="form-select" required>
+                <option value="">-- Sélectionnez un vendeur --</option>
+                {% for v in vendeurs %}
+                    <option value="{{ v.id }}">{{ v.nom }} - {{ v.telephone }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label class="form-label fw-bold">Compagnie <span class="text-danger">*</span></label>
+            <select name="compagnie_id" class="form-select" required>
+                <option value="">-- Sélectionnez une compagnie --</option>
+                {% for c in compagnies %}
+                    <option value="{{ c.id }}">{{ c.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary">
+            💾 Enregistrer et continuer
+        </button>
+    </div>
+</form>
+{% endif %}
+
 <hr>
 
 <!-- ========================= -->
@@ -53,7 +95,7 @@
 <!-- ========================= -->
 <!-- 🔹 FORMULAIRE DE PAIEMENT -->
 <!-- ========================= -->
-{% if vente.statut_paiement != "paye" %}
+{% if vente.statut_paiement != "paye" and vente.vendeur_id and vente.compagnie_id %}
 <form method="POST"
       action="{{ url_for('ajouter_paiement', vente_id=vente.id) }}"
       class="card card-body mb-4">
@@ -97,6 +139,11 @@
         </div>
     </div>
 </form>
+{% elif vente.statut_paiement != "paye" %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    Veuillez d'abord sélectionner le vendeur et la compagnie pour pouvoir effectuer le paiement.
+</div>
 {% endif %}
 
 <!-- ========================= -->
@@ -128,7 +175,7 @@
                 {% if p.reference_paiement %} 
                     - №  {{ p.reference_paiement }}
                 {% endif %}
-            </td>
+             </td>
 
             <td>
                 {% if p.annule %}
@@ -138,7 +185,7 @@
                 {% else %}
                     <span class="badge bg-success">Valide</span>
                 {% endif %}
-            </td>
+             </td>
 
             <td>
                 {% if not p.annule and p.montant > 0 %}
@@ -152,14 +199,14 @@
                 {% else %}
                     —
                 {% endif %}
-            </td>
-        </tr>
+             </td>
+         </tr>
     {% else %}
-        <tr>
+         <tr>
             <td colspan="5" class="text-center text-muted">
                 Aucun paiement enregistré
-            </td>
-        </tr>
+             </td>
+         </tr>
     {% endfor %}
     </tbody>
 </table>
@@ -174,23 +221,23 @@
      </a>
  </div>
 
- <script>
+<script>
     const modeSelect = document.getElementById("mode");
     const referenceField = document.getElementById("referenceField");
     const referenceInput = document.getElementById("referenceInput");
 
-    modeSelect.addEventListener("change", function() {
-
-        if (this.value === "cheque" || this.value === "virement") {
-            referenceField.style.display = "block";
-            referenceInput.required = true;
-        } else {
-            referenceField.style.display = "none";
-            referenceInput.required = false;
-            referenceInput.value = "";
-        }
-
-    });
+    if (modeSelect) {
+        modeSelect.addEventListener("change", function() {
+            if (this.value === "cheque" || this.value === "virement") {
+                referenceField.style.display = "block";
+                referenceInput.required = true;
+            } else {
+                referenceField.style.display = "none";
+                referenceInput.required = false;
+                referenceInput.value = "";
+            }
+        });
+    }
 </script>
 
 {% endblock %}

@@ -300,6 +300,9 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Données des stocks disponibles
   const stocksData = {{ stocks_data|tojson }};
+  
+  // 🔥 NOUVEAU: Données des prix par stock (si vous les passez depuis la route)
+  const prixParStock = {{ prix_par_stock|tojson if prix_par_stock else '{}' }};
 
   // Ajouter nouvelle ligne
   btnAjouter.addEventListener("click", () => {
@@ -309,6 +312,9 @@ document.addEventListener("DOMContentLoaded", () => {
       s.innerHTML = s.querySelector("option").outerHTML;
       s.selectedIndex = 0;
     });
+    // Réinitialiser le champ prix
+    const prixInput = ligne.querySelector('input[name="prix_unitaire[]"]');
+    if (prixInput) prixInput.value = "";
     tbody.appendChild(ligne);
   });
 
@@ -351,7 +357,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (stock.produit_id == produitId && 
           stock.type_conditionnement === conditionnement && 
           stock.quantite > 0) {
-        options += `<option value="${stock.id}" data-quantite="${stock.quantite}">${stock.numero_lot} (${stock.quantite} restant)</option>`;
+        options += `<option value="${stock.id}" 
+                           data-quantite="${stock.quantite}"
+                           data-prix="${prixParStock[stock.id] || '0'}">${stock.numero_lot} (${stock.quantite} restant)</option>`;
       }
     });
     lotSelect.innerHTML = options;
@@ -387,14 +395,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     
-    // Changement de lot - mettre à jour la quantité max disponible
+    // 🔥 Changement de lot - mettre à jour le prix automatiquement
     if (e.target.classList.contains("stock-select")) {
       const selectedOption = e.target.options[e.target.selectedIndex];
       const quantiteMax = selectedOption.getAttribute("data-quantite");
+      const prix = selectedOption.getAttribute("data-prix");
       const quantiteInput = row.querySelector('input[name="quantite[]"]');
+      const prixInput = row.querySelector('input[name="prix_unitaire[]"]');
+      
       if (quantiteMax) {
         quantiteInput.max = quantiteMax;
         quantiteInput.placeholder = `Max: ${quantiteMax}`;
+      }
+      
+      // 🔥 Auto-remplir le prix si disponible
+      if (prix && prix > 0) {
+        prixInput.value = parseFloat(prix).toFixed(0);
+      } else {
+        prixInput.value = "";
       }
     }
   });

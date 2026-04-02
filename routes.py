@@ -13,7 +13,7 @@ from cloudinary.uploader import upload
 from decimal import Decimal
 from sqlalchemy import func, exists
 from sqlalchemy.exc import SQLAlchemyError
-from helper import generate_code_proforma, generate_numero_facture, generate_code_produit, generate_code_bon_commande, generate_code_bon_livraison
+from helper import verifier_vente_existante, generate_numero_facture, generate_code_produit, generate_code_bon_commande, generate_code_bon_livraison
 from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
@@ -235,12 +235,21 @@ def delete_users():
     return redirect(url_for('user'))
 
 
-
 @app.route("/dashboard")
 @login_required
 def dashboard():
-
-    ventes = Vente.query.all()
+    from models import LigneVente, Produit, Stock
+    from sqlalchemy.orm import joinedload
+    
+    # =========================
+    # 🔹 CHARGEMENT DES DONNÉES AVEC OPTIMISATION
+    # =========================
+    ventes = Vente.query.options(
+        joinedload(Vente.client),
+        joinedload(Vente.lignes).joinedload(LigneVente.stock).joinedload(Stock.produit),
+        joinedload(Vente.vendeur)
+    ).all()
+    
     achats = Achat.query.all()
     vendeurs = Vendeur.query.all()
     clients = Client.query.all()
@@ -250,9 +259,9 @@ def dashboard():
     # =========================
     
     # Calcul des totaux
-    total_ventes = sum(v.total or 0 for v in ventes)
-    total_achats = sum(a.total_ttc or 0 for a in achats)
-    total_dettes = sum(sum(v.reste_a_payer or 0 for v in client.ventes) for client in clients)
+    total_ventes = sum(float(v.total or 0) for v in ventes)
+    total_achats = sum(float(a.total_ttc or 0) for a in achats)
+    total_dettes = sum(sum(float(v.reste_a_payer or 0) for v in client.ventes) for client in clients)
     nb_vendeurs = len(vendeurs)
     
     # Moyenne des ventes par vendeur
@@ -263,11 +272,11 @@ def dashboard():
     mois_courant = maintenant.month
     mois_precedent = mois_courant - 1 if mois_courant > 1 else 12
     
-    ventes_mois_courant = sum(v.total or 0 for v in ventes if v.date_vente and v.date_vente.month == mois_courant)
-    ventes_mois_precedent = sum(v.total or 0 for v in ventes if v.date_vente and v.date_vente.month == mois_precedent)
+    ventes_mois_courant = sum(float(v.total or 0) for v in ventes if v.date_vente and v.date_vente.month == mois_courant)
+    ventes_mois_precedent = sum(float(v.total or 0) for v in ventes if v.date_vente and v.date_vente.month == mois_precedent)
     
-    achats_mois_courant = sum(a.total_ttc or 0 for a in achats if a.date_achat and a.date_achat.month == mois_courant)
-    achats_mois_precedent = sum(a.total_ttc or 0 for a in achats if a.date_achat and a.date_achat.month == mois_precedent)
+    achats_mois_courant = sum(float(a.total_ttc or 0) for a in achats if a.date_achat and a.date_achat.month == mois_courant)
+    achats_mois_precedent = sum(float(a.total_ttc or 0) for a in achats if a.date_achat and a.date_achat.month == mois_precedent)
     
     trend_ventes = ((ventes_mois_courant - ventes_mois_precedent) / ventes_mois_precedent * 100) if ventes_mois_precedent > 0 else 0
     trend_achats = ((achats_mois_courant - achats_mois_precedent) / achats_mois_precedent * 100) if achats_mois_precedent > 0 else 0
@@ -311,7 +320,7 @@ def dashboard():
     # Trier les clients par dette décroissante
     clients_avec_dettes = []
     for client in clients:
-        total_reste = sum(v.reste_a_payer or 0 for v in client.ventes)
+        total_reste = sum(float(v.reste_a_payer or 0) for v in client.ventes)
         if total_reste > 0:  # Ne montrer que les clients avec des dettes
             clients_avec_dettes.append((client.nom_client, float(total_reste)))
     
@@ -334,7 +343,7 @@ def dashboard():
     # Trier les vendeurs par performance
     vendeurs_performance = []
     for vendeur in vendeurs:
-        total_vendeur = sum(v.total or 0 for v in vendeur.ventes)
+        total_vendeur = sum(float(v.total or 0) for v in vendeur.ventes)
         if total_vendeur > 0:  # Ne montrer que les vendeurs avec des ventes
             vendeurs_performance.append((vendeur.nom, float(total_vendeur)))
     
@@ -345,16 +354,16 @@ def dashboard():
     vendeur_data = [v[1] for v in vendeurs_performance]
 
     # =========================
-    # 🔹 TOP 5 PRODUITS LES PLUS VENDUS
+    # 🔹 TOP 5 PRODUITS LES PLUS VENDUS (CORRIGÉ)
     # =========================
-    top_produits = []
-    from models import LigneVente, Produit
-    
     produits_vendus = defaultdict(int)
+    
     for vente in ventes:
-        for ligne in vente.lignes_vente:  # Assurez-vous que la relation existe
-            if ligne.produit:
-                produits_vendus[ligne.produit.nom] += ligne.quantite or 0
+        for ligne in vente.lignes:  # Utilisez 'lignes' au lieu de 'lignes_vente'
+            # Accès correct au produit via stock.produit
+            if ligne.stock and ligne.stock.produit:
+                nom_produit = ligne.stock.produit.nom_produit
+                produits_vendus[nom_produit] += ligne.quantite or 0
     
     # Trier et prendre les 5 premiers
     top_produits = sorted(produits_vendus.items(), key=lambda x: x[1], reverse=True)[:5]
@@ -368,11 +377,11 @@ def dashboard():
         dettes_data=dettes_data,
         vendeur_labels=vendeur_labels,
         vendeur_data=vendeur_data,
-        total_ventes=total_ventes,
-        total_achats=total_achats,
-        total_dettes=total_dettes,
+        total_ventes=round(total_ventes, 2),
+        total_achats=round(total_achats, 2),
+        total_dettes=round(total_dettes, 2),
         nb_vendeurs=nb_vendeurs,
-        moyenne_ventes_vendeur=moyenne_ventes_vendeur,
+        moyenne_ventes_vendeur=round(moyenne_ventes_vendeur, 2),
         trend_ventes=round(trend_ventes, 1),
         trend_achats=round(trend_achats, 1),
         taux_recouvrement=round(taux_recouvrement, 1),
@@ -1182,6 +1191,174 @@ def nouvelle_vente():
     )
 
 
+
+@app.route('/bon-livraison/creer-vente/<int:bon_id>')
+@login_required
+def creer_vente_depuis_bon(bon_id):
+    """Crée une vente à partir d'un bon de livraison"""
+    try:
+        bon = BonLivraison.query.get_or_404(bon_id)
+        
+        # Vérifications
+        vente_existante = Vente.query.filter_by(bon_livraison_id=bon_id).first()
+        if vente_existante:
+            flash(f"⚠️ Une vente existe déjà pour ce bon de livraison !", "warning")
+            return redirect(url_for('paiement_vente', vente_id=vente_existante.id))
+        
+        if bon.status != 'livree':
+            flash("Seuls les bons de livraison livrés peuvent être convertis en vente", "warning")
+            return redirect(url_for('liste_bons_livraison'))
+        
+        if not bon.lignes:
+            flash("Ce bon de livraison ne contient aucun produit", "warning")
+            return redirect(url_for('detail_bon_livraison', id=bon.id))
+        
+        if not bon.commande:
+            flash("Ce bon de livraison n'est pas lié à une commande", "warning")
+            return redirect(url_for('detail_bon_livraison', id=bon.id))
+        
+        # ==========================================
+        # 🔥 RÉCUPÉRATION DU VENDEUR
+        # ==========================================
+        vendeur = Vendeur.query.first()
+        if not vendeur:
+            vendeur = Vendeur(nom="Vendeur par défaut", telephone="00000000")
+            db.session.add(vendeur)
+            db.session.commit()
+        
+        compagnie = VendeurCompagnie.query.first()
+        if not compagnie:
+            flash("Aucune compagnie configurée", "danger")
+            return redirect(url_for('liste_bons_livraison'))
+        
+        # ==========================================
+        # 🔥 CRÉER LE MAPPING DES PRIX DEPUIS LA COMMANDE
+        # ==========================================
+        from decimal import Decimal
+        
+        # Créer un dictionnaire des prix par ligne de commande
+        prix_par_ligne_commande = {}
+        for ligne_commande in bon.commande.lignes:
+            prix_par_ligne_commande[ligne_commande.id] = ligne_commande.prix_unitaire or Decimal('0.00')
+        
+        # ==========================================
+        # CRÉER LA VENTE
+        # ==========================================
+        total = Decimal('0.00')
+        
+        vente = Vente(
+            client_id=bon.client_id,
+            date_vente=datetime.now(),
+            total=0,
+            montant_paye=Decimal('0.00'),
+            reste_a_payer=0,
+            statut_paiement='impaye',
+            vendeur_id=vendeur.id,
+            compagnie_id=compagnie.id,
+            bon_livraison_id=bon.id
+        )
+        db.session.add(vente)
+        db.session.flush()
+        
+        # ==========================================
+        # 🔥 CRÉER LES LIGNES DE VENTE SANS VÉRIFIER LE STOCK
+        # ==========================================
+        lignes_crees = 0
+        for ligne_bon in bon.lignes:
+            # Vérifier que le stock existe
+            if not ligne_bon.stock:
+                flash(f"Stock non trouvé pour une ligne", "warning")
+                continue
+            
+            # 🔥 NE PAS VÉRIFIER stock.quantite ici car déjà fait lors de la livraison
+            
+            # Récupérer le prix depuis la ligne de commande
+            prix_unitaire = prix_par_ligne_commande.get(ligne_bon.ligne_commande_id, Decimal('0.00'))
+            
+            ligne_vente = LigneVente(
+                vente_id=vente.id,
+                stock_id=ligne_bon.stock.id,
+                quantite=ligne_bon.quantite,
+                prix_unitaire=prix_unitaire
+            )
+            db.session.add(ligne_vente)
+            total += ligne_bon.quantite * prix_unitaire
+            lignes_crees += 1
+        
+        if lignes_crees == 0:
+            db.session.rollback()
+            flash("Aucune ligne valide n'a pu être créée pour la vente", "danger")
+            return redirect(url_for('detail_bon_livraison', id=bon.id))
+        
+        # Mettre à jour les totaux
+        vente.total = total
+        vente.reste_a_payer = total
+        
+        # Créer la facture
+        numero_facture = generate_numero_facture(vente.id)
+        facture = Facture(
+            vente_id=vente.id,
+            numero=numero_facture,
+            date_facture=datetime.now(),
+            total=vente.total,
+            montant_paye=vente.montant_paye,
+            reste_a_payer=vente.reste_a_payer,
+            statut=vente.statut_paiement
+        )
+        db.session.add(facture)
+        
+        db.session.commit()
+        
+        flash(f"✅ Vente #{vente.id} créée avec succès à partir du bon {bon.numero}", "success")
+        return redirect(url_for('paiement_vente', vente_id=vente.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur: {str(e)}", "danger")
+        return redirect(url_for('liste_bons_livraison'))
+
+
+
+@app.route('/vente/<int:vente_id>/completer-vendeur', methods=['POST'])
+@login_required
+def completer_vente_vendeur_compagnie(vente_id):
+    """Complète une vente avec le vendeur et la compagnie"""
+    try:
+        vente = Vente.query.get_or_404(vente_id)
+        vendeur_id = request.form.get('vendeur_id')
+        compagnie_id = request.form.get('compagnie_id')
+        
+        if not vendeur_id or not compagnie_id:
+            flash("Veuillez sélectionner un vendeur et une compagnie", "danger")
+            return redirect(url_for('paiement_vente', vente_id=vente.id))
+        
+        vendeur = Vendeur.query.get(vendeur_id)
+        compagnie = VendeurCompagnie.query.get(compagnie_id)
+        
+        if not vendeur or not compagnie:
+            flash("Vendeur ou compagnie invalide", "danger")
+            return redirect(url_for('paiement_vente', vente_id=vente.id))
+        
+        vente.vendeur_id = vendeur.id
+        vente.compagnie_id = compagnie.id
+        
+        # Mettre à jour la facture si elle existe
+        if vente.facture:
+            vente.facture.vendeur_id = vendeur.id
+            vente.facture.compagnie_id = compagnie.id
+        
+        db.session.commit()
+        
+        flash(f"✅ Vendeur {vendeur.nom} et compagnie {compagnie.nom} ajoutés avec succès", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur: {str(e)}", "danger")
+    
+    return redirect(url_for('paiement_vente', vente_id=vente.id))
+
+
+
 @app.route("/ventes/supprimer", methods=["POST"])
 @login_required
 def supprimer_ventes():
@@ -1640,19 +1817,26 @@ def ajuster_stock_apres_modification(produit_id, magasin_id, ancienne_quantite, 
         )
 
 
+@app.route("/bon-livraison/nouveau", methods=["GET"])
 @app.route("/bon-livraison/nouveau/<int:commande_id>", methods=["GET"])
 @login_required
-def nouveau_bon_livraison(commande_id):
+def nouveau_bon_livraison(commande_id=None):
     """Afficher le formulaire de création de bon de livraison"""
     
-    commande = BonCommande.query.get_or_404(commande_id)
+    commande = None
+    if commande_id:
+        commande = BonCommande.query.get_or_404(commande_id)
     
     # Récupérer tous les stocks disponibles (avec quantité > 0)
     stocks_disponibles = Stock.query.filter(Stock.quantite > 0).all()
+    clients = Client.query.all() if not commande else [commande.client]
+    produits = Produit.query.all()
     
     return render_template(
         'bon_livraison_nouveau.html',
         commande=commande,
+        clients=clients,
+        produits=produits,
         stocks_disponibles=stocks_disponibles
     )
 
@@ -1835,96 +2019,6 @@ def create_bon_livraison():
     return redirect(url_for("detail_bon_livraison", id=bon.id))
 
 
-@app.route("/bon-livraison/<int:bon_id>/creer_vente", methods=["POST"])
-@login_required
-def creer_vente_depuis_bon_livraison(bon_id):
-    """Créer une vente après la livraison (le stock est déjà impacté)"""
-    
-    bon = BonLivraison.query.get_or_404(bon_id)
-    
-    # Vérifier que le BL est livré
-    if bon.status not in ["livree", "partielle"]:
-        flash("❌ Seuls les bons de livraison validés peuvent être transformés en vente", "danger")
-        return redirect(url_for("detail_bon_livraison", id=bon.id))
-    
-    # Vérifier si une vente existe déjà pour ce BL
-    vente_existante = Vente.query.filter_by(bon_livraison_id=bon.id).first()
-    if vente_existante:
-        flash("❌ Une vente a déjà été créée pour ce bon de livraison", "danger")
-        return redirect(url_for("detail_bon_livraison", id=bon.id))
-    
-    try:
-        # =========================
-        # 🔹 Créer la vente
-        # =========================
-        vente = Vente(
-            client_id=bon.client_id,
-            date_vente=datetime.now(timezone.utc),
-            total=Decimal("0.00"),
-            montant_paye=Decimal("0.00"),
-            reste_a_payer=Decimal("0.00"),
-            statut_paiement="impaye",
-            bon_livraison_id=bon.id  # Lier au BL
-        )
-        
-        db.session.add(vente)
-        db.session.flush()
-        
-        total_vente = Decimal("0.00")
-        
-        # =========================
-        # 🔹 Créer les lignes de vente
-        # =========================
-        for ligne_bl in bon.lignes:
-            
-            # Récupérer le prix depuis la ligne de commande
-            prix_unitaire = ligne_bl.ligne_commande.prix_unitaire if ligne_bl.ligne_commande else Decimal("0.00")
-            
-            # Créer la ligne de vente
-            ligne_vente = LigneVente(
-                vente_id=vente.id,
-                stock_id=ligne_bl.stock_id,  # Le lot déjà utilisé
-                quantite=ligne_bl.quantite,
-                prix_unitaire=prix_unitaire
-            )
-            
-            db.session.add(ligne_vente)
-            
-            sous_total = ligne_bl.quantite * prix_unitaire
-            total_vente += sous_total
-        
-        # Mettre à jour le total de la vente
-        vente.total = total_vente
-        vente.reste_a_payer = total_vente
-        
-        # =========================
-        # 🔹 Créer la facture
-        # =========================
-        from app.helpers import generate_numero_facture
-        
-        numero_facture = generate_numero_facture(vente.id)
-        
-        facture = Facture(
-            vente_id=vente.id,
-            numero=numero_facture,
-            date_facture=datetime.now(timezone.utc),
-            total=vente.total,
-            montant_paye=vente.montant_paye,
-            reste_a_payer=vente.reste_a_payer,
-            statut=vente.statut_paiement
-        )
-        
-        db.session.add(facture)
-        
-        db.session.commit()
-        
-        flash(f"✅ Vente créée avec succès - Facture N°{numero_facture}", "success")
-        return redirect(url_for('voir_facture', vente_id=vente.id))
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f"❌ Erreur lors de la création de la vente: {str(e)}", "danger")
-        return redirect(url_for("detail_bon_livraison", id=bon.id))
 
 
 @app.route("/bon-livraison/delete", methods=["POST"])
@@ -2068,9 +2162,9 @@ def liste_bons_livraison():
         bons=bons,
         status=status,
         stats=stats,
-        commande_id=commande_id
+        commande_id=commande_id,
+        verifier_vente_existante=verifier_vente_existante  # 👈 TRÈS IMPORTANT !
     )
-
 
 @app.route("/bon-livraison/partiel/<int:commande_id>")
 @login_required
@@ -2498,19 +2592,26 @@ def reverser_paiement(paiement_id):
 
     return redirect(url_for("paiement_vente", vente_id=vente.id))
 
+
+
 @app.route("/vente/<int:vente_id>/paiement", methods=["GET"])
 @login_required
 def paiement_vente(vente_id):
-
     vente = (
         Vente.query
         .options(joinedload(Vente.paiements))
         .get_or_404(vente_id)
     )
-
+    
+    # Récupérer les vendeurs et compagnies pour le formulaire
+    vendeurs = Vendeur.query.all()
+    compagnies = VendeurCompagnie.query.all()
+    
     return render_template(
         "paiement.html",
-        vente=vente
+        vente=vente,
+        vendeurs=vendeurs,
+        compagnies=compagnies
     )
 
 
@@ -3152,32 +3253,68 @@ def nouveau_bon_commande():
         .all()
     )
     
-    # Récupérer aussi le stock total pour chaque produit (pour affichage)
+    # 🔥 Préparer les données pour JSON (sérialisation)
+    produits_data = []
     for produit in produits_avec_stock:
+        # Calculer le stock total
         stock_total = db.session.query(
             db.func.sum(Stock.quantite)
         ).filter(
             Stock.produit_id == produit.id,
             Stock.quantite > 0
         ).scalar() or 0
-        produit.stock_disponible = stock_total
         
-        # Récupérer les lots disponibles
+        # Récupérer les lots disponibles avec leurs prix depuis LigneAchat
         lots = Stock.query.filter(
             Stock.produit_id == produit.id,
             Stock.quantite > 0
         ).all()
-        produit.lots_disponibles = lots
+        
+        # Préparer les lots pour JSON
+        lots_data = []
+        for lot in lots:
+            # Récupérer le prix d'achat depuis la ligne d'achat associée
+            ligne_achat = LigneAchat.query.filter_by(stock_id=lot.id).first()
+            prix_achat = ligne_achat.prix_unitaire if ligne_achat else 0
+            
+            # Pour le prix de vente, vous pouvez soit :
+            # 1. L'avoir dans une table de prix produits
+            # 2. Le calculer avec une marge
+            # 3. Le laisser vide et le saisir manuellement
+            
+            lots_data.append({
+                'id': lot.id,
+                'numero_lot': lot.numero_lot,
+                'quantite': lot.quantite,
+                'type_conditionnement': lot.type_conditionnement.value,
+                'prix_achat': float(prix_achat)
+            })
+        
+        # Obtenir un prix par défaut (le prix d'achat du premier lot)
+        prix_par_defaut = lots_data[0]['prix_achat'] if lots_data else 0
+        
+        produits_data.append({
+            'id': produit.id,
+            'nom_produit': produit.nom_produit,
+            'model': produit.model,
+            'stock_disponible': float(stock_total),
+            'prix_par_defaut': prix_par_defaut,
+            'lots_disponibles': lots_data
+        })
     
     clients = Client.query.order_by(Client.nom_client).all()
+    vendeurs = Vendeur.query.order_by(Vendeur.nom).all()
+    compagnies = VendeurCompagnie.query.order_by(VendeurCompagnie.nom).all()
+    conditionnements = [e.value for e in TypeConditionnement]
 
     return render_template(
         "bon_commande_nouveau.html",
         clients=clients,
-        produits=produits_avec_stock,  # 🔥 Utiliser la liste filtrée
-        TypeConditionnement=TypeConditionnement
+        vendeurs=vendeurs,
+        compagnies=compagnies,
+        produits=produits_data,
+        conditionnements=conditionnements
     )
-
 
 @app.route("/bon-commande/create", methods=["POST"])
 @login_required
@@ -3185,9 +3322,19 @@ def create_bon_commande():
     """Créer un bon de commande avec vérification du stock disponible"""
     
     client_id = request.form.get("client_id")
+    vendeur_id = request.form.get("vendeur_id")  # ← AJOUTER
+    compagnie_id = request.form.get("compagnie_id")  # ← AJOUTER
     
     if not client_id:
         flash("❌ Client requis", "danger")
+        return redirect(url_for("nouveau_bon_commande"))
+    
+    if not vendeur_id:
+        flash("❌ Vendeur requis", "danger")
+        return redirect(url_for("nouveau_bon_commande"))
+    
+    if not compagnie_id:
+        flash("❌ Compagnie requise", "danger")
         return redirect(url_for("nouveau_bon_commande"))
 
     # Récupérer les données du formulaire
@@ -3250,6 +3397,8 @@ def create_bon_commande():
         bon = BonCommande(
             numero="TEMP",
             client_id=int(client_id),
+            vendeur_id=int(vendeur_id),  # ← AJOUTER
+            compagnie_id=int(compagnie_id),  # ← AJOUTER
             status="confirmee"
         )
         
@@ -3273,6 +3422,7 @@ def create_bon_commande():
             ligne_bon = LigneBonCommande(
                 bon_id=bon.id,
                 produit_id=ligne['produit_id'],
+                compagnie_id=int(compagnie_id),  # ← AJOUTER ICI !
                 quantite=int(qte),
                 prix_unitaire=pu,
                 sous_total=sous_total,

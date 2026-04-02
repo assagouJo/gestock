@@ -5,6 +5,27 @@ from barcode.writer import ImageWriter
 import os
 
 
+def verifier_vente_existante(bon_id):
+    """Vérifie si une vente existe déjà pour ce bon de livraison"""
+    from models import Vente, BonLivraison
+    
+    # Méthode 1: Si vous avez ajouté le champ bon_livraison_id dans Vente
+    vente = Vente.query.filter_by(bon_livraison_id=bon_id).first()
+    
+    if vente:
+        return vente
+    
+    # Méthode 2: Sinon, vérifier par le numéro du bon dans les notes ou référence
+    # (À adapter selon votre structure)
+    bon = BonLivraison.query.get(bon_id)
+    if bon:
+        vente = Vente.query.filter(
+            Vente.facture.has(numero=bon.numero)  # Si vous stockez le numéro du bon dans la facture
+        ).first()
+    
+    return vente
+
+
 def generate_numero_facture(id):
         annee = datetime.now().year
         return f"{uuid.uuid4().hex[:8].upper()}-{annee}-{id:03d}"

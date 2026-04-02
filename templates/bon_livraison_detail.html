@@ -655,6 +655,12 @@
     <a href="{{ url_for('livraison_partielle', commande_id=bon.commande.id) }}" class="btn btn-warning">
         ➕ Compléter la livraison
     </a>
+    {% if bon.status == 'livree' %}
+    <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}" 
+    class="btn btn-primary">
+    💰 Créer une vente
+    </a>
+    {% endif %}
     {% endif %}
     <button onclick="window.print()" class="btn btn-info">
         🖨 Imprimer

@@ -8,11 +8,17 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
 <h4 class="fw-bold text-success">🚚 Bons de Livraison</h4>
 
-<form method="POST" action="{{ url_for('delete_bon_livraisons') }}">
-<button type="submit" class="btn btn-danger btn-sm"
-onclick="return confirm('Supprimer les bons sélectionnés ?')">
-🗑 Supprimer
-</button>
+<div>
+    <a href="{{ url_for('nouveau_bon_livraison') }}" class="btn btn-success btn-sm me-2">
+        ➕ Nouveau Bon
+    </a>
+    <form method="POST" action="{{ url_for('delete_bon_livraisons') }}" style="display: inline;">
+        <button type="submit" class="btn btn-danger btn-sm"
+        onclick="return confirm('Supprimer les bons sélectionnés ?')">
+        🗑 Supprimer
+        </button>
+    </form>
+</div>
 </div>
 
 {% if bons %}
@@ -24,7 +30,6 @@ onclick="return confirm('Supprimer les bons sélectionnés ?')">
 <table class="table table-hover table-bordered align-middle">
 
 <thead class="table-dark sticky-top">
-
 <tr>
 <th>
 <input type="checkbox" id="check_all">
@@ -33,25 +38,19 @@ onclick="return confirm('Supprimer les bons sélectionnés ?')">
 <th>N°</th>
 <th>Client</th>
 <th>Status</th>
-<th width="200">Action</th>
+<th width="320">Action</th>
 </tr>
-
 </thead>
 
 <tbody>
-
 {% for bon in bons %}
-
 <tr>
-
 <td>
 <input type="checkbox" name="bons_ids[]" value="{{ bon.id }}">
 </td>
-
 <td class="small fw-light">{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
 <td class="small fw-light">{{ bon.numero }}</td>
 <td class="small fw-light">{{ bon.client.nom_client }}</td>
-
 <td>
     <span class="badge {% if bon.status == 'livree' %}
     bg-success
@@ -62,28 +61,37 @@ onclick="return confirm('Supprimer les bons sélectionnés ?')">
     {% else %}
     bg-secondary
     {% endif %}">
-        {{bon.status}}
+        {{ bon.status }}
     </span>
 </td>
-
 <td>
+    <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}"
+       class="btn btn-sm btn-outline-success">
+        👁 Voir
+    </a>
 
-<a href="{{ url_for('detail_bon_livraison', id=bon.id) }}"
-class="btn btn-sm btn-outline-success">
-👁 Voir
-</a>
+    <a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}"
+       class="btn btn-sm btn-outline-warning">
+        ✏ Modifier
+    </a>
 
-<a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}"
-class="btn btn-sm btn-outline-warning">
-Modifier
-</a>
-
+    {% set vente_existante = verifier_vente_existante(bon.id) if bon.status == 'livree' else None %}
+    {% if bon.status == 'livree' %}
+        {% if vente_existante %}
+            <a href="{{ url_for('paiement_vente', vente_id=vente_existante.id) }}"
+            class="btn btn-sm btn-outline-info">
+                💰 Voir vente
+            </a>
+        {% else %}
+            <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}"
+            class="btn btn-sm btn-outline-primary">
+                💰 Créer Vente
+            </a>
+        {% endif %}
+    {% endif %}
 </td>
-
 </tr>
-
 {% endfor %}
-
 </tbody>
 
 </table>
@@ -100,22 +108,15 @@ Aucun bon de livraison enregistré.
 
 {% endif %}
 
-</form>
-
 </div>
 
 <script>
-
 document.getElementById("check_all").onclick = function() {
-
-let checkboxes = document.querySelectorAll('input[name="bons_ids[]"]');
-
-for (let cb of checkboxes) {
-cb.checked = this.checked;
-}
-
+    let checkboxes = document.querySelectorAll('input[name="bons_ids[]"]');
+    for (let cb of checkboxes) {
+        cb.checked = this.checked;
+    }
 };
-
 </script>
 
 {% endblock %}

@@ -84,6 +84,12 @@ class Produit(db.Model):
     model = db.Column(db.String(128), index=True)
     marque = db.Column(db.String(128), index=True)
 
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur_compagnie.id", name="fk_produit_compagnie_id"),  # Nom explicite
+        nullable=False
+    )
+
     code_produit = db.Column(db.String(256), unique=True, nullable=False)
 
     description = db.Column(db.Text)
@@ -278,6 +284,15 @@ class Vente(db.Model):
     montant_paye = db.Column(db.Numeric(10, 2), default=0)
     reste_a_payer = db.Column(db.Numeric(10, 2), nullable=False)
 
+    bon_livraison_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bon_livraison.id", name='fk_vente_bon_livraison'),
+        nullable=True, index=True
+    )
+    
+    # Relation
+    bon_livraison = db.relationship("BonLivraison", backref="vente", uselist=False)
+
     statut_paiement = db.Column(
         db.String(20),
         default="impaye"   # impaye | partiel | paye
@@ -321,33 +336,6 @@ class Vente(db.Model):
     )
 
 
-class VendeurCompagnie(db.Model):
-    __tablename__ = "vendeur_compagnie"
-
-    id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), unique=True, nullable=False)
-
-    ventes = db.relationship("Vente", backref="compagnie", lazy=True)
-
-    def __repr__(self):
-        return f"<Compagnie {self.nom}>"
-
-
-
-class Vendeur(db.Model):
-    __tablename__ = "vendeur"
-
-    id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False)
-    telephone = db.Column(db.String(20), nullable=False)
-    ventes = db.relationship("Vente", backref="vendeur", lazy=True)
-
-    def __repr__(self):
-        return f"<Vendeur {self.nom}>"
-
-
-
-
 class LigneVente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -382,6 +370,43 @@ class LigneVente(db.Model):
     @property
     def sous_total(self):
         return self.quantite * self.prix_unitaire  
+    
+
+class VendeurCompagnie(db.Model):
+    __tablename__ = "vendeur_compagnie"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), unique=True, nullable=False)
+
+    ventes = db.relationship("Vente", backref="compagnie", lazy=True)
+
+    def __repr__(self):
+        return f"<Compagnie {self.nom}>"
+
+
+class Vendeur(db.Model):
+    __tablename__ = "vendeur"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    telephone = db.Column(db.String(20), nullable=False)
+    
+    # AJOUT DE LA RELATION AVEC COMPAGNIE
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur_compagnie.id", name="fk_vendeur_compagnie_id"),
+        nullable=False,
+        default=1
+    )
+    
+    ventes = db.relationship("Vente", backref="vendeur", lazy=True)
+    
+    # AJOUT DE LA RELATION AVEC COMPAGNIE
+    compagnie = db.relationship("VendeurCompagnie", backref="vendeurs", lazy=True)
+
+    def __repr__(self):
+        return f"<Vendeur {self.nom}>"
+
       
 
 class Paiement(db.Model):
@@ -577,7 +602,6 @@ class LigneProforma(db.Model):
         return f"<LigneProforma {self.produit.nom_produit}>"
 
 
-
 class BonCommande(db.Model):
     __tablename__ = "bon_commande"
 
@@ -602,13 +626,41 @@ class BonCommande(db.Model):
 
     client_id = db.Column(
         db.Integer,
-        db.ForeignKey("client.id"),
+        db.ForeignKey("client.id", name="fk_bon_commande_client_id"),
         nullable=False
+    )
+    
+    # AJOUT DES CHAMPS VENDEUR ET COMPAGNIE
+    vendeur_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur.id", name="fk_bon_commande_vendeur_id"),
+        nullable=False,
+        default=1
+    )
+    
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur_compagnie.id", name="fk_bon_commande_compagnie_id"),
+        nullable=False,
+        default=1
     )
 
     client = db.relationship(
         "Client",
         back_populates="bons_commande"
+    )
+    
+    # AJOUT DES RELATIONS
+    vendeur = db.relationship(
+        "Vendeur",
+        backref="bons_commande",
+        lazy=True
+    )
+    
+    compagnie = db.relationship(
+        "VendeurCompagnie",
+        backref="bons_commande",
+        lazy=True
     )
 
     lignes = db.relationship(
@@ -644,7 +696,6 @@ class BonCommande(db.Model):
         return (self.quantite_totale_livree / self.quantite_totale) * 100
 
 
-
 class LigneBonCommande(db.Model):
     __tablename__ = "ligne_bon_commande"
 
@@ -653,6 +704,12 @@ class LigneBonCommande(db.Model):
     bon_id = db.Column(
         db.Integer,
         db.ForeignKey("bon_commande.id"),
+        nullable=False
+    )
+
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("vendeur_compagnie.id", name="fk_ligne_bon_commande_compagnie_id"),  # Nom explicite
         nullable=False
     )
 
@@ -758,9 +815,6 @@ class BonLivraison(db.Model):
         back_populates="bon",
         cascade="all, delete-orphan"
     )
-
-
-    
     
 
 # Ajouter dans LigneBonLivraison

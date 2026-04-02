@@ -1,307 +1,225 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <div class="container mt-4">
-
-<h4>Nouveau bon de commande</h4>
-
-<div class="alert alert-info">
-   <i class="bi bi-info-circle"></i>
-   <strong>Information :</strong> Seuls les produits disponibles en stock sont affichés.
-</div>
-
-<form method="POST" action="{{ url_for('create_bon_commande') }}">
-
-<div class="mb-3">
-   <label class="form-label fw-bold">Client</label>
-   <select name="client_id" class="form-control" required>
-      <option value="">-- Choisir un client --</option>
-      {% for client in clients %}
-         <option value="{{ client.id }}">
-            {{ client.nom_client }}
-         </option>
-      {% endfor %}
-   </select>
-</div>
-
-<table class="table table-bordered">
-   <thead class="table-dark">
-      <tr>
-         <th>Produit</th>
-         <th>Conditionnement</th>
-         <th>Stock disponible</th>
-         <th>Quantité</th>
-         <th>Prix (FCFA)</th>
-         <th>Sous-total</th>
-         <th></th>
-      </tr>
-   </thead>
-   <tbody id="table_lignes">
-      <tr class="ligne-produit">
-         <td width="30%">
-            <select name="produit_id[]" class="form-control produit-select" required>
-               <option value="">-- Choisir un produit --</option>
-               {% for produit in produits %}
-                  <option value="{{ produit.id }}" 
-                          data-stock="{{ produit.stock_disponible }}"
-                          data-nom="{{ produit.nom_produit }}">
-                     {{ produit.nom_produit }} - {{ produit.model }} (Stock: {{ produit.stock_disponible }})
-                  </option>
-               {% endfor %}
-            </select>
-         </td>
-         <td width="20%">
-            <select name="type_conditionnement[]" class="form-control conditionnement-select" required>
-               <option value="">-- Choisir --</option>
-               {% for c in TypeConditionnement %}
-                  <option value="{{ c.value }}">
-                     {{ c.value.capitalize() }}
-                  </option>
-               {% endfor %}
-            </select>
-         </td>
-         <td width="15%" class="text-center stock-disponible">
-            <span class="badge bg-secondary">-</span>
-         </td>
-         <td width="15%">
-            <input type="number" 
-                   name="quantite[]" 
-                   class="form-control quantite-input" 
-                   min="1" 
-                   step="1"
-                   required>
-         </td>
-         <td width="15%">
-            <input type="number" 
-                   step="0.01" 
-                   name="prix_unitaire[]" 
-                   class="form-control prix-input" 
-                   min="0"
-                   required>
-         </td>
-         <td width="10%" class="text-center sous-total">0</td>
-         <td width="5%" class="text-center">
-            <button type="button" class="btn btn-danger btn-sm remove_row">
-               ✖
-            </button>
-         </td>
-      </tr>
-   </tbody>
-   <tfoot>
-      <tr class="table-light">
-         <td colspan="5" class="text-end fw-bold">Total Général :</td>
-         <td colspan="2" class="text-center fw-bold fs-5 text-primary" id="total-general">0 FCFA</td>
-      </tr>
-   </tfoot>
-</table>
-
-<button type="button" id="add_row" class="btn btn-primary mb-3">
-   ➕ Ajouter produit
-</button>
-<br>
-
-<button type="submit" class="btn btn-success">
-   <i class="bi bi-check-circle"></i> Enregistrer le bon de commande
-</button>
-
-<a href="{{ url_for('liste_bons_commandes') }}" class="btn btn-secondary">
-   <i class="bi bi-arrow-left"></i> Annuler
-</a>
-
-</form>
-
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">📦 Nouveau Bon de Commande</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('create_bon_commande') }}" id="bonCommandeForm">
+                
+                <!-- SECTION: CLIENT, VENDEUR ET COMPAGNIE -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Client <span class="text-danger">*</span></label>
+                        <select name="client_id" class="form-select" required>
+                            <option value="">-- Sélectionner un client --</option>
+                            {% for client in clients %}
+                                <option value="{{ client.id }}">{{ client.nom_client }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Vendeur <span class="text-danger">*</span></label>
+                        <select name="vendeur_id" class="form-select" required>
+                            <option value="">-- Sélectionner un vendeur --</option>
+                            {% for vendeur in vendeurs %}
+                                <option value="{{ vendeur.id }}">{{ vendeur.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Compagnie <span class="text-danger">*</span></label>
+                        <select name="compagnie_id" class="form-select" required>
+                            <option value="">-- Sélectionner une compagnie --</option>
+                            {% for compagnie in compagnies %}
+                                <option value="{{ compagnie.id }}">{{ compagnie.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- SECTION: LIGNES DE COMMANDE -->
+                <div class="mb-3">
+                    <label class="fw-bold">Produits commandés</label>
+                    <table class="table table-bordered" id="lignesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produit</th>
+                                <th>Conditionnement</th>
+                                <th>Quantité</th>
+                                <th>Prix unitaire (FCFA)</th>
+                                <th>Sous-total</th>
+                                <th width="50"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lignesContainer">
+                            <!-- Une ligne sera ajoutée par défaut via JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">TOTAL :</td>
+                                <td class="fw-bold" id="totalDisplay">0 FCFA</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <button type="button" class="btn btn-outline-primary" id="ajouterLigne">
+                        ➕ Ajouter un produit
+                    </button>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <a href="{{ url_for('liste_bons_commandes') }}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-success">Créer le bon de commande</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
+// Données des produits (déjà sérialisées)
+const produits = {{ produits | tojson }};
 
-document.addEventListener("DOMContentLoaded", function() {
+// Ajouter une ligne
+function ajouterLigne(produitId = '', quantite = 1, prix = '') {
+    const container = document.getElementById('lignesContainer');
+    const newRow = document.createElement('tr');
     
-    const tbody = document.getElementById("table_lignes");
+    newRow.innerHTML = `
+        <td>
+            <select name="produit_id[]" class="form-select produit-select" required>
+                <option value="">-- Choisir un produit --</option>
+                ${produits.map(p => `<option value="${p.id}" data-prix="${p.prix_par_defaut}" ${p.id == produitId ? 'selected' : ''}>${p.nom_produit} - ${p.model} (Stock: ${p.stock_disponible})</option>`).join('')}
+            </select>
+        </div>
+        <td>
+            <select name="type_conditionnement[]" class="form-select" required>
+                <option value="">-- Conditionnement --</option>
+                <option value="carton">Carton</option>
+                <option value="paquet">Paquet</option>
+                <option value="unite">Unité</option>
+            </select>
+        </div>
+        <td>
+            <input type="number" name="quantite[]" class="form-control quantite-input" value="${quantite}" min="1" required>
+        </div>
+        <td>
+            <input type="number" name="prix_unitaire[]" class="form-control prix-input" value="${prix}" min="0" step="100" required>
+        </div>
+        <td class="sous-total">0 FCFA</td>
+        <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm supprimer-ligne">✖</button>
+        </td>
+    `;
     
-    // Fonction pour calculer le total général
-    function calculerTotalGeneral() {
-        let total = 0;
-        document.querySelectorAll(".ligne-produit").forEach(ligne => {
-            const sousTotal = parseFloat(ligne.querySelector(".sous-total").textContent) || 0;
-            total += sousTotal;
-        });
-        document.getElementById("total-general").textContent = total.toLocaleString('fr-FR') + " FCFA";
-    }
+    container.appendChild(newRow);
     
-    // Fonction pour calculer le sous-total d'une ligne
-    function calculerSousTotal(ligne) {
-        const quantite = parseInt(ligne.querySelector(".quantite-input").value) || 0;
-        const prix = parseFloat(ligne.querySelector(".prix-input").value) || 0;
-        const sousTotal = quantite * prix;
-        ligne.querySelector(".sous-total").textContent = sousTotal.toLocaleString('fr-FR');
-        calculerTotalGeneral();
-        return sousTotal;
-    }
+    // Initialiser les événements
+    const produitSelect = newRow.querySelector('.produit-select');
+    const quantiteInput = newRow.querySelector('.quantite-input');
+    const prixInput = newRow.querySelector('.prix-input');
     
-    // Fonction pour afficher le stock disponible
-    function afficherStockDisponible(ligne, produitSelect) {
+    // Si un produit est présélectionné, charger son prix par défaut
+    if (produitId) {
         const selectedOption = produitSelect.options[produitSelect.selectedIndex];
-        const stock = parseInt(selectedOption.getAttribute("data-stock")) || 0;
-        const nomProduit = selectedOption.getAttribute("data-nom") || "";
-        
-        const stockCell = ligne.querySelector(".stock-disponible");
-        const quantiteInput = ligne.querySelector(".quantite-input");
-        
-        if (stock > 0) {
-            stockCell.innerHTML = `<span class="badge bg-success">${stock} unités</span>`;
-            stockCell.setAttribute("data-stock", stock);
-            quantiteInput.max = stock;
-            quantiteInput.placeholder = `Max: ${stock}`;
-            quantiteInput.disabled = false;
+        const prixDefaut = selectedOption.getAttribute('data-prix');
+        if (prixDefaut && !prix) {
+            prixInput.value = prixDefaut;
+        }
+    }
+    
+    produitSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const prixDefaut = selectedOption.getAttribute('data-prix');
+        if (prixDefaut && (!prixInput.value || prixInput.value == '0')) {
+            prixInput.value = prixDefaut;
+        }
+        calculerSousTotal(newRow);
+    });
+    
+    quantiteInput.addEventListener('input', () => calculerSousTotal(newRow));
+    prixInput.addEventListener('input', () => calculerSousTotal(newRow));
+    
+    newRow.querySelector('.supprimer-ligne').addEventListener('click', function() {
+        if (container.children.length > 1) {
+            newRow.remove();
+            calculerTotalGeneral();
         } else {
-            stockCell.innerHTML = `<span class="badge bg-danger">Rupture</span>`;
-            stockCell.setAttribute("data-stock", "0");
-            quantiteInput.disabled = true;
-            quantiteInput.placeholder = "Produit en rupture";
-            quantiteInput.value = "";
-        }
-    }
-    
-    // Fonction pour réinitialiser une ligne
-    function resetLigne(ligne) {
-        ligne.querySelectorAll("input").forEach(input => {
-            if (input.type !== "button") {
-                input.value = "";
-                input.disabled = false;
-                input.max = "";
-            }
-        });
-        ligne.querySelectorAll("select").forEach(select => {
-            select.selectedIndex = 0;
-        });
-        ligne.querySelector(".stock-disponible").innerHTML = '<span class="badge bg-secondary">-</span>';
-        ligne.querySelector(".sous-total").textContent = "0";
-    }
-    
-    // Ajouter une nouvelle ligne
-    document.getElementById("add_row").onclick = function() {
-        let table = document.getElementById("table_lignes");
-        let row = table.rows[0].cloneNode(true);
-        resetLigne(row);
-        table.appendChild(row);
-    }
-    
-    // Supprimer une ligne
-    document.addEventListener("click", function(e) {
-        if(e.target.classList.contains("remove_row")) {
-            let row = e.target.closest("tr");
-            if(document.querySelectorAll("#table_lignes tr").length > 1) {
-                row.remove();
-                calculerTotalGeneral();
-            } else {
-                alert("Au moins un produit est requis");
-            }
+            alert('Il doit y avoir au moins une ligne');
         }
     });
     
-    // Calcul automatique lors des changements
-    tbody.addEventListener("input", function(e) {
-        if(e.target.classList.contains("quantite-input") || 
-           e.target.classList.contains("prix-input")) {
-            const ligne = e.target.closest("tr");
-            calculerSousTotal(ligne);
-        }
+    calculerSousTotal(newRow);
+}
+
+// Calculer le sous-total d'une ligne
+function calculerSousTotal(row) {
+    const quantite = parseFloat(row.querySelector('.quantite-input').value) || 0;
+    const prix = parseFloat(row.querySelector('.prix-input').value) || 0;
+    const sousTotal = quantite * prix;
+    
+    const sousTotalCell = row.querySelector('.sous-total');
+    sousTotalCell.textContent = new Intl.NumberFormat('fr-FR').format(sousTotal) + ' FCFA';
+    
+    calculerTotalGeneral();
+}
+
+// Calculer le total général
+function calculerTotalGeneral() {
+    let total = 0;
+    document.querySelectorAll('.sous-total').forEach(cell => {
+        const value = cell.textContent.replace('FCFA', '').replace(/\s/g, '').trim();
+        total += parseFloat(value) || 0;
     });
     
-    // Charger le stock disponible quand un produit est sélectionné
-    tbody.addEventListener("change", function(e) {
-        if(e.target.classList.contains("produit-select")) {
-            const ligne = e.target.closest("tr");
-            const produitSelect = e.target;
-            const quantiteInput = ligne.querySelector(".quantite-input");
-            const conditionSelect = ligne.querySelector(".conditionnement-select");
-            
-            if(produitSelect.value) {
-                afficherStockDisponible(ligne, produitSelect);
-                quantiteInput.disabled = false;
-                conditionSelect.disabled = false;
-            } else {
-                ligne.querySelector(".stock-disponible").innerHTML = '<span class="badge bg-secondary">-</span>';
-                quantiteInput.disabled = true;
-                conditionSelect.disabled = true;
-                quantiteInput.value = "";
-            }
-        }
-    });
+    document.getElementById('totalDisplay').textContent = 
+        new Intl.NumberFormat('fr-FR').format(total) + ' FCFA';
+}
+
+// Ajouter une ligne par défaut au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    ajouterLigne();
+    
+    document.getElementById('ajouterLigne').addEventListener('click', () => ajouterLigne());
     
     // Validation avant soumission
-    const form = document.querySelector("form");
-    form.addEventListener("submit", function(e) {
+    document.getElementById('bonCommandeForm').addEventListener('submit', function(e) {
+        const lignes = document.querySelectorAll('#lignesContainer tr');
         let hasError = false;
         
-        document.querySelectorAll(".ligne-produit").forEach(ligne => {
-            const produitSelect = ligne.querySelector(".produit-select");
-            const quantite = parseInt(ligne.querySelector(".quantite-input").value);
-            const prix = parseFloat(ligne.querySelector(".prix-input").value);
-            const conditionnement = ligne.querySelector(".conditionnement-select").value;
-            const stockDispo = parseInt(ligne.querySelector(".stock-disponible").getAttribute("data-stock") || 0);
+        lignes.forEach((ligne, index) => {
+            const produit = ligne.querySelector('.produit-select').value;
+            const conditionnement = ligne.querySelector('select[name="type_conditionnement[]"]').value;
+            const quantite = ligne.querySelector('.quantite-input').value;
+            const prix = ligne.querySelector('.prix-input').value;
             
-            if(produitSelect.value && quantite > 0) {
-                if(!conditionnement) {
-                    alert("Veuillez sélectionner un conditionnement");
-                    hasError = true;
-                    e.preventDefault();
-                    return;
-                }
-                if(!prix || prix <= 0) {
-                    alert("Veuillez saisir un prix unitaire valide");
-                    hasError = true;
-                    e.preventDefault();
-                    return;
-                }
-                if(quantite > stockDispo) {
-                    alert(`Stock insuffisant pour ${produitSelect.options[produitSelect.selectedIndex].text}. Disponible: ${stockDispo}`);
-                    hasError = true;
-                    e.preventDefault();
-                    return;
-                }
+            if (!produit || !conditionnement || !quantite || !prix) {
+                hasError = true;
+                alert(`Veuillez remplir tous les champs de la ligne ${index + 1}`);
             }
         });
         
-        if(hasError) e.preventDefault();
+        if (hasError) {
+            e.preventDefault();
+        }
     });
-    
-    // Initialiser la première ligne
-    const premiereLigne = tbody.querySelector(".ligne-produit");
-    resetLigne(premiereLigne);
-    
-    // Désactiver la première ligne au démarrage
-    premiereLigne.querySelector(".quantite-input").disabled = true;
-    premiereLigne.querySelector(".conditionnement-select").disabled = true;
-    
 });
-
 </script>
 
 <style>
-    .table th, .table td {
-        vertical-align: middle;
+    .sous-total {
+        font-weight: bold;
+        color: #0d6efd;
     }
-    
-    .quantite-input, .prix-input {
-        text-align: center;
-    }
-    
-    .badge {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-    }
-    
-    select:disabled, input:disabled {
-        background-color: #e9ecef;
-        cursor: not-allowed;
-    }
-    
-    .alert-info {
-        background-color: #e7f3ff;
-        border-color: #b8daff;
-        color: #004085;
+    #totalDisplay {
+        font-size: 1.2rem;
+        color: #198754;
     }
 </style>
 

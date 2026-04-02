@@ -1,0 +1,1221 @@
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE user (
+	id INTEGER NOT NULL, 
+	username VARCHAR(64) NOT NULL, 
+	email VARCHAR(120) NOT NULL, 
+	password_hash VARCHAR(256), 
+	role VARCHAR(20) NOT NULL, 
+	joined_at DATETIME, 
+	must_change_password BOOLEAN, 
+	PRIMARY KEY (id), 
+	CONSTRAINT uq_user_email UNIQUE (email), 
+	UNIQUE (email)
+);
+INSERT INTO user VALUES(1,'joel','admin@ad.com','scrypt:32768:8:1$2l5o5ZLQITbLgIAV$afb69401bfc6b82d139e428237ac9a02ad5c25cbd10746a641493638285ee3bc39f719bca1199c7b4d82e1819353d2833d286028faf2f0442307dc3a3a1e235b','admin','2026-03-17 10:04:03.243674',0);
+CREATE TABLE client (
+	id INTEGER NOT NULL, 
+	nom_client VARCHAR(100) NOT NULL, 
+	telephone VARCHAR(30), 
+	adresse VARCHAR(255) NOT NULL, 
+	attn VARCHAR(255), 
+	PRIMARY KEY (id)
+);
+INSERT INTO client VALUES(1,'CLINIQUE ROSETTE','2720237535','Abidjan, Riviera',NULL);
+INSERT INTO client VALUES(2,'INSTITUT NATIONAL DE SANTÉ PUBLIQUE','2720237535','Abidjan','MR YAVO WILLIAM (  DIRECTEUR GÉNÉRAL )');
+INSERT INTO client VALUES(3,'CENTRE CARDIOVASCULAIRE SAINTE EUNICE DE BASSAM','0707708413','Abidjan',NULL);
+CREATE TABLE fournisseur (
+	id INTEGER NOT NULL, 
+	nom_fournisseur VARCHAR(100) NOT NULL, 
+	telephone VARCHAR(30), 
+	adresse VARCHAR(255), 
+	PRIMARY KEY (id)
+);
+INSERT INTO fournisseur VALUES(1,'FUJIFILM','111111111','JAPON');
+CREATE TABLE magasin (
+	id INTEGER NOT NULL, 
+	nom VARCHAR(120) NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (nom)
+);
+INSERT INTO magasin VALUES(1,'I_MEDICAL');
+CREATE TABLE vendeur_compagnie (
+	id INTEGER NOT NULL, 
+	nom VARCHAR(100) NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (nom)
+);
+INSERT INTO vendeur_compagnie VALUES(1,'Fuji');
+INSERT INTO vendeur_compagnie VALUES(2,'I-Medical');
+CREATE TABLE vendeur (
+	id INTEGER NOT NULL, 
+	nom VARCHAR(100) NOT NULL, 
+	telephone VARCHAR(20) NOT NULL, 
+	PRIMARY KEY (id)
+);
+INSERT INTO vendeur VALUES(1,'KASSI','0507690071');
+CREATE TABLE compagnie (
+	id INTEGER NOT NULL, 
+	nom VARCHAR(150) NOT NULL, 
+	telephone VARCHAR(30), 
+	email VARCHAR(255), 
+	adresse VARCHAR(255), 
+	ville VARCHAR(100), 
+	numero_rcc VARCHAR(50), 
+	logo VARCHAR(255), 
+	PRIMARY KEY (id)
+);
+INSERT INTO compagnie VALUES(1,'I_MEDICAL','2123000098','','','','','https://res.cloudinary.com/dmjote21b/image/upload/v1773742767/logos/jhepoqk0harzv9foaqbi.jpg');
+CREATE TABLE log (
+	id INTEGER NOT NULL, 
+	user_id INTEGER, 
+	username VARCHAR(100), 
+	action VARCHAR(20), 
+	table_name VARCHAR(100), 
+	record_id INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id)
+);
+INSERT INTO log VALUES(1,NULL,'System','INSERT','user',NULL,'2026-03-17 10:04:03.240249');
+INSERT INTO log VALUES(2,1,'joel','INSERT','produit',NULL,'2026-03-17 10:18:22.034925');
+INSERT INTO log VALUES(3,1,'joel','INSERT','produit',NULL,'2026-03-17 10:18:30.899810');
+INSERT INTO log VALUES(4,1,'joel','INSERT','produit',NULL,'2026-03-17 10:18:41.733695');
+INSERT INTO log VALUES(5,1,'joel','INSERT','produit',NULL,'2026-03-17 10:18:49.216203');
+INSERT INTO log VALUES(6,1,'joel','INSERT','client',NULL,'2026-03-17 10:19:04.968646');
+INSERT INTO log VALUES(7,1,'joel','INSERT','compagnie',NULL,'2026-03-17 10:19:27.910955');
+INSERT INTO log VALUES(8,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 10:20:41.661541');
+INSERT INTO log VALUES(9,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 10:20:41.666131');
+INSERT INTO log VALUES(10,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 10:20:41.666209');
+INSERT INTO log VALUES(11,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 10:39:52.603502');
+INSERT INTO log VALUES(12,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 10:39:52.607477');
+INSERT INTO log VALUES(13,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 10:39:52.608986');
+INSERT INTO log VALUES(14,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 10:39:52.609029');
+INSERT INTO log VALUES(15,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 10:39:52.609065');
+INSERT INTO log VALUES(16,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 10:39:52.609098');
+INSERT INTO log VALUES(17,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 11:13:30.716380');
+INSERT INTO log VALUES(18,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 11:31:13.923110');
+INSERT INTO log VALUES(19,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 12:08:57.770466');
+INSERT INTO log VALUES(20,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 12:20:24.895533');
+INSERT INTO log VALUES(21,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 12:55:13.100673');
+INSERT INTO log VALUES(22,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 12:55:13.113677');
+INSERT INTO log VALUES(23,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 13:02:10.301449');
+INSERT INTO log VALUES(24,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 13:14:28.877718');
+INSERT INTO log VALUES(25,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 13:14:28.884428');
+INSERT INTO log VALUES(26,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:14:28.886893');
+INSERT INTO log VALUES(27,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:14:28.887014');
+INSERT INTO log VALUES(28,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 13:14:28.887110');
+INSERT INTO log VALUES(29,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:14:28.891612');
+INSERT INTO log VALUES(30,1,'joel','INSERT','produit',NULL,'2026-03-17 13:28:12.202530');
+INSERT INTO log VALUES(31,1,'joel','INSERT','produit',NULL,'2026-03-17 13:28:38.024825');
+INSERT INTO log VALUES(32,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 13:29:25.304308');
+INSERT INTO log VALUES(33,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 13:34:19.591367');
+INSERT INTO log VALUES(34,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 13:34:19.597850');
+INSERT INTO log VALUES(35,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:34:19.600145');
+INSERT INTO log VALUES(36,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:34:19.600204');
+INSERT INTO log VALUES(37,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:34:19.600245');
+INSERT INTO log VALUES(38,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 13:34:19.604069');
+INSERT INTO log VALUES(39,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:34:19.605228');
+INSERT INTO log VALUES(40,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 13:41:29.023494');
+INSERT INTO log VALUES(41,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 13:41:29.033181');
+INSERT INTO log VALUES(42,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:41:29.034825');
+INSERT INTO log VALUES(43,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:41:29.034881');
+INSERT INTO log VALUES(44,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:41:29.034924');
+INSERT INTO log VALUES(45,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 13:41:29.037432');
+INSERT INTO log VALUES(46,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 13:41:29.038035');
+INSERT INTO log VALUES(47,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 18:15:13.436795');
+INSERT INTO log VALUES(48,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 18:15:13.451252');
+INSERT INTO log VALUES(49,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:15:13.452601');
+INSERT INTO log VALUES(50,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:15:13.452648');
+INSERT INTO log VALUES(51,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:15:13.452685');
+INSERT INTO log VALUES(52,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 18:15:13.458820');
+INSERT INTO log VALUES(53,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:15:13.459392');
+INSERT INTO log VALUES(54,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 18:24:45.913387');
+INSERT INTO log VALUES(55,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 18:24:45.999029');
+INSERT INTO log VALUES(56,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:24:46.001476');
+INSERT INTO log VALUES(57,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:24:46.001584');
+INSERT INTO log VALUES(58,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:24:46.001672');
+INSERT INTO log VALUES(59,1,'joel','UPDATE','produit',5,'2026-03-17 18:28:48.703240');
+INSERT INTO log VALUES(60,1,'joel','INSERT','kit_proforma',NULL,'2026-03-17 18:39:13.642410');
+INSERT INTO log VALUES(61,1,'joel','INSERT','bloc_kit',NULL,'2026-03-17 18:39:13.652140');
+INSERT INTO log VALUES(62,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:39:13.654650');
+INSERT INTO log VALUES(63,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:39:13.654712');
+INSERT INTO log VALUES(64,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-17 18:39:13.654760');
+INSERT INTO log VALUES(65,1,'joel','UPDATE','produit',5,'2026-03-17 18:40:03.236970');
+INSERT INTO log VALUES(66,1,'joel','UPDATE','produit',5,'2026-03-17 18:59:37.164547');
+INSERT INTO log VALUES(67,1,'joel','UPDATE','produit',5,'2026-03-17 19:11:48.783493');
+INSERT INTO log VALUES(68,1,'joel','UPDATE','produit',5,'2026-03-18 07:38:07.291971');
+INSERT INTO log VALUES(69,1,'joel','INSERT','client',NULL,'2026-03-18 07:44:13.604292');
+INSERT INTO log VALUES(70,1,'joel','UPDATE','client',2,'2026-03-18 07:44:35.100045');
+INSERT INTO log VALUES(71,1,'joel','INSERT','produit',NULL,'2026-03-18 07:46:55.381849');
+INSERT INTO log VALUES(72,1,'joel','INSERT','kit_proforma',NULL,'2026-03-18 07:49:03.379868');
+INSERT INTO log VALUES(73,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 07:49:03.384904');
+INSERT INTO log VALUES(74,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 07:49:03.388306');
+INSERT INTO log VALUES(75,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 07:49:03.388468');
+INSERT INTO log VALUES(76,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 07:49:03.388588');
+INSERT INTO log VALUES(77,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 07:49:03.388711');
+INSERT INTO log VALUES(78,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 07:49:03.388825');
+INSERT INTO log VALUES(79,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 07:49:03.394577');
+INSERT INTO log VALUES(80,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 07:49:03.395614');
+INSERT INTO log VALUES(81,1,'joel','UPDATE','produit',6,'2026-03-18 07:54:36.549683');
+INSERT INTO log VALUES(82,1,'joel','DELETE','produit',5,'2026-03-18 09:25:40.991229');
+INSERT INTO log VALUES(83,1,'joel','INSERT','produit',NULL,'2026-03-18 09:26:44.668855');
+INSERT INTO log VALUES(84,1,'joel','UPDATE','produit',8,'2026-03-18 09:27:06.549920');
+INSERT INTO log VALUES(85,1,'joel','INSERT','kit_proforma',NULL,'2026-03-18 09:36:30.961099');
+INSERT INTO log VALUES(86,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 09:36:30.969847');
+INSERT INTO log VALUES(87,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 09:36:30.971371');
+INSERT INTO log VALUES(88,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 09:36:30.971423');
+INSERT INTO log VALUES(89,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 09:36:30.971462');
+INSERT INTO log VALUES(90,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 09:36:30.971510');
+INSERT INTO log VALUES(91,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 09:36:30.971545');
+INSERT INTO log VALUES(92,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 09:36:30.979782');
+INSERT INTO log VALUES(93,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 09:36:30.980385');
+INSERT INTO log VALUES(94,1,'joel','INSERT','produit',NULL,'2026-03-18 09:59:23.688048');
+INSERT INTO log VALUES(95,1,'joel','UPDATE','produit',9,'2026-03-18 09:59:40.151187');
+INSERT INTO log VALUES(96,1,'joel','UPDATE','produit',9,'2026-03-18 10:00:30.209567');
+INSERT INTO log VALUES(97,1,'joel','INSERT','client',NULL,'2026-03-18 10:02:08.299166');
+INSERT INTO log VALUES(98,1,'joel','INSERT','kit_proforma',NULL,'2026-03-18 10:06:08.600161');
+INSERT INTO log VALUES(99,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 10:06:08.604819');
+INSERT INTO log VALUES(100,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 10:06:08.607002');
+INSERT INTO log VALUES(101,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 10:06:08.607096');
+INSERT INTO log VALUES(102,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 10:06:08.607149');
+INSERT INTO log VALUES(103,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 10:06:08.609574');
+INSERT INTO log VALUES(104,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 10:06:08.610304');
+INSERT INTO log VALUES(105,1,'joel','DELETE','ligne_kit_proforma',17,'2026-03-18 10:23:09.361760');
+INSERT INTO log VALUES(106,1,'joel','DELETE','ligne_kit_proforma',18,'2026-03-18 10:23:09.361924');
+INSERT INTO log VALUES(107,1,'joel','DELETE','ligne_kit_proforma',19,'2026-03-18 10:23:09.362012');
+INSERT INTO log VALUES(108,1,'joel','DELETE','ligne_kit_proforma',20,'2026-03-18 10:23:09.362125');
+INSERT INTO log VALUES(109,1,'joel','DELETE','kit_proforma',13,'2026-03-18 10:23:09.371735');
+INSERT INTO log VALUES(110,1,'joel','DELETE','bloc_kit',10,'2026-03-18 10:23:09.371803');
+INSERT INTO log VALUES(111,1,'joel','DELETE','bloc_kit',11,'2026-03-18 10:23:09.371845');
+INSERT INTO log VALUES(112,1,'joel','DELETE','ligne_kit_proforma',17,'2026-03-18 10:23:09.371882');
+INSERT INTO log VALUES(113,1,'joel','DELETE','ligne_kit_proforma',18,'2026-03-18 10:23:09.371917');
+INSERT INTO log VALUES(114,1,'joel','DELETE','ligne_kit_proforma',19,'2026-03-18 10:23:09.371950');
+INSERT INTO log VALUES(115,1,'joel','DELETE','ligne_kit_proforma',20,'2026-03-18 10:23:09.371984');
+INSERT INTO log VALUES(116,1,'joel','DELETE','ligne_kit_proforma',13,'2026-03-18 10:23:12.362013');
+INSERT INTO log VALUES(117,1,'joel','DELETE','ligne_kit_proforma',14,'2026-03-18 10:23:12.362176');
+INSERT INTO log VALUES(118,1,'joel','DELETE','ligne_kit_proforma',15,'2026-03-18 10:23:12.362255');
+INSERT INTO log VALUES(119,1,'joel','DELETE','ligne_kit_proforma',16,'2026-03-18 10:23:12.362319');
+INSERT INTO log VALUES(120,1,'joel','DELETE','kit_proforma',12,'2026-03-18 10:23:12.368059');
+INSERT INTO log VALUES(121,1,'joel','DELETE','bloc_kit',8,'2026-03-18 10:23:12.368157');
+INSERT INTO log VALUES(122,1,'joel','DELETE','bloc_kit',9,'2026-03-18 10:23:12.368216');
+INSERT INTO log VALUES(123,1,'joel','DELETE','ligne_kit_proforma',13,'2026-03-18 10:23:12.368268');
+INSERT INTO log VALUES(124,1,'joel','DELETE','ligne_kit_proforma',14,'2026-03-18 10:23:12.368315');
+INSERT INTO log VALUES(125,1,'joel','DELETE','ligne_kit_proforma',15,'2026-03-18 10:23:12.368361');
+INSERT INTO log VALUES(126,1,'joel','DELETE','ligne_kit_proforma',16,'2026-03-18 10:23:12.368407');
+INSERT INTO log VALUES(127,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-18 10:23:14.354983');
+INSERT INTO log VALUES(128,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-18 10:23:14.355108');
+INSERT INTO log VALUES(129,1,'joel','DELETE','ligne_kit_proforma',11,'2026-03-18 10:23:14.355158');
+INSERT INTO log VALUES(130,1,'joel','DELETE','ligne_kit_proforma',12,'2026-03-18 10:23:14.355200');
+INSERT INTO log VALUES(131,1,'joel','DELETE','kit_proforma',11,'2026-03-18 10:23:14.360270');
+INSERT INTO log VALUES(132,1,'joel','DELETE','bloc_kit',6,'2026-03-18 10:23:14.360339');
+INSERT INTO log VALUES(133,1,'joel','DELETE','bloc_kit',7,'2026-03-18 10:23:14.360379');
+INSERT INTO log VALUES(134,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-18 10:23:14.360414');
+INSERT INTO log VALUES(135,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-18 10:23:14.360447');
+INSERT INTO log VALUES(136,1,'joel','DELETE','ligne_kit_proforma',11,'2026-03-18 10:23:14.360478');
+INSERT INTO log VALUES(137,1,'joel','DELETE','ligne_kit_proforma',12,'2026-03-18 10:23:14.360510');
+INSERT INTO log VALUES(138,1,'joel','DELETE','kit_proforma',10,'2026-03-18 10:23:15.881966');
+INSERT INTO log VALUES(139,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-18 10:23:17.263503');
+INSERT INTO log VALUES(140,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-18 10:23:17.263809');
+INSERT INTO log VALUES(141,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-18 10:23:17.263995');
+INSERT INTO log VALUES(142,1,'joel','DELETE','kit_proforma',9,'2026-03-18 10:23:17.269913');
+INSERT INTO log VALUES(143,1,'joel','DELETE','bloc_kit',4,'2026-03-18 10:23:17.269982');
+INSERT INTO log VALUES(144,1,'joel','DELETE','bloc_kit',5,'2026-03-18 10:23:17.270024');
+INSERT INTO log VALUES(145,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-18 10:23:17.270075');
+INSERT INTO log VALUES(146,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-18 10:23:17.270109');
+INSERT INTO log VALUES(147,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-18 10:23:17.270141');
+INSERT INTO log VALUES(148,1,'joel','DELETE','kit_proforma',8,'2026-03-18 10:23:18.687726');
+INSERT INTO log VALUES(149,1,'joel','DELETE','kit_proforma',7,'2026-03-18 10:23:20.138502');
+INSERT INTO log VALUES(150,1,'joel','DELETE','bloc_kit',3,'2026-03-18 10:23:20.138619');
+INSERT INTO log VALUES(151,1,'joel','DELETE','kit_proforma',6,'2026-03-18 10:23:21.473274');
+INSERT INTO log VALUES(152,1,'joel','DELETE','kit_proforma',5,'2026-03-18 10:23:23.030865');
+INSERT INTO log VALUES(153,1,'joel','DELETE','kit_proforma',4,'2026-03-18 10:23:25.165182');
+INSERT INTO log VALUES(154,1,'joel','DELETE','kit_proforma',3,'2026-03-18 10:23:26.523448');
+INSERT INTO log VALUES(155,1,'joel','DELETE','ligne_kit_proforma',3,'2026-03-18 10:23:28.024130');
+INSERT INTO log VALUES(156,1,'joel','DELETE','ligne_kit_proforma',4,'2026-03-18 10:23:28.024359');
+INSERT INTO log VALUES(157,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-18 10:23:28.024512');
+INSERT INTO log VALUES(158,1,'joel','DELETE','kit_proforma',2,'2026-03-18 10:23:28.030336');
+INSERT INTO log VALUES(159,1,'joel','DELETE','bloc_kit',1,'2026-03-18 10:23:28.030427');
+INSERT INTO log VALUES(160,1,'joel','DELETE','bloc_kit',2,'2026-03-18 10:23:28.030484');
+INSERT INTO log VALUES(161,1,'joel','DELETE','ligne_kit_proforma',3,'2026-03-18 10:23:28.030535');
+INSERT INTO log VALUES(162,1,'joel','DELETE','ligne_kit_proforma',4,'2026-03-18 10:23:28.030595');
+INSERT INTO log VALUES(163,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-18 10:23:28.030649');
+INSERT INTO log VALUES(164,1,'joel','DELETE','ligne_kit_proforma',1,'2026-03-18 10:23:30.283061');
+INSERT INTO log VALUES(165,1,'joel','DELETE','ligne_kit_proforma',2,'2026-03-18 10:23:30.283185');
+INSERT INTO log VALUES(166,1,'joel','DELETE','kit_proforma',1,'2026-03-18 10:23:30.286497');
+INSERT INTO log VALUES(167,1,'joel','DELETE','ligne_kit_proforma',1,'2026-03-18 10:23:30.286583');
+INSERT INTO log VALUES(168,1,'joel','DELETE','ligne_kit_proforma',2,'2026-03-18 10:23:30.286630');
+INSERT INTO log VALUES(169,1,'joel','DELETE','ligne_kit_proforma',21,'2026-03-18 10:23:32.596593');
+INSERT INTO log VALUES(170,1,'joel','DELETE','ligne_kit_proforma',22,'2026-03-18 10:23:32.596725');
+INSERT INTO log VALUES(171,1,'joel','DELETE','ligne_kit_proforma',23,'2026-03-18 10:23:32.596790');
+INSERT INTO log VALUES(172,1,'joel','DELETE','kit_proforma',14,'2026-03-18 10:23:32.600851');
+INSERT INTO log VALUES(173,1,'joel','DELETE','bloc_kit',12,'2026-03-18 10:23:32.600939');
+INSERT INTO log VALUES(174,1,'joel','DELETE','ligne_kit_proforma',21,'2026-03-18 10:23:32.600996');
+INSERT INTO log VALUES(175,1,'joel','DELETE','ligne_kit_proforma',22,'2026-03-18 10:23:32.601048');
+INSERT INTO log VALUES(176,1,'joel','DELETE','ligne_kit_proforma',23,'2026-03-18 10:23:32.601095');
+INSERT INTO log VALUES(177,1,'joel','DELETE','ligne_kit_proforma',24,'2026-03-18 10:23:39.947240');
+INSERT INTO log VALUES(178,1,'joel','DELETE','ligne_kit_proforma',25,'2026-03-18 10:23:39.947517');
+INSERT INTO log VALUES(179,1,'joel','DELETE','ligne_kit_proforma',26,'2026-03-18 10:23:39.947646');
+INSERT INTO log VALUES(180,1,'joel','DELETE','kit_proforma',15,'2026-03-18 10:23:39.951866');
+INSERT INTO log VALUES(181,1,'joel','DELETE','bloc_kit',13,'2026-03-18 10:23:39.951990');
+INSERT INTO log VALUES(182,1,'joel','DELETE','ligne_kit_proforma',24,'2026-03-18 10:23:39.952043');
+INSERT INTO log VALUES(183,1,'joel','DELETE','ligne_kit_proforma',25,'2026-03-18 10:23:39.952125');
+INSERT INTO log VALUES(184,1,'joel','DELETE','ligne_kit_proforma',26,'2026-03-18 10:23:39.952169');
+INSERT INTO log VALUES(185,1,'joel','DELETE','ligne_kit_proforma',27,'2026-03-18 10:23:48.407353');
+INSERT INTO log VALUES(186,1,'joel','DELETE','ligne_kit_proforma',28,'2026-03-18 10:23:48.407478');
+INSERT INTO log VALUES(187,1,'joel','DELETE','ligne_kit_proforma',29,'2026-03-18 10:23:48.407542');
+INSERT INTO log VALUES(188,1,'joel','DELETE','ligne_kit_proforma',30,'2026-03-18 10:23:48.407602');
+INSERT INTO log VALUES(189,1,'joel','DELETE','ligne_kit_proforma',31,'2026-03-18 10:23:48.407659');
+INSERT INTO log VALUES(190,1,'joel','DELETE','ligne_kit_proforma',32,'2026-03-18 10:23:48.407714');
+INSERT INTO log VALUES(191,1,'joel','DELETE','kit_proforma',16,'2026-03-18 10:23:48.413260');
+INSERT INTO log VALUES(192,1,'joel','DELETE','bloc_kit',14,'2026-03-18 10:23:48.413355');
+INSERT INTO log VALUES(193,1,'joel','DELETE','bloc_kit',15,'2026-03-18 10:23:48.413421');
+INSERT INTO log VALUES(194,1,'joel','DELETE','ligne_kit_proforma',27,'2026-03-18 10:23:48.413483');
+INSERT INTO log VALUES(195,1,'joel','DELETE','ligne_kit_proforma',28,'2026-03-18 10:23:48.413546');
+INSERT INTO log VALUES(196,1,'joel','DELETE','ligne_kit_proforma',29,'2026-03-18 10:23:48.413590');
+INSERT INTO log VALUES(197,1,'joel','DELETE','ligne_kit_proforma',30,'2026-03-18 10:23:48.413630');
+INSERT INTO log VALUES(198,1,'joel','DELETE','ligne_kit_proforma',31,'2026-03-18 10:23:48.413669');
+INSERT INTO log VALUES(199,1,'joel','DELETE','ligne_kit_proforma',32,'2026-03-18 10:23:48.413708');
+INSERT INTO log VALUES(200,1,'joel','UPDATE','kit_proforma',18,'2026-03-18 10:36:51.285432');
+INSERT INTO log VALUES(201,1,'joel','UPDATE','kit_proforma',18,'2026-03-18 10:37:14.270152');
+INSERT INTO log VALUES(202,1,'joel','UPDATE','kit_proforma',18,'2026-03-18 10:38:24.863055');
+INSERT INTO log VALUES(203,1,'joel','DELETE','produit',1,'2026-03-18 11:51:44.261714');
+INSERT INTO log VALUES(204,1,'joel','INSERT','produit',NULL,'2026-03-18 11:52:19.035792');
+INSERT INTO log VALUES(205,1,'joel','UPDATE','produit',10,'2026-03-18 11:52:51.356241');
+INSERT INTO log VALUES(206,1,'joel','DELETE','produit',10,'2026-03-18 11:53:00.258484');
+INSERT INTO log VALUES(207,1,'joel','UPDATE','produit',6,'2026-03-18 12:19:28.889634');
+INSERT INTO log VALUES(208,1,'joel','DELETE','produit',2,'2026-03-18 12:34:31.520359');
+INSERT INTO log VALUES(209,1,'joel','UPDATE','produit',8,'2026-03-18 12:53:40.172901');
+INSERT INTO log VALUES(210,1,'joel','UPDATE','produit',8,'2026-03-18 12:53:49.763465');
+INSERT INTO log VALUES(211,1,'joel','INSERT','kit_proforma',NULL,'2026-03-18 13:50:08.141095');
+INSERT INTO log VALUES(212,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 13:50:08.149313');
+INSERT INTO log VALUES(213,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 13:50:08.152122');
+INSERT INTO log VALUES(214,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 13:50:08.152359');
+INSERT INTO log VALUES(215,1,'joel','INSERT','bloc_kit',NULL,'2026-03-18 13:50:08.157129');
+INSERT INTO log VALUES(216,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-18 13:50:08.157733');
+INSERT INTO log VALUES(217,1,'joel','UPDATE','produit',7,'2026-03-19 07:58:33.126670');
+INSERT INTO log VALUES(218,1,'joel','UPDATE','produit',4,'2026-03-19 07:59:09.254341');
+INSERT INTO log VALUES(219,1,'joel','UPDATE','produit',3,'2026-03-19 07:59:28.165465');
+INSERT INTO log VALUES(220,1,'joel','INSERT','produit',NULL,'2026-03-19 08:00:41.779390');
+INSERT INTO log VALUES(221,1,'joel','INSERT','produit',NULL,'2026-03-19 08:01:20.578361');
+INSERT INTO log VALUES(222,1,'joel','UPDATE','produit',9,'2026-03-19 08:04:48.919109');
+INSERT INTO log VALUES(223,1,'joel','UPDATE','produit',8,'2026-03-19 08:05:03.282921');
+INSERT INTO log VALUES(224,1,'joel','UPDATE','kit_proforma',18,'2026-03-19 08:06:46.684493');
+INSERT INTO log VALUES(225,1,'joel','DELETE','ligne_kit_proforma',43,'2026-03-19 08:08:13.863773');
+INSERT INTO log VALUES(226,1,'joel','DELETE','ligne_kit_proforma',44,'2026-03-19 08:08:13.863880');
+INSERT INTO log VALUES(227,1,'joel','DELETE','ligne_kit_proforma',45,'2026-03-19 08:08:13.863927');
+INSERT INTO log VALUES(228,1,'joel','DELETE','kit_proforma',19,'2026-03-19 08:08:13.876364');
+INSERT INTO log VALUES(229,1,'joel','DELETE','bloc_kit',20,'2026-03-19 08:08:13.876513');
+INSERT INTO log VALUES(230,1,'joel','DELETE','bloc_kit',21,'2026-03-19 08:08:13.876633');
+INSERT INTO log VALUES(231,1,'joel','DELETE','ligne_kit_proforma',43,'2026-03-19 08:08:13.876744');
+INSERT INTO log VALUES(232,1,'joel','DELETE','ligne_kit_proforma',44,'2026-03-19 08:08:13.876865');
+INSERT INTO log VALUES(233,1,'joel','DELETE','ligne_kit_proforma',45,'2026-03-19 08:08:13.876975');
+INSERT INTO log VALUES(234,1,'joel','DELETE','ligne_kit_proforma',33,'2026-03-19 08:08:15.092484');
+INSERT INTO log VALUES(235,1,'joel','DELETE','ligne_kit_proforma',34,'2026-03-19 08:08:15.092591');
+INSERT INTO log VALUES(236,1,'joel','DELETE','ligne_kit_proforma',35,'2026-03-19 08:08:15.092650');
+INSERT INTO log VALUES(237,1,'joel','DELETE','ligne_kit_proforma',36,'2026-03-19 08:08:15.092739');
+INSERT INTO log VALUES(238,1,'joel','DELETE','ligne_kit_proforma',37,'2026-03-19 08:08:15.092792');
+INSERT INTO log VALUES(239,1,'joel','DELETE','ligne_kit_proforma',38,'2026-03-19 08:08:15.092891');
+INSERT INTO log VALUES(240,1,'joel','DELETE','kit_proforma',17,'2026-03-19 08:08:15.102822');
+INSERT INTO log VALUES(241,1,'joel','DELETE','bloc_kit',16,'2026-03-19 08:08:15.102930');
+INSERT INTO log VALUES(242,1,'joel','DELETE','bloc_kit',17,'2026-03-19 08:08:15.102989');
+INSERT INTO log VALUES(243,1,'joel','DELETE','ligne_kit_proforma',33,'2026-03-19 08:08:15.103060');
+INSERT INTO log VALUES(244,1,'joel','DELETE','ligne_kit_proforma',34,'2026-03-19 08:08:15.103114');
+INSERT INTO log VALUES(245,1,'joel','DELETE','ligne_kit_proforma',35,'2026-03-19 08:08:15.103157');
+INSERT INTO log VALUES(246,1,'joel','DELETE','ligne_kit_proforma',36,'2026-03-19 08:08:15.103200');
+INSERT INTO log VALUES(247,1,'joel','DELETE','ligne_kit_proforma',37,'2026-03-19 08:08:15.103287');
+INSERT INTO log VALUES(248,1,'joel','DELETE','ligne_kit_proforma',38,'2026-03-19 08:08:15.103335');
+INSERT INTO log VALUES(249,1,'joel','DELETE','ligne_kit_proforma',39,'2026-03-19 08:08:17.064850');
+INSERT INTO log VALUES(250,1,'joel','DELETE','ligne_kit_proforma',40,'2026-03-19 08:08:17.064961');
+INSERT INTO log VALUES(251,1,'joel','DELETE','ligne_kit_proforma',41,'2026-03-19 08:08:17.065021');
+INSERT INTO log VALUES(252,1,'joel','DELETE','ligne_kit_proforma',42,'2026-03-19 08:08:17.065072');
+INSERT INTO log VALUES(253,1,'joel','DELETE','kit_proforma',18,'2026-03-19 08:08:17.070170');
+INSERT INTO log VALUES(254,1,'joel','DELETE','bloc_kit',18,'2026-03-19 08:08:17.070246');
+INSERT INTO log VALUES(255,1,'joel','DELETE','bloc_kit',19,'2026-03-19 08:08:17.070284');
+INSERT INTO log VALUES(256,1,'joel','DELETE','ligne_kit_proforma',39,'2026-03-19 08:08:17.070342');
+INSERT INTO log VALUES(257,1,'joel','DELETE','ligne_kit_proforma',40,'2026-03-19 08:08:17.070392');
+INSERT INTO log VALUES(258,1,'joel','DELETE','ligne_kit_proforma',41,'2026-03-19 08:08:17.070457');
+INSERT INTO log VALUES(259,1,'joel','DELETE','ligne_kit_proforma',42,'2026-03-19 08:08:17.070501');
+INSERT INTO log VALUES(260,1,'joel','INSERT','kit_proforma',NULL,'2026-03-19 08:10:40.713271');
+INSERT INTO log VALUES(261,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 08:10:40.717295');
+INSERT INTO log VALUES(262,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:10:40.719808');
+INSERT INTO log VALUES(263,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:10:40.719960');
+INSERT INTO log VALUES(264,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:10:40.720051');
+INSERT INTO log VALUES(265,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 08:10:40.723898');
+INSERT INTO log VALUES(266,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:10:40.724941');
+INSERT INTO log VALUES(267,1,'joel','UPDATE','kit_proforma',1,'2026-03-19 08:18:39.753266');
+INSERT INTO log VALUES(268,1,'joel','UPDATE','kit_proforma',1,'2026-03-19 08:27:57.614703');
+INSERT INTO log VALUES(269,1,'joel','UPDATE','produit',6,'2026-03-19 08:32:35.962259');
+INSERT INTO log VALUES(270,1,'joel','UPDATE','produit',7,'2026-03-19 08:50:20.100813');
+INSERT INTO log VALUES(271,1,'joel','UPDATE','kit_proforma',1,'2026-03-19 08:51:16.856505');
+INSERT INTO log VALUES(272,1,'joel','INSERT','kit_proforma',NULL,'2026-03-19 08:56:11.082739');
+INSERT INTO log VALUES(273,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 08:56:11.087388');
+INSERT INTO log VALUES(274,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:56:11.089913');
+INSERT INTO log VALUES(275,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:56:11.090005');
+INSERT INTO log VALUES(276,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:56:11.090052');
+INSERT INTO log VALUES(277,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:56:11.090122');
+INSERT INTO log VALUES(278,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:56:11.090165');
+INSERT INTO log VALUES(279,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 08:56:11.096101');
+INSERT INTO log VALUES(280,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 08:56:11.097245');
+INSERT INTO log VALUES(281,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 10:07:43.860178');
+INSERT INTO log VALUES(282,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 10:08:10.501701');
+INSERT INTO log VALUES(283,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 10:09:05.283342');
+INSERT INTO log VALUES(284,1,'joel','UPDATE','kit_proforma',1,'2026-03-19 10:09:33.437944');
+INSERT INTO log VALUES(285,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 10:24:05.095179');
+INSERT INTO log VALUES(286,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-19 10:24:05.107732');
+INSERT INTO log VALUES(287,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-19 10:24:05.107833');
+INSERT INTO log VALUES(288,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-19 10:24:05.107943');
+INSERT INTO log VALUES(289,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-19 10:24:05.108049');
+INSERT INTO log VALUES(290,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-19 10:24:05.108136');
+INSERT INTO log VALUES(291,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-19 10:24:05.108238');
+INSERT INTO log VALUES(292,1,'joel','DELETE','bloc_kit',3,'2026-03-19 10:24:05.118622');
+INSERT INTO log VALUES(293,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 10:24:05.119906');
+INSERT INTO log VALUES(294,1,'joel','DELETE','bloc_kit',4,'2026-03-19 10:24:05.119954');
+INSERT INTO log VALUES(295,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:05.121248');
+INSERT INTO log VALUES(296,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:05.121378');
+INSERT INTO log VALUES(297,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:05.121537');
+INSERT INTO log VALUES(298,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:05.121744');
+INSERT INTO log VALUES(299,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:05.121879');
+INSERT INTO log VALUES(300,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 10:24:05.122044');
+INSERT INTO log VALUES(301,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:05.127798');
+INSERT INTO log VALUES(302,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 10:24:51.104512');
+INSERT INTO log VALUES(303,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-19 10:24:51.108461');
+INSERT INTO log VALUES(304,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-19 10:24:51.108537');
+INSERT INTO log VALUES(305,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-19 10:24:51.108589');
+INSERT INTO log VALUES(306,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-19 10:24:51.108630');
+INSERT INTO log VALUES(307,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-19 10:24:51.108668');
+INSERT INTO log VALUES(308,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-19 10:24:51.108704');
+INSERT INTO log VALUES(309,1,'joel','DELETE','bloc_kit',5,'2026-03-19 10:24:51.112333');
+INSERT INTO log VALUES(310,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 10:24:51.114143');
+INSERT INTO log VALUES(311,1,'joel','DELETE','bloc_kit',6,'2026-03-19 10:24:51.114220');
+INSERT INTO log VALUES(312,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:51.115735');
+INSERT INTO log VALUES(313,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 10:24:51.115794');
+INSERT INTO log VALUES(314,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:51.117523');
+INSERT INTO log VALUES(315,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:51.117682');
+INSERT INTO log VALUES(316,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:51.117814');
+INSERT INTO log VALUES(317,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:51.117995');
+INSERT INTO log VALUES(318,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:24:51.118107');
+INSERT INTO log VALUES(319,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 10:25:23.735756');
+INSERT INTO log VALUES(320,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-19 10:25:23.739011');
+INSERT INTO log VALUES(321,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-19 10:25:23.739097');
+INSERT INTO log VALUES(322,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-19 10:25:23.739189');
+INSERT INTO log VALUES(323,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-19 10:25:23.739237');
+INSERT INTO log VALUES(324,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-19 10:25:23.739281');
+INSERT INTO log VALUES(325,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-19 10:25:23.739360');
+INSERT INTO log VALUES(326,1,'joel','DELETE','bloc_kit',7,'2026-03-19 10:25:23.742874');
+INSERT INTO log VALUES(327,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 10:25:23.744227');
+INSERT INTO log VALUES(328,1,'joel','DELETE','bloc_kit',8,'2026-03-19 10:25:23.744281');
+INSERT INTO log VALUES(329,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:25:23.745594');
+INSERT INTO log VALUES(330,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:25:23.745641');
+INSERT INTO log VALUES(331,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:25:23.745678');
+INSERT INTO log VALUES(332,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:25:23.745713');
+INSERT INTO log VALUES(333,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:25:23.745746');
+INSERT INTO log VALUES(334,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 10:25:23.745780');
+INSERT INTO log VALUES(335,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 10:25:23.747038');
+INSERT INTO log VALUES(336,1,'joel','INSERT','bon_commande',NULL,'2026-03-19 10:37:37.874639');
+INSERT INTO log VALUES(337,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-19 10:37:37.883612');
+INSERT INTO log VALUES(338,1,'joel','UPDATE','bon_commande',1,'2026-03-19 10:37:37.883782');
+INSERT INTO log VALUES(339,1,'joel','INSERT','bon_livraison',NULL,'2026-03-19 10:38:00.835277');
+INSERT INTO log VALUES(340,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-19 10:38:00.838475');
+INSERT INTO log VALUES(341,1,'joel','UPDATE','bon_commande',1,'2026-03-19 10:38:00.838564');
+INSERT INTO log VALUES(342,1,'joel','UPDATE','bon_livraison',1,'2026-03-19 10:38:00.838628');
+INSERT INTO log VALUES(343,1,'joel','INSERT','bon_livraison',NULL,'2026-03-19 10:38:34.284557');
+INSERT INTO log VALUES(344,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-19 10:38:34.287645');
+INSERT INTO log VALUES(345,1,'joel','UPDATE','bon_commande',1,'2026-03-19 10:38:34.287736');
+INSERT INTO log VALUES(346,1,'joel','UPDATE','bon_livraison',2,'2026-03-19 10:38:34.287798');
+INSERT INTO log VALUES(347,1,'joel','INSERT','bon_commande',NULL,'2026-03-19 10:39:29.274917');
+INSERT INTO log VALUES(348,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-19 10:39:29.278322');
+INSERT INTO log VALUES(349,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-19 10:39:29.278522');
+INSERT INTO log VALUES(350,1,'joel','UPDATE','bon_commande',2,'2026-03-19 10:39:29.278735');
+INSERT INTO log VALUES(351,1,'joel','INSERT','bon_livraison',NULL,'2026-03-19 10:39:45.821202');
+INSERT INTO log VALUES(352,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-19 10:39:45.824462');
+INSERT INTO log VALUES(353,1,'joel','UPDATE','bon_livraison',3,'2026-03-19 10:39:45.824564');
+INSERT INTO log VALUES(354,1,'joel','UPDATE','bon_commande',2,'2026-03-19 10:39:45.824638');
+INSERT INTO log VALUES(355,1,'joel','INSERT','bon_livraison',NULL,'2026-03-19 10:40:08.191052');
+INSERT INTO log VALUES(356,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-19 10:40:08.194136');
+INSERT INTO log VALUES(357,1,'joel','UPDATE','bon_commande',2,'2026-03-19 10:40:08.194231');
+INSERT INTO log VALUES(358,1,'joel','UPDATE','bon_livraison',4,'2026-03-19 10:40:08.194294');
+INSERT INTO log VALUES(359,1,'joel','INSERT','bon_commande',NULL,'2026-03-19 10:51:11.105616');
+INSERT INTO log VALUES(360,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-19 10:51:11.108804');
+INSERT INTO log VALUES(361,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-19 10:51:11.108866');
+INSERT INTO log VALUES(362,1,'joel','UPDATE','bon_commande',3,'2026-03-19 10:51:11.108936');
+INSERT INTO log VALUES(363,1,'joel','INSERT','bon_livraison',NULL,'2026-03-19 10:51:18.735661');
+INSERT INTO log VALUES(364,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-19 10:51:18.739184');
+INSERT INTO log VALUES(365,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-19 10:51:18.739339');
+INSERT INTO log VALUES(366,1,'joel','UPDATE','bon_livraison',5,'2026-03-19 10:51:18.739492');
+INSERT INTO log VALUES(367,1,'joel','UPDATE','bon_commande',3,'2026-03-19 10:51:18.739606');
+INSERT INTO log VALUES(368,1,'joel','DELETE','bon_livraison',5,'2026-03-19 11:02:06.603225');
+INSERT INTO log VALUES(369,1,'joel','UPDATE','bon_commande',3,'2026-03-19 11:02:06.612283');
+INSERT INTO log VALUES(370,1,'joel','INSERT','vendeur_compagnie',NULL,'2026-03-19 11:07:30.395015');
+INSERT INTO log VALUES(371,1,'joel','INSERT','vendeur_compagnie',NULL,'2026-03-19 11:07:30.401063');
+INSERT INTO log VALUES(372,1,'joel','INSERT','proforma',NULL,'2026-03-19 11:19:46.151391');
+INSERT INTO log VALUES(373,1,'joel','INSERT','ligne_proforma',NULL,'2026-03-19 11:19:46.157792');
+INSERT INTO log VALUES(374,1,'joel','INSERT','ligne_proforma',NULL,'2026-03-19 11:19:46.157961');
+INSERT INTO log VALUES(375,1,'joel','UPDATE','proforma',1,'2026-03-19 11:19:46.158304');
+INSERT INTO log VALUES(376,1,'joel','UPDATE','produit',8,'2026-03-19 12:12:45.158866');
+INSERT INTO log VALUES(377,1,'joel','UPDATE','produit',9,'2026-03-19 12:14:59.537941');
+INSERT INTO log VALUES(378,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 16:27:07.219545');
+INSERT INTO log VALUES(379,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-19 16:27:07.229760');
+INSERT INTO log VALUES(380,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-19 16:27:07.229879');
+INSERT INTO log VALUES(381,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-19 16:27:07.229931');
+INSERT INTO log VALUES(382,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-19 16:27:07.229976');
+INSERT INTO log VALUES(383,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-19 16:27:07.230021');
+INSERT INTO log VALUES(384,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-19 16:27:07.230062');
+INSERT INTO log VALUES(385,1,'joel','DELETE','bloc_kit',9,'2026-03-19 16:27:07.236730');
+INSERT INTO log VALUES(386,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:27:07.238433');
+INSERT INTO log VALUES(387,1,'joel','DELETE','bloc_kit',10,'2026-03-19 16:27:07.238523');
+INSERT INTO log VALUES(388,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:27:07.240132');
+INSERT INTO log VALUES(389,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:27:07.240182');
+INSERT INTO log VALUES(390,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:27:07.241547');
+INSERT INTO log VALUES(391,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:27:07.241593');
+INSERT INTO log VALUES(392,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:27:07.241631');
+INSERT INTO log VALUES(393,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:27:07.241667');
+INSERT INTO log VALUES(394,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:27:07.241716');
+INSERT INTO log VALUES(395,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 16:28:47.904720');
+INSERT INTO log VALUES(396,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-19 16:28:47.908612');
+INSERT INTO log VALUES(397,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-19 16:28:47.908740');
+INSERT INTO log VALUES(398,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-19 16:28:47.908794');
+INSERT INTO log VALUES(399,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-19 16:28:47.908867');
+INSERT INTO log VALUES(400,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-19 16:28:47.908905');
+INSERT INTO log VALUES(401,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-19 16:28:47.908978');
+INSERT INTO log VALUES(402,1,'joel','DELETE','bloc_kit',11,'2026-03-19 16:28:47.911985');
+INSERT INTO log VALUES(403,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:28:47.913738');
+INSERT INTO log VALUES(404,1,'joel','DELETE','bloc_kit',12,'2026-03-19 16:28:47.913828');
+INSERT INTO log VALUES(405,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:28:47.915535');
+INSERT INTO log VALUES(406,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:28:47.915594');
+INSERT INTO log VALUES(407,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:28:47.915640');
+INSERT INTO log VALUES(408,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:28:47.915711');
+INSERT INTO log VALUES(409,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:28:47.915751');
+INSERT INTO log VALUES(410,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:28:47.915790');
+INSERT INTO log VALUES(411,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:28:47.917343');
+INSERT INTO log VALUES(412,1,'joel','INSERT','kit_proforma',NULL,'2026-03-19 16:32:31.134335');
+INSERT INTO log VALUES(413,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:32:31.145303');
+INSERT INTO log VALUES(414,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:31.146294');
+INSERT INTO log VALUES(415,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:31.146348');
+INSERT INTO log VALUES(416,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:31.146389');
+INSERT INTO log VALUES(417,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:31.146427');
+INSERT INTO log VALUES(418,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:31.146463');
+INSERT INTO log VALUES(419,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:32:31.149098');
+INSERT INTO log VALUES(420,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:31.150177');
+INSERT INTO log VALUES(421,1,'joel','UPDATE','kit_proforma',3,'2026-03-19 16:32:47.360019');
+INSERT INTO log VALUES(422,1,'joel','DELETE','ligne_kit_proforma',11,'2026-03-19 16:32:47.364427');
+INSERT INTO log VALUES(423,1,'joel','DELETE','ligne_kit_proforma',12,'2026-03-19 16:32:47.364606');
+INSERT INTO log VALUES(424,1,'joel','DELETE','ligne_kit_proforma',13,'2026-03-19 16:32:47.364718');
+INSERT INTO log VALUES(425,1,'joel','DELETE','ligne_kit_proforma',14,'2026-03-19 16:32:47.364794');
+INSERT INTO log VALUES(426,1,'joel','DELETE','ligne_kit_proforma',15,'2026-03-19 16:32:47.364891');
+INSERT INTO log VALUES(427,1,'joel','DELETE','ligne_kit_proforma',16,'2026-03-19 16:32:47.364978');
+INSERT INTO log VALUES(428,1,'joel','DELETE','bloc_kit',15,'2026-03-19 16:32:47.369231');
+INSERT INTO log VALUES(429,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:32:47.371770');
+INSERT INTO log VALUES(430,1,'joel','DELETE','bloc_kit',16,'2026-03-19 16:32:47.371872');
+INSERT INTO log VALUES(431,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:47.373889');
+INSERT INTO log VALUES(432,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:47.373990');
+INSERT INTO log VALUES(433,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:47.374083');
+INSERT INTO log VALUES(434,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:47.374185');
+INSERT INTO log VALUES(435,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:47.374361');
+INSERT INTO log VALUES(436,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:32:47.374484');
+INSERT INTO log VALUES(437,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:32:47.378105');
+INSERT INTO log VALUES(438,1,'joel','UPDATE','kit_proforma',1,'2026-03-19 16:34:18.984610');
+INSERT INTO log VALUES(439,1,'joel','DELETE','ligne_kit_proforma',1,'2026-03-19 16:34:18.995577');
+INSERT INTO log VALUES(440,1,'joel','DELETE','ligne_kit_proforma',2,'2026-03-19 16:34:18.995716');
+INSERT INTO log VALUES(441,1,'joel','DELETE','ligne_kit_proforma',3,'2026-03-19 16:34:18.995769');
+INSERT INTO log VALUES(442,1,'joel','DELETE','ligne_kit_proforma',4,'2026-03-19 16:34:18.995833');
+INSERT INTO log VALUES(443,1,'joel','DELETE','bloc_kit',1,'2026-03-19 16:34:18.998990');
+INSERT INTO log VALUES(444,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:34:19.000135');
+INSERT INTO log VALUES(445,1,'joel','DELETE','bloc_kit',2,'2026-03-19 16:34:19.000189');
+INSERT INTO log VALUES(446,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:34:19.002156');
+INSERT INTO log VALUES(447,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:34:19.002284');
+INSERT INTO log VALUES(448,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:34:19.002383');
+INSERT INTO log VALUES(449,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:34:19.002471');
+INSERT INTO log VALUES(450,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:34:19.005911');
+INSERT INTO log VALUES(451,1,'joel','UPDATE','kit_proforma',1,'2026-03-19 16:35:56.950625');
+INSERT INTO log VALUES(452,1,'joel','DELETE','ligne_kit_proforma',17,'2026-03-19 16:35:56.974304');
+INSERT INTO log VALUES(453,1,'joel','DELETE','ligne_kit_proforma',18,'2026-03-19 16:35:56.974415');
+INSERT INTO log VALUES(454,1,'joel','DELETE','ligne_kit_proforma',19,'2026-03-19 16:35:56.974478');
+INSERT INTO log VALUES(455,1,'joel','DELETE','ligne_kit_proforma',20,'2026-03-19 16:35:56.974531');
+INSERT INTO log VALUES(456,1,'joel','DELETE','bloc_kit',19,'2026-03-19 16:35:56.978760');
+INSERT INTO log VALUES(457,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:35:56.980171');
+INSERT INTO log VALUES(458,1,'joel','DELETE','bloc_kit',20,'2026-03-19 16:35:56.980263');
+INSERT INTO log VALUES(459,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:35:56.981685');
+INSERT INTO log VALUES(460,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:35:56.981766');
+INSERT INTO log VALUES(461,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:35:56.983398');
+INSERT INTO log VALUES(462,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:35:56.983478');
+INSERT INTO log VALUES(463,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:35:56.983547');
+INSERT INTO log VALUES(464,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:35:56.983612');
+INSERT INTO log VALUES(465,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:35:56.983675');
+INSERT INTO log VALUES(466,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 16:38:15.321081');
+INSERT INTO log VALUES(467,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-19 16:38:15.325946');
+INSERT INTO log VALUES(468,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-19 16:38:15.326081');
+INSERT INTO log VALUES(469,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-19 16:38:15.326157');
+INSERT INTO log VALUES(470,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-19 16:38:15.326199');
+INSERT INTO log VALUES(471,1,'joel','DELETE','ligne_kit_proforma',9,'2026-03-19 16:38:15.326266');
+INSERT INTO log VALUES(472,1,'joel','DELETE','ligne_kit_proforma',10,'2026-03-19 16:38:15.326304');
+INSERT INTO log VALUES(473,1,'joel','DELETE','bloc_kit',13,'2026-03-19 16:38:15.329420');
+INSERT INTO log VALUES(474,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:38:15.330779');
+INSERT INTO log VALUES(475,1,'joel','DELETE','bloc_kit',14,'2026-03-19 16:38:15.330840');
+INSERT INTO log VALUES(476,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:38:15.332089');
+INSERT INTO log VALUES(477,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:38:15.332158');
+INSERT INTO log VALUES(478,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:38:15.334048');
+INSERT INTO log VALUES(479,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:38:15.334121');
+INSERT INTO log VALUES(480,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:38:15.334176');
+INSERT INTO log VALUES(481,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:38:15.334227');
+INSERT INTO log VALUES(482,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:38:15.334276');
+INSERT INTO log VALUES(483,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 16:40:06.782625');
+INSERT INTO log VALUES(484,1,'joel','DELETE','ligne_kit_proforma',23,'2026-03-19 16:40:06.786748');
+INSERT INTO log VALUES(485,1,'joel','DELETE','ligne_kit_proforma',24,'2026-03-19 16:40:06.786978');
+INSERT INTO log VALUES(486,1,'joel','DELETE','ligne_kit_proforma',25,'2026-03-19 16:40:06.787139');
+INSERT INTO log VALUES(487,1,'joel','DELETE','ligne_kit_proforma',26,'2026-03-19 16:40:06.787271');
+INSERT INTO log VALUES(488,1,'joel','DELETE','ligne_kit_proforma',27,'2026-03-19 16:40:06.787427');
+INSERT INTO log VALUES(489,1,'joel','DELETE','ligne_kit_proforma',28,'2026-03-19 16:40:06.787571');
+INSERT INTO log VALUES(490,1,'joel','DELETE','bloc_kit',23,'2026-03-19 16:40:06.792667');
+INSERT INTO log VALUES(491,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:40:06.794624');
+INSERT INTO log VALUES(492,1,'joel','DELETE','bloc_kit',24,'2026-03-19 16:40:06.794745');
+INSERT INTO log VALUES(493,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:40:06.797065');
+INSERT INTO log VALUES(494,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:40:06.797135');
+INSERT INTO log VALUES(495,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:40:06.798747');
+INSERT INTO log VALUES(496,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:40:06.798812');
+INSERT INTO log VALUES(497,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:40:06.798860');
+INSERT INTO log VALUES(498,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:40:06.798905');
+INSERT INTO log VALUES(499,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:40:06.798950');
+INSERT INTO log VALUES(500,1,'joel','UPDATE','kit_proforma',2,'2026-03-19 16:56:45.347876');
+INSERT INTO log VALUES(501,1,'joel','DELETE','ligne_kit_proforma',23,'2026-03-19 16:56:45.358513');
+INSERT INTO log VALUES(502,1,'joel','DELETE','ligne_kit_proforma',24,'2026-03-19 16:56:45.358705');
+INSERT INTO log VALUES(503,1,'joel','DELETE','ligne_kit_proforma',25,'2026-03-19 16:56:45.358917');
+INSERT INTO log VALUES(504,1,'joel','DELETE','ligne_kit_proforma',26,'2026-03-19 16:56:45.359041');
+INSERT INTO log VALUES(505,1,'joel','DELETE','ligne_kit_proforma',27,'2026-03-19 16:56:45.359133');
+INSERT INTO log VALUES(506,1,'joel','DELETE','ligne_kit_proforma',28,'2026-03-19 16:56:45.359200');
+INSERT INTO log VALUES(507,1,'joel','DELETE','bloc_kit',25,'2026-03-19 16:56:45.364660');
+INSERT INTO log VALUES(508,1,'joel','INSERT','bloc_kit',NULL,'2026-03-19 16:56:45.366255');
+INSERT INTO log VALUES(509,1,'joel','DELETE','bloc_kit',26,'2026-03-19 16:56:45.366316');
+INSERT INTO log VALUES(510,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:56:45.367861');
+INSERT INTO log VALUES(511,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:56:45.367916');
+INSERT INTO log VALUES(512,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:56:45.367962');
+INSERT INTO log VALUES(513,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:56:45.368005');
+INSERT INTO log VALUES(514,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-19 16:56:45.368047');
+INSERT INTO log VALUES(515,1,'joel','INSERT','certificat_reparation',NULL,'2026-03-23 09:03:12.132567');
+INSERT INTO log VALUES(516,1,'joel','INSERT','reparation_detail',NULL,'2026-03-23 09:03:12.140251');
+INSERT INTO log VALUES(517,1,'joel','DELETE','certificat_reparation',1,'2026-03-23 09:23:35.993037');
+INSERT INTO log VALUES(518,1,'joel','DELETE','reparation_detail',1,'2026-03-23 09:23:35.993348');
+INSERT INTO log VALUES(519,1,'joel','INSERT','certificat_reparation',NULL,'2026-03-23 10:20:18.778464');
+INSERT INTO log VALUES(520,1,'joel','INSERT','reparation_detail',NULL,'2026-03-23 10:20:18.784501');
+INSERT INTO log VALUES(521,1,'joel','INSERT','reparation_detail',NULL,'2026-03-23 11:11:33.461268');
+INSERT INTO log VALUES(522,1,'joel','UPDATE','certificat_reparation',1,'2026-03-23 11:11:33.461452');
+INSERT INTO log VALUES(523,1,'joel','DELETE','reparation_detail',1,'2026-03-23 11:11:33.461542');
+INSERT INTO log VALUES(524,1,'joel','INSERT','reparation_detail',NULL,'2026-03-23 11:13:00.047266');
+INSERT INTO log VALUES(525,1,'joel','DELETE','reparation_detail',2,'2026-03-23 11:13:00.047499');
+INSERT INTO log VALUES(526,1,'joel','DELETE','certificat_reparation',1,'2026-03-23 14:54:12.419455');
+INSERT INTO log VALUES(527,1,'joel','DELETE','reparation_detail',3,'2026-03-23 14:54:12.419592');
+INSERT INTO log VALUES(528,1,'joel','INSERT','certificat_reparation',NULL,'2026-03-23 14:55:18.296502');
+INSERT INTO log VALUES(529,1,'joel','INSERT','reparation_detail',NULL,'2026-03-23 14:55:18.301997');
+INSERT INTO log VALUES(530,1,'joel','UPDATE','produit',7,'2026-03-23 16:14:56.769846');
+INSERT INTO log VALUES(531,1,'joel','DELETE','ligne_kit_proforma',17,'2026-03-23 16:51:48.322003');
+INSERT INTO log VALUES(532,1,'joel','DELETE','ligne_kit_proforma',18,'2026-03-23 16:51:48.322130');
+INSERT INTO log VALUES(533,1,'joel','DELETE','ligne_kit_proforma',19,'2026-03-23 16:51:48.322187');
+INSERT INTO log VALUES(534,1,'joel','DELETE','ligne_kit_proforma',20,'2026-03-23 16:51:48.322228');
+INSERT INTO log VALUES(535,1,'joel','DELETE','ligne_kit_proforma',21,'2026-03-23 16:51:48.322266');
+INSERT INTO log VALUES(536,1,'joel','DELETE','ligne_kit_proforma',22,'2026-03-23 16:51:48.322304');
+INSERT INTO log VALUES(537,1,'joel','DELETE','kit_proforma',1,'2026-03-23 16:51:48.341169');
+INSERT INTO log VALUES(538,1,'joel','DELETE','bloc_kit',21,'2026-03-23 16:51:48.341326');
+INSERT INTO log VALUES(539,1,'joel','DELETE','bloc_kit',22,'2026-03-23 16:51:48.341465');
+INSERT INTO log VALUES(540,1,'joel','DELETE','ligne_kit_proforma',17,'2026-03-23 16:51:48.341584');
+INSERT INTO log VALUES(541,1,'joel','DELETE','ligne_kit_proforma',18,'2026-03-23 16:51:48.341726');
+INSERT INTO log VALUES(542,1,'joel','DELETE','ligne_kit_proforma',19,'2026-03-23 16:51:48.341880');
+INSERT INTO log VALUES(543,1,'joel','DELETE','ligne_kit_proforma',20,'2026-03-23 16:51:48.342052');
+INSERT INTO log VALUES(544,1,'joel','DELETE','ligne_kit_proforma',21,'2026-03-23 16:51:48.342174');
+INSERT INTO log VALUES(545,1,'joel','DELETE','ligne_kit_proforma',22,'2026-03-23 16:51:48.342309');
+INSERT INTO log VALUES(546,1,'joel','DELETE','ligne_kit_proforma',23,'2026-03-23 16:51:49.413872');
+INSERT INTO log VALUES(547,1,'joel','DELETE','ligne_kit_proforma',24,'2026-03-23 16:51:49.413984');
+INSERT INTO log VALUES(548,1,'joel','DELETE','ligne_kit_proforma',25,'2026-03-23 16:51:49.414035');
+INSERT INTO log VALUES(549,1,'joel','DELETE','ligne_kit_proforma',26,'2026-03-23 16:51:49.414079');
+INSERT INTO log VALUES(550,1,'joel','DELETE','ligne_kit_proforma',27,'2026-03-23 16:51:49.414146');
+INSERT INTO log VALUES(551,1,'joel','DELETE','kit_proforma',2,'2026-03-23 16:51:49.418588');
+INSERT INTO log VALUES(552,1,'joel','DELETE','bloc_kit',27,'2026-03-23 16:51:49.418649');
+INSERT INTO log VALUES(553,1,'joel','DELETE','ligne_kit_proforma',23,'2026-03-23 16:51:49.418686');
+INSERT INTO log VALUES(554,1,'joel','DELETE','ligne_kit_proforma',24,'2026-03-23 16:51:49.418720');
+INSERT INTO log VALUES(555,1,'joel','DELETE','ligne_kit_proforma',25,'2026-03-23 16:51:49.418752');
+INSERT INTO log VALUES(556,1,'joel','DELETE','ligne_kit_proforma',26,'2026-03-23 16:51:49.418784');
+INSERT INTO log VALUES(557,1,'joel','DELETE','ligne_kit_proforma',27,'2026-03-23 16:51:49.418815');
+INSERT INTO log VALUES(558,1,'joel','DELETE','ligne_kit_proforma',11,'2026-03-23 16:51:50.366346');
+INSERT INTO log VALUES(559,1,'joel','DELETE','ligne_kit_proforma',12,'2026-03-23 16:51:50.366521');
+INSERT INTO log VALUES(560,1,'joel','DELETE','ligne_kit_proforma',13,'2026-03-23 16:51:50.366603');
+INSERT INTO log VALUES(561,1,'joel','DELETE','ligne_kit_proforma',14,'2026-03-23 16:51:50.366667');
+INSERT INTO log VALUES(562,1,'joel','DELETE','ligne_kit_proforma',15,'2026-03-23 16:51:50.366738');
+INSERT INTO log VALUES(563,1,'joel','DELETE','ligne_kit_proforma',16,'2026-03-23 16:51:50.366798');
+INSERT INTO log VALUES(564,1,'joel','DELETE','kit_proforma',3,'2026-03-23 16:51:50.377340');
+INSERT INTO log VALUES(565,1,'joel','DELETE','bloc_kit',17,'2026-03-23 16:51:50.377416');
+INSERT INTO log VALUES(566,1,'joel','DELETE','bloc_kit',18,'2026-03-23 16:51:50.377456');
+INSERT INTO log VALUES(567,1,'joel','DELETE','ligne_kit_proforma',11,'2026-03-23 16:51:50.377490');
+INSERT INTO log VALUES(568,1,'joel','DELETE','ligne_kit_proforma',12,'2026-03-23 16:51:50.377523');
+INSERT INTO log VALUES(569,1,'joel','DELETE','ligne_kit_proforma',13,'2026-03-23 16:51:50.377555');
+INSERT INTO log VALUES(570,1,'joel','DELETE','ligne_kit_proforma',14,'2026-03-23 16:51:50.377586');
+INSERT INTO log VALUES(571,1,'joel','DELETE','ligne_kit_proforma',15,'2026-03-23 16:51:50.377617');
+INSERT INTO log VALUES(572,1,'joel','DELETE','ligne_kit_proforma',16,'2026-03-23 16:51:50.377648');
+INSERT INTO log VALUES(573,1,'joel','INSERT','kit_proforma',NULL,'2026-03-23 16:53:56.918949');
+INSERT INTO log VALUES(574,1,'joel','INSERT','bloc_kit',NULL,'2026-03-23 16:53:56.927087');
+INSERT INTO log VALUES(575,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:53:56.930438');
+INSERT INTO log VALUES(576,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:53:56.930510');
+INSERT INTO log VALUES(577,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:53:56.930586');
+INSERT INTO log VALUES(578,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:53:56.930635');
+INSERT INTO log VALUES(579,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:53:56.930678');
+INSERT INTO log VALUES(580,1,'joel','INSERT','bloc_kit',NULL,'2026-03-23 16:53:56.934307');
+INSERT INTO log VALUES(581,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:53:56.934972');
+INSERT INTO log VALUES(582,1,'joel','UPDATE','kit_proforma',1,'2026-03-23 16:54:15.366958');
+INSERT INTO log VALUES(583,1,'joel','DELETE','ligne_kit_proforma',1,'2026-03-23 16:54:15.372618');
+INSERT INTO log VALUES(584,1,'joel','DELETE','ligne_kit_proforma',2,'2026-03-23 16:54:15.372745');
+INSERT INTO log VALUES(585,1,'joel','DELETE','ligne_kit_proforma',3,'2026-03-23 16:54:15.372867');
+INSERT INTO log VALUES(586,1,'joel','DELETE','ligne_kit_proforma',4,'2026-03-23 16:54:15.372957');
+INSERT INTO log VALUES(587,1,'joel','DELETE','ligne_kit_proforma',5,'2026-03-23 16:54:15.373011');
+INSERT INTO log VALUES(588,1,'joel','DELETE','ligne_kit_proforma',6,'2026-03-23 16:54:15.373060');
+INSERT INTO log VALUES(589,1,'joel','DELETE','bloc_kit',1,'2026-03-23 16:54:15.375889');
+INSERT INTO log VALUES(590,1,'joel','INSERT','bloc_kit',NULL,'2026-03-23 16:54:15.377394');
+INSERT INTO log VALUES(591,1,'joel','DELETE','bloc_kit',2,'2026-03-23 16:54:15.377444');
+INSERT INTO log VALUES(592,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:54:15.378486');
+INSERT INTO log VALUES(593,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:54:15.378531');
+INSERT INTO log VALUES(594,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:54:15.378569');
+INSERT INTO log VALUES(595,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:54:15.378605');
+INSERT INTO log VALUES(596,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:54:15.378640');
+INSERT INTO log VALUES(597,1,'joel','INSERT','bloc_kit',NULL,'2026-03-23 16:54:15.378675');
+INSERT INTO log VALUES(598,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-23 16:54:15.380003');
+INSERT INTO log VALUES(599,1,'joel','INSERT','fournisseur',NULL,'2026-03-24 11:16:56.129412');
+INSERT INTO log VALUES(600,1,'joel','INSERT','magasin',NULL,'2026-03-24 11:17:13.942138');
+INSERT INTO log VALUES(601,1,'joel','INSERT','achat',NULL,'2026-03-24 11:17:52.595622');
+INSERT INTO log VALUES(602,1,'joel','INSERT','ligne_achat',NULL,'2026-03-24 11:17:52.595766');
+INSERT INTO log VALUES(603,1,'joel','INSERT','stock',NULL,'2026-03-24 11:17:52.605375');
+INSERT INTO log VALUES(604,1,'joel','UPDATE','achat',1,'2026-03-24 11:17:52.605472');
+INSERT INTO log VALUES(605,1,'joel','UPDATE','achat',1,'2026-03-24 11:18:22.354744');
+INSERT INTO log VALUES(606,1,'joel','UPDATE','ligne_achat',1,'2026-03-24 11:18:22.359930');
+INSERT INTO log VALUES(607,1,'joel','UPDATE','achat',1,'2026-03-24 11:18:22.360082');
+INSERT INTO log VALUES(608,1,'joel','UPDATE','achat',1,'2026-03-24 11:18:46.437202');
+INSERT INTO log VALUES(609,1,'joel','UPDATE','achat',1,'2026-03-24 11:18:46.441375');
+INSERT INTO log VALUES(610,1,'joel','UPDATE','ligne_achat',1,'2026-03-24 11:18:46.441494');
+INSERT INTO log VALUES(611,1,'joel','DELETE','ligne_achat',1,'2026-03-24 11:29:38.396205');
+INSERT INTO log VALUES(612,1,'joel','DELETE','achat',1,'2026-03-24 11:29:38.396360');
+INSERT INTO log VALUES(613,1,'joel','INSERT','achat',NULL,'2026-03-24 11:30:15.654124');
+INSERT INTO log VALUES(614,1,'joel','INSERT','ligne_achat',NULL,'2026-03-24 11:30:15.654253');
+INSERT INTO log VALUES(615,1,'joel','INSERT','stock',NULL,'2026-03-24 11:30:15.661689');
+INSERT INTO log VALUES(616,1,'joel','UPDATE','achat',1,'2026-03-24 11:30:15.661817');
+INSERT INTO log VALUES(617,1,'joel','INSERT','bon_commande',NULL,'2026-03-24 11:30:47.559110');
+INSERT INTO log VALUES(618,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-24 11:30:47.564849');
+INSERT INTO log VALUES(619,1,'joel','UPDATE','bon_commande',4,'2026-03-24 11:30:47.565157');
+INSERT INTO log VALUES(620,1,'joel','INSERT','bon_livraison',NULL,'2026-03-24 11:30:56.324503');
+INSERT INTO log VALUES(621,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-24 11:30:56.327474');
+INSERT INTO log VALUES(622,1,'joel','UPDATE','bon_commande',4,'2026-03-24 11:30:56.327543');
+INSERT INTO log VALUES(623,1,'joel','UPDATE','bon_livraison',5,'2026-03-24 11:30:56.327593');
+INSERT INTO log VALUES(624,1,'joel','UPDATE','produit',6,'2026-03-26 09:49:41.336098');
+INSERT INTO log VALUES(625,1,'joel','INSERT','kit_proforma',NULL,'2026-03-26 10:25:34.825056');
+INSERT INTO log VALUES(626,1,'joel','INSERT','bloc_kit',NULL,'2026-03-26 10:25:34.836155');
+INSERT INTO log VALUES(627,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 10:25:34.838059');
+INSERT INTO log VALUES(628,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 10:25:34.838110');
+INSERT INTO log VALUES(629,1,'joel','UPDATE','produit',8,'2026-03-26 10:42:33.866933');
+INSERT INTO log VALUES(630,1,'joel','UPDATE','produit',9,'2026-03-26 10:42:53.741582');
+INSERT INTO log VALUES(631,1,'joel','INSERT','produit',NULL,'2026-03-26 10:49:28.153374');
+INSERT INTO log VALUES(632,1,'joel','UPDATE','produit',6,'2026-03-26 10:50:20.015295');
+INSERT INTO log VALUES(633,1,'joel','UPDATE','stock',1,'2026-03-26 14:19:29.542625');
+INSERT INTO log VALUES(634,1,'joel','UPDATE','stock',1,'2026-03-26 14:20:15.372777');
+INSERT INTO log VALUES(635,1,'joel','UPDATE','kit_proforma',2,'2026-03-26 15:00:57.772774');
+INSERT INTO log VALUES(636,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-26 15:00:57.786655');
+INSERT INTO log VALUES(637,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-26 15:00:57.786792');
+INSERT INTO log VALUES(638,1,'joel','INSERT','bloc_kit',NULL,'2026-03-26 15:00:57.801728');
+INSERT INTO log VALUES(639,1,'joel','DELETE','bloc_kit',5,'2026-03-26 15:00:57.801792');
+INSERT INTO log VALUES(640,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 15:00:57.803885');
+INSERT INTO log VALUES(641,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 15:00:57.803952');
+INSERT INTO log VALUES(642,1,'joel','UPDATE','kit_proforma',2,'2026-03-26 15:36:41.835266');
+INSERT INTO log VALUES(643,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-26 15:36:41.859539');
+INSERT INTO log VALUES(644,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-26 15:36:41.859739');
+INSERT INTO log VALUES(645,1,'joel','INSERT','bloc_kit',NULL,'2026-03-26 15:36:41.875955');
+INSERT INTO log VALUES(646,1,'joel','DELETE','bloc_kit',6,'2026-03-26 15:36:41.876103');
+INSERT INTO log VALUES(647,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 15:36:41.879906');
+INSERT INTO log VALUES(648,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 15:36:41.880035');
+INSERT INTO log VALUES(649,1,'joel','UPDATE','kit_proforma',2,'2026-03-26 16:47:48.008084');
+INSERT INTO log VALUES(650,1,'joel','DELETE','ligne_kit_proforma',7,'2026-03-26 16:47:48.024656');
+INSERT INTO log VALUES(651,1,'joel','DELETE','ligne_kit_proforma',8,'2026-03-26 16:47:48.024748');
+INSERT INTO log VALUES(652,1,'joel','INSERT','bloc_kit',NULL,'2026-03-26 16:47:48.039117');
+INSERT INTO log VALUES(653,1,'joel','DELETE','bloc_kit',7,'2026-03-26 16:47:48.039186');
+INSERT INTO log VALUES(654,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 16:47:48.041869');
+INSERT INTO log VALUES(655,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 16:47:48.041920');
+INSERT INTO log VALUES(656,1,'joel','INSERT','bloc_kit',NULL,'2026-03-26 16:47:48.041966');
+INSERT INTO log VALUES(657,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 16:47:48.043597');
+INSERT INTO log VALUES(658,1,'joel','INSERT','bloc_kit',NULL,'2026-03-26 16:47:48.043646');
+INSERT INTO log VALUES(659,1,'joel','INSERT','ligne_kit_proforma',NULL,'2026-03-26 16:47:48.044781');
+INSERT INTO log VALUES(660,1,'joel','DELETE','stock',1,'2026-03-30 11:09:38.202950');
+INSERT INTO log VALUES(661,1,'joel','DELETE','stock',2,'2026-03-30 11:09:38.209806');
+INSERT INTO log VALUES(662,1,'joel','INSERT','stock',NULL,'2026-03-30 11:13:20.299736');
+INSERT INTO log VALUES(663,1,'joel','DELETE','ligne_achat',1,'2026-03-30 11:35:41.331222');
+INSERT INTO log VALUES(664,1,'joel','DELETE','achat',1,'2026-03-30 11:35:41.331395');
+INSERT INTO log VALUES(665,1,'joel','INSERT','achat',NULL,'2026-03-30 11:36:08.019055');
+INSERT INTO log VALUES(666,1,'joel','INSERT','ligne_achat',NULL,'2026-03-30 11:36:08.019137');
+INSERT INTO log VALUES(667,1,'joel','INSERT','stock',NULL,'2026-03-30 11:36:08.024118');
+INSERT INTO log VALUES(668,1,'joel','UPDATE','achat',1,'2026-03-30 11:36:08.024195');
+INSERT INTO log VALUES(669,1,'joel','INSERT','vendeur',NULL,'2026-03-30 11:54:20.485676');
+INSERT INTO log VALUES(670,1,'joel','INSERT','vente',NULL,'2026-03-30 11:54:59.761750');
+INSERT INTO log VALUES(671,1,'joel','INSERT','ligne_vente',NULL,'2026-03-30 11:54:59.768382');
+INSERT INTO log VALUES(672,1,'joel','INSERT','facture',NULL,'2026-03-30 11:54:59.768456');
+INSERT INTO log VALUES(673,1,'joel','UPDATE','stock',2,'2026-03-30 11:54:59.768563');
+INSERT INTO log VALUES(674,1,'joel','UPDATE','vente',1,'2026-03-30 11:54:59.768678');
+INSERT INTO log VALUES(675,1,'joel','INSERT','paiement',NULL,'2026-03-30 12:10:53.243366');
+INSERT INTO log VALUES(676,1,'joel','UPDATE','vente',1,'2026-03-30 12:10:53.243690');
+INSERT INTO log VALUES(677,1,'joel','UPDATE','facture',1,'2026-03-30 12:10:53.258878');
+INSERT INTO log VALUES(678,1,'joel','DELETE','bon_livraison',5,'2026-03-30 12:49:15.097379');
+INSERT INTO log VALUES(679,1,'joel','DELETE','bon_livraison',4,'2026-03-30 12:49:15.101987');
+INSERT INTO log VALUES(680,1,'joel','DELETE','bon_livraison',3,'2026-03-30 12:49:15.103496');
+INSERT INTO log VALUES(681,1,'joel','DELETE','bon_livraison',2,'2026-03-30 12:49:15.104887');
+INSERT INTO log VALUES(682,1,'joel','DELETE','bon_livraison',1,'2026-03-30 12:49:15.106155');
+INSERT INTO log VALUES(683,1,'joel','UPDATE','bon_commande',1,'2026-03-30 12:49:15.118414');
+INSERT INTO log VALUES(684,1,'joel','UPDATE','bon_commande',2,'2026-03-30 12:49:15.122357');
+INSERT INTO log VALUES(685,1,'joel','UPDATE','bon_commande',4,'2026-03-30 12:49:15.123708');
+INSERT INTO log VALUES(686,1,'joel','INSERT','bon_commande',NULL,'2026-03-30 12:58:11.916292');
+INSERT INTO log VALUES(687,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-30 12:58:11.926469');
+INSERT INTO log VALUES(688,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-30 12:58:11.926539');
+INSERT INTO log VALUES(689,1,'joel','UPDATE','bon_commande',5,'2026-03-30 12:58:11.926671');
+INSERT INTO log VALUES(690,1,'joel','INSERT','bon_livraison',NULL,'2026-03-30 13:02:40.611126');
+INSERT INTO log VALUES(691,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-30 13:02:40.619852');
+INSERT INTO log VALUES(692,1,'joel','UPDATE','stock',1,'2026-03-30 13:02:40.619939');
+INSERT INTO log VALUES(693,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-30 13:02:40.623711');
+INSERT INTO log VALUES(694,1,'joel','UPDATE','bon_livraison',1,'2026-03-30 13:02:40.623786');
+INSERT INTO log VALUES(695,1,'joel','UPDATE','bon_commande',5,'2026-03-30 13:02:40.623843');
+INSERT INTO log VALUES(696,1,'joel','UPDATE','stock',2,'2026-03-30 13:02:40.623890');
+INSERT INTO log VALUES(697,1,'joel','DELETE','bon_livraison',1,'2026-03-30 13:22:18.870784');
+INSERT INTO log VALUES(698,1,'joel','UPDATE','bon_commande',5,'2026-03-30 13:22:18.884502');
+INSERT INTO log VALUES(699,1,'joel','INSERT','bon_commande',NULL,'2026-03-30 13:25:59.302981');
+INSERT INTO log VALUES(700,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-30 13:25:59.310120');
+INSERT INTO log VALUES(701,1,'joel','UPDATE','bon_commande',6,'2026-03-30 13:25:59.310261');
+INSERT INTO log VALUES(702,1,'joel','INSERT','bon_livraison',NULL,'2026-03-30 13:27:23.998494');
+INSERT INTO log VALUES(703,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-30 13:27:24.001767');
+INSERT INTO log VALUES(704,1,'joel','UPDATE','bon_commande',6,'2026-03-30 13:27:24.001872');
+INSERT INTO log VALUES(705,1,'joel','UPDATE','bon_livraison',1,'2026-03-30 13:27:24.001948');
+INSERT INTO log VALUES(706,1,'joel','UPDATE','stock',2,'2026-03-30 13:27:24.002034');
+INSERT INTO log VALUES(707,1,'joel','UPDATE','stock',2,'2026-03-30 13:27:50.109442');
+INSERT INTO log VALUES(708,1,'joel','DELETE','bon_livraison',1,'2026-03-30 13:27:50.109612');
+INSERT INTO log VALUES(709,1,'joel','DELETE','ligne_bon_livraison',1,'2026-03-30 13:27:50.109736');
+INSERT INTO log VALUES(710,1,'joel','UPDATE','bon_commande',6,'2026-03-30 13:27:50.118653');
+INSERT INTO log VALUES(711,1,'joel','INSERT','bon_commande',NULL,'2026-03-30 13:28:32.248264');
+INSERT INTO log VALUES(712,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-30 13:28:32.251072');
+INSERT INTO log VALUES(713,1,'joel','UPDATE','bon_commande',7,'2026-03-30 13:28:32.251401');
+INSERT INTO log VALUES(714,1,'joel','INSERT','bon_livraison',NULL,'2026-03-30 13:28:43.358476');
+INSERT INTO log VALUES(715,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-30 13:28:43.362185');
+INSERT INTO log VALUES(716,1,'joel','UPDATE','bon_livraison',1,'2026-03-30 13:28:43.362300');
+INSERT INTO log VALUES(717,1,'joel','UPDATE','stock',2,'2026-03-30 13:28:43.362353');
+INSERT INTO log VALUES(718,1,'joel','UPDATE','bon_commande',7,'2026-03-30 13:28:43.362410');
+INSERT INTO log VALUES(719,1,'joel','INSERT','bon_livraison',NULL,'2026-03-30 13:33:26.668649');
+INSERT INTO log VALUES(720,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-30 13:33:26.675242');
+INSERT INTO log VALUES(721,1,'joel','UPDATE','stock',2,'2026-03-30 13:33:26.675384');
+INSERT INTO log VALUES(722,1,'joel','UPDATE','bon_commande',7,'2026-03-30 13:33:26.675491');
+INSERT INTO log VALUES(723,1,'joel','UPDATE','bon_livraison',2,'2026-03-30 13:33:26.675546');
+INSERT INTO log VALUES(724,1,'joel','INSERT','paiement',NULL,'2026-03-30 14:51:33.989068');
+INSERT INTO log VALUES(725,1,'joel','UPDATE','vente',1,'2026-03-30 14:51:33.989353');
+INSERT INTO log VALUES(726,1,'joel','UPDATE','paiement',1,'2026-03-30 14:51:33.989475');
+INSERT INTO log VALUES(727,1,'joel','UPDATE','stock',2,'2026-03-30 14:53:59.755150');
+INSERT INTO log VALUES(728,1,'joel','DELETE','bon_livraison',2,'2026-03-30 14:53:59.755252');
+INSERT INTO log VALUES(729,1,'joel','DELETE','ligne_bon_livraison',2,'2026-03-30 14:53:59.755307');
+INSERT INTO log VALUES(730,1,'joel','UPDATE','stock',2,'2026-03-30 14:53:59.765605');
+INSERT INTO log VALUES(731,1,'joel','DELETE','bon_livraison',1,'2026-03-30 14:53:59.765704');
+INSERT INTO log VALUES(732,1,'joel','DELETE','ligne_bon_livraison',1,'2026-03-30 14:53:59.765756');
+INSERT INTO log VALUES(733,1,'joel','UPDATE','bon_commande',7,'2026-03-30 14:53:59.768350');
+INSERT INTO log VALUES(734,1,'joel','DELETE','bon_commande',7,'2026-03-30 15:07:01.067597');
+INSERT INTO log VALUES(735,1,'joel','DELETE','ligne_bon_commande',10,'2026-03-30 15:07:01.067741');
+INSERT INTO log VALUES(736,1,'joel','DELETE','bon_commande',6,'2026-03-30 15:07:01.077612');
+INSERT INTO log VALUES(737,1,'joel','DELETE','ligne_bon_commande',9,'2026-03-30 15:07:01.077672');
+INSERT INTO log VALUES(738,1,'joel','DELETE','bon_commande',5,'2026-03-30 15:07:01.079970');
+INSERT INTO log VALUES(739,1,'joel','DELETE','ligne_bon_commande',7,'2026-03-30 15:07:01.080022');
+INSERT INTO log VALUES(740,1,'joel','DELETE','ligne_bon_commande',8,'2026-03-30 15:07:01.080058');
+INSERT INTO log VALUES(741,1,'joel','DELETE','bon_commande',4,'2026-03-30 15:07:01.082123');
+INSERT INTO log VALUES(742,1,'joel','DELETE','ligne_bon_commande',6,'2026-03-30 15:07:01.082171');
+INSERT INTO log VALUES(743,1,'joel','DELETE','bon_commande',3,'2026-03-30 15:07:01.084227');
+INSERT INTO log VALUES(744,1,'joel','DELETE','ligne_bon_commande',4,'2026-03-30 15:07:01.084274');
+INSERT INTO log VALUES(745,1,'joel','DELETE','ligne_bon_commande',5,'2026-03-30 15:07:01.084309');
+INSERT INTO log VALUES(746,1,'joel','DELETE','bon_commande',2,'2026-03-30 15:07:01.086433');
+INSERT INTO log VALUES(747,1,'joel','DELETE','ligne_bon_commande',2,'2026-03-30 15:07:01.086480');
+INSERT INTO log VALUES(748,1,'joel','DELETE','ligne_bon_commande',3,'2026-03-30 15:07:01.086515');
+INSERT INTO log VALUES(749,1,'joel','DELETE','bon_commande',1,'2026-03-30 15:07:01.088967');
+INSERT INTO log VALUES(750,1,'joel','DELETE','ligne_bon_commande',1,'2026-03-30 15:07:01.089207');
+INSERT INTO log VALUES(751,1,'joel','UPDATE','stock',2,'2026-03-30 15:56:49.932692');
+INSERT INTO log VALUES(752,1,'joel','DELETE','achat',1,'2026-03-30 15:56:49.932882');
+INSERT INTO log VALUES(753,1,'joel','DELETE','ligne_achat',1,'2026-03-30 15:56:49.932964');
+INSERT INTO log VALUES(754,1,'joel','UPDATE','stock',2,'2026-03-30 15:57:31.535933');
+INSERT INTO log VALUES(755,1,'joel','DELETE','vente',1,'2026-03-30 15:57:31.542335');
+INSERT INTO log VALUES(756,1,'joel','DELETE','facture',1,'2026-03-30 15:57:31.542484');
+INSERT INTO log VALUES(757,1,'joel','DELETE','ligne_vente',1,'2026-03-30 15:57:31.542585');
+INSERT INTO log VALUES(758,1,'joel','DELETE','paiement',1,'2026-03-30 15:57:31.542637');
+INSERT INTO log VALUES(759,1,'joel','DELETE','paiement',2,'2026-03-30 15:57:31.542680');
+INSERT INTO log VALUES(760,1,'joel','INSERT','achat',NULL,'2026-03-30 15:58:42.674819');
+INSERT INTO log VALUES(761,1,'joel','INSERT','ligne_achat',NULL,'2026-03-30 15:58:42.679032');
+INSERT INTO log VALUES(762,1,'joel','UPDATE','stock',2,'2026-03-30 15:58:42.679104');
+INSERT INTO log VALUES(763,1,'joel','UPDATE','achat',1,'2026-03-30 15:58:42.680884');
+INSERT INTO log VALUES(764,NULL,'System','UPDATE','stock',2,'2026-03-30 16:12:14.955416');
+INSERT INTO log VALUES(765,1,'joel','DELETE','stock',2,'2026-03-30 16:51:07.706579');
+INSERT INTO log VALUES(766,1,'joel','UPDATE','achat',1,'2026-03-30 17:00:41.489460');
+INSERT INTO log VALUES(767,1,'joel','UPDATE','ligne_achat',1,'2026-03-30 17:00:41.498667');
+INSERT INTO log VALUES(768,1,'joel','UPDATE','achat',1,'2026-03-30 17:00:55.835826');
+INSERT INTO log VALUES(769,1,'joel','UPDATE','ligne_achat',1,'2026-03-30 17:00:55.842549');
+INSERT INTO log VALUES(770,1,'joel','UPDATE','achat',1,'2026-03-30 17:00:55.842655');
+INSERT INTO log VALUES(771,1,'joel','INSERT','achat',NULL,'2026-03-30 17:01:19.489951');
+INSERT INTO log VALUES(772,1,'joel','INSERT','stock',NULL,'2026-03-30 17:01:19.494317');
+INSERT INTO log VALUES(773,1,'joel','INSERT','ligne_achat',NULL,'2026-03-30 17:01:19.495774');
+INSERT INTO log VALUES(774,1,'joel','UPDATE','achat',2,'2026-03-30 17:01:19.496999');
+INSERT INTO log VALUES(775,1,'joel','UPDATE','produit',9,'2026-03-31 08:51:56.765834');
+INSERT INTO log VALUES(776,1,'joel','INSERT','bon_commande',NULL,'2026-03-31 14:15:23.664465');
+INSERT INTO log VALUES(777,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-31 14:15:23.692767');
+INSERT INTO log VALUES(778,1,'joel','UPDATE','bon_commande',1,'2026-03-31 14:15:23.693102');
+INSERT INTO log VALUES(779,1,'joel','INSERT','bon_livraison',NULL,'2026-03-31 14:15:45.510844');
+INSERT INTO log VALUES(780,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-31 14:15:45.517377');
+INSERT INTO log VALUES(781,1,'joel','UPDATE','bon_livraison',1,'2026-03-31 14:15:45.517597');
+INSERT INTO log VALUES(782,1,'joel','UPDATE','bon_commande',1,'2026-03-31 14:15:45.517760');
+INSERT INTO log VALUES(783,1,'joel','UPDATE','stock',2,'2026-03-31 14:15:45.517879');
+INSERT INTO log VALUES(784,1,'joel','INSERT','vente',NULL,'2026-03-31 15:59:00.928638');
+INSERT INTO log VALUES(785,1,'joel','INSERT','ligne_vente',NULL,'2026-03-31 15:59:00.933982');
+INSERT INTO log VALUES(786,1,'joel','INSERT','facture',NULL,'2026-03-31 15:59:00.934149');
+INSERT INTO log VALUES(787,1,'joel','INSERT','bon_commande',NULL,'2026-03-31 16:12:22.591186');
+INSERT INTO log VALUES(788,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-31 16:12:22.595076');
+INSERT INTO log VALUES(789,1,'joel','UPDATE','bon_commande',2,'2026-03-31 16:12:22.595153');
+INSERT INTO log VALUES(790,1,'joel','INSERT','bon_livraison',NULL,'2026-03-31 16:12:34.080154');
+INSERT INTO log VALUES(791,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-31 16:12:34.084351');
+INSERT INTO log VALUES(792,1,'joel','UPDATE','stock',2,'2026-03-31 16:12:34.084426');
+INSERT INTO log VALUES(793,1,'joel','UPDATE','bon_livraison',2,'2026-03-31 16:12:34.084481');
+INSERT INTO log VALUES(794,1,'joel','UPDATE','bon_commande',2,'2026-03-31 16:12:34.084530');
+INSERT INTO log VALUES(795,1,'joel','INSERT','vente',NULL,'2026-03-31 16:16:22.548287');
+INSERT INTO log VALUES(796,1,'joel','INSERT','ligne_vente',NULL,'2026-03-31 16:16:22.554043');
+INSERT INTO log VALUES(797,1,'joel','INSERT','facture',NULL,'2026-03-31 16:16:22.554103');
+INSERT INTO log VALUES(798,1,'joel','UPDATE','vente',2,'2026-03-31 16:16:22.554188');
+INSERT INTO log VALUES(799,1,'joel','INSERT','paiement',NULL,'2026-03-31 16:16:44.703951');
+INSERT INTO log VALUES(800,1,'joel','UPDATE','vente',2,'2026-03-31 16:16:44.704098');
+INSERT INTO log VALUES(801,1,'joel','UPDATE','facture',2,'2026-03-31 16:16:44.711434');
+INSERT INTO log VALUES(802,1,'joel','UPDATE','stock',1,'2026-03-31 17:10:26.411021');
+INSERT INTO log VALUES(803,1,'joel','INSERT','bon_commande',NULL,'2026-03-31 17:10:59.807046');
+INSERT INTO log VALUES(804,1,'joel','INSERT','ligne_bon_commande',NULL,'2026-03-31 17:10:59.811994');
+INSERT INTO log VALUES(805,1,'joel','UPDATE','bon_commande',3,'2026-03-31 17:10:59.812104');
+INSERT INTO log VALUES(806,1,'joel','INSERT','bon_livraison',NULL,'2026-03-31 17:11:11.681484');
+INSERT INTO log VALUES(807,1,'joel','INSERT','ligne_bon_livraison',NULL,'2026-03-31 17:11:11.684925');
+INSERT INTO log VALUES(808,1,'joel','UPDATE','bon_livraison',3,'2026-03-31 17:11:11.685121');
+INSERT INTO log VALUES(809,1,'joel','UPDATE','stock',1,'2026-03-31 17:11:11.685231');
+INSERT INTO log VALUES(810,1,'joel','UPDATE','bon_commande',3,'2026-03-31 17:11:11.685386');
+INSERT INTO log VALUES(811,1,'joel','INSERT','vente',NULL,'2026-03-31 17:11:17.189018');
+INSERT INTO log VALUES(812,1,'joel','INSERT','ligne_vente',NULL,'2026-03-31 17:11:17.194343');
+INSERT INTO log VALUES(813,1,'joel','INSERT','facture',NULL,'2026-03-31 17:11:17.194528');
+INSERT INTO log VALUES(814,1,'joel','UPDATE','vente',3,'2026-03-31 17:11:17.194722');
+INSERT INTO log VALUES(815,1,'joel','INSERT','paiement',NULL,'2026-04-01 11:10:25.869335');
+INSERT INTO log VALUES(816,1,'joel','UPDATE','vente',3,'2026-04-01 11:10:25.870050');
+INSERT INTO log VALUES(817,1,'joel','UPDATE','facture',3,'2026-04-01 11:10:25.894725');
+CREATE TABLE achat (
+	id INTEGER NOT NULL, 
+	date_achat DATETIME, 
+	magasin_id INTEGER NOT NULL, 
+	taxe_douane FLOAT, 
+	total_ht FLOAT, 
+	total_ttc FLOAT, 
+	fournisseur_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(magasin_id) REFERENCES magasin (id), 
+	CONSTRAINT fk_achat_fournisseur_id FOREIGN KEY(fournisseur_id) REFERENCES fournisseur (id)
+);
+INSERT INTO achat VALUES(1,'2026-03-30 15:58:42.675583',1,0.0,4600000.0,4600000.0,1);
+INSERT INTO achat VALUES(2,'2026-03-30 17:01:19.490678',1,0.0,24000000.0,24000000.0,1);
+CREATE TABLE stock (
+	id INTEGER NOT NULL, 
+	produit_id INTEGER NOT NULL, 
+	quantite INTEGER NOT NULL, 
+	seuil_alerte INTEGER, 
+	date_creation DATETIME, 
+	type_conditionnement VARCHAR(6) NOT NULL, 
+	magasin_id INTEGER NOT NULL, numero_lot VARCHAR(100), 
+	PRIMARY KEY (id), 
+	CONSTRAINT uix_stock_unique UNIQUE (produit_id, magasin_id, type_conditionnement), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id), 
+	FOREIGN KEY(magasin_id) REFERENCES magasin (id)
+);
+INSERT INTO stock VALUES(1,8,2,5,'2026-03-30 11:13:20.321451','unite',1,'91438');
+INSERT INTO stock VALUES(2,12,0,5,'2026-03-30 17:01:19.495159','unite',1,'62318');
+CREATE TABLE kit_proforma (
+	id INTEGER NOT NULL, 
+	numero VARCHAR(50) NOT NULL, 
+	client_id INTEGER NOT NULL, 
+	date DATETIME, 
+	attn VARCHAR(100), 
+	condition_paiement VARCHAR(200), 
+	delai_livraison VARCHAR(200), 
+	garantie VARCHAR(200), 
+	prix_global FLOAT, 
+	PRIMARY KEY (id), 
+	UNIQUE (numero), 
+	FOREIGN KEY(client_id) REFERENCES client (id)
+);
+INSERT INTO kit_proforma VALUES(1,'2026035356',2,'2026-03-18 00:00:00.000000','MR YAVO WILLIAM (  DIRECTEUR GÉNÉRAL )','50% a la commande et 50% a la livraison','04 Mois','Douze (12) mois à compter de la date d’installation',25000000.0);
+INSERT INTO kit_proforma VALUES(2,'2026032534',1,'2026-03-26 00:00:00.000000','DR MROUE SALMAN','50% a la commande et 50% a la livraison','04 Mois','Douze (12) mois à compter de la date d’installation',12000000.0);
+CREATE TABLE proforma (
+	id INTEGER NOT NULL, 
+	condition_paiement VARCHAR(200), 
+	delai_livraison VARCHAR(200), 
+	garantie VARCHAR(200), 
+	attn VARCHAR(100), 
+	numero VARCHAR(50) NOT NULL, 
+	client_id INTEGER NOT NULL, 
+	date DATETIME, 
+	total FLOAT, 
+	PRIMARY KEY (id), 
+	UNIQUE (numero), 
+	FOREIGN KEY(client_id) REFERENCES client (id)
+);
+INSERT INTO proforma VALUES(1,'CASH','','','MR YAVO WILLIAM (  DIRECTEUR GÉNÉRAL )','PRO-20260319111946',2,'2026-03-19 11:19:46.156021',7000000.0);
+CREATE TABLE bon_commande (
+	id INTEGER NOT NULL, 
+	numero VARCHAR(30) NOT NULL, 
+	date_creation DATETIME, 
+	total NUMERIC(12, 2), 
+	status VARCHAR(19) NOT NULL, 
+	client_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (numero), 
+	FOREIGN KEY(client_id) REFERENCES client (id)
+);
+INSERT INTO bon_commande VALUES(1,'BC-2026-40000001','2026-03-31 14:15:23.670694',13000000,'livree',2);
+INSERT INTO bon_commande VALUES(2,'BC-2026-40000002','2026-03-31 16:12:22.592319',12000000,'livree',3);
+INSERT INTO bon_commande VALUES(3,'BC-2026-40000003','2026-03-31 17:10:59.808826',3000000,'livree',3);
+CREATE TABLE ligne_vente (
+	id INTEGER NOT NULL, 
+	vente_id INTEGER NOT NULL, 
+	stock_id INTEGER NOT NULL, 
+	quantite INTEGER NOT NULL, 
+	prix_unitaire NUMERIC(10, 2) NOT NULL, 
+	PRIMARY KEY (id), 
+	CONSTRAINT fk_ligne_vente_vente_id FOREIGN KEY(vente_id) REFERENCES vente (id) ON DELETE CASCADE, 
+	CONSTRAINT fk_ligne_vente_stock_id FOREIGN KEY(stock_id) REFERENCES stock (id)
+);
+INSERT INTO ligne_vente VALUES(1,1,2,1,0);
+INSERT INTO ligne_vente VALUES(2,2,2,1,12000000);
+INSERT INTO ligne_vente VALUES(3,3,1,1,3000000);
+CREATE TABLE paiement (
+	id INTEGER NOT NULL, 
+	vente_id INTEGER NOT NULL, 
+	montant NUMERIC(10, 2) NOT NULL, 
+	mode VARCHAR(20), 
+	reference_paiement VARCHAR(150), 
+	annule BOOLEAN, 
+	date_paiement DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(vente_id) REFERENCES vente (id) ON DELETE CASCADE
+);
+INSERT INTO paiement VALUES(1,2,4000000,'virement','3445567787',0,'2026-03-31 16:16:44.703351');
+INSERT INTO paiement VALUES(2,3,1000000,'cash',NULL,0,'2026-04-01 11:10:25.858555');
+CREATE TABLE facture (
+	id INTEGER NOT NULL, 
+	vente_id INTEGER NOT NULL, 
+	numero VARCHAR(50) NOT NULL, 
+	date_facture DATETIME NOT NULL, 
+	total NUMERIC(10, 2) NOT NULL, 
+	montant_paye NUMERIC(10, 2) NOT NULL, 
+	reste_a_payer NUMERIC(10, 2) NOT NULL, 
+	statut VARCHAR(20) NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (vente_id), 
+	CONSTRAINT fk_facture_vente FOREIGN KEY(vente_id) REFERENCES vente (id) ON DELETE CASCADE, 
+	UNIQUE (numero)
+);
+INSERT INTO facture VALUES(1,1,'15E10400-2026-001','2026-03-31 15:59:00.933649',0,0,0,'impaye');
+INSERT INTO facture VALUES(2,2,'FFDBFA81-2026-002','2026-03-31 16:16:22.553913',12000000,4000000,8000000,'partiel');
+INSERT INTO facture VALUES(3,3,'10D983B0-2026-003','2026-03-31 17:11:17.193833',3000000,1000000,2000000,'partiel');
+CREATE TABLE bloc_kit (
+	id INTEGER NOT NULL, 
+	kit_id INTEGER NOT NULL, 
+	nom VARCHAR(100), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(kit_id) REFERENCES kit_proforma (id)
+);
+INSERT INTO bloc_kit VALUES(3,1,'ECHOCARDIOGRAPHE');
+INSERT INTO bloc_kit VALUES(4,1,'IMPRIMANTE');
+INSERT INTO bloc_kit VALUES(8,2,'ECHOGRAPHE#');
+INSERT INTO bloc_kit VALUES(9,2,'Bloc');
+INSERT INTO bloc_kit VALUES(10,2,'Bloc');
+CREATE TABLE ligne_proforma (
+	id INTEGER NOT NULL, 
+	proforma_id INTEGER NOT NULL, 
+	produit_id INTEGER, 
+	conditionnement VARCHAR(50), 
+	quantite INTEGER NOT NULL, 
+	prix_unitaire FLOAT NOT NULL, 
+	sous_total FLOAT NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(proforma_id) REFERENCES proforma (id), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id)
+);
+INSERT INTO ligne_proforma VALUES(1,1,8,'unite',1,5000000.0,5000000.0);
+INSERT INTO ligne_proforma VALUES(2,1,6,'carton',1,2000000.0,2000000.0);
+CREATE TABLE ligne_bon_commande (
+	id INTEGER NOT NULL, 
+	bon_id INTEGER NOT NULL, 
+	produit_id INTEGER NOT NULL, 
+	type_conditionnement VARCHAR(6) NOT NULL, 
+	quantite INTEGER NOT NULL, 
+	prix_unitaire NUMERIC(10, 2) NOT NULL, 
+	sous_total NUMERIC(12, 2) NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(bon_id) REFERENCES bon_commande (id), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id)
+);
+INSERT INTO ligne_bon_commande VALUES(1,1,12,'unite',1,13000000,13000000);
+INSERT INTO ligne_bon_commande VALUES(2,2,12,'unite',1,12000000,12000000);
+INSERT INTO ligne_bon_commande VALUES(3,3,8,'unite',1,3000000,3000000);
+CREATE TABLE bon_livraison (
+	id INTEGER NOT NULL, 
+	numero VARCHAR(30) NOT NULL, 
+	date_creation DATETIME, 
+	nota_bene TEXT, 
+	status VARCHAR(9) NOT NULL, 
+	client_id INTEGER NOT NULL, 
+	commande_id INTEGER, 
+	parent_id INTEGER, 
+	PRIMARY KEY (id), 
+	UNIQUE (numero), 
+	FOREIGN KEY(client_id) REFERENCES client (id), 
+	FOREIGN KEY(commande_id) REFERENCES bon_commande (id), 
+	FOREIGN KEY(parent_id) REFERENCES bon_livraison (id)
+);
+INSERT INTO bon_livraison VALUES(1,'BL-2026-40000001','2026-03-31 14:15:45.512733',NULL,'livree',2,1,NULL);
+INSERT INTO bon_livraison VALUES(2,'BL-2026-40000002','2026-03-31 16:12:34.081132',NULL,'livree',3,2,NULL);
+INSERT INTO bon_livraison VALUES(3,'BL-2026-40000003','2026-03-31 17:11:11.682198',NULL,'livree',3,3,NULL);
+CREATE TABLE ligne_kit_proforma (
+	id INTEGER NOT NULL, 
+	kit_id INTEGER NOT NULL, 
+	bloc_id INTEGER, 
+	produit_id INTEGER NOT NULL, 
+	quantite INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(kit_id) REFERENCES kit_proforma (id), 
+	CONSTRAINT fk_lkp_bloc_id FOREIGN KEY(bloc_id) REFERENCES bloc_kit (id), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id)
+);
+INSERT INTO ligne_kit_proforma VALUES(1,1,3,8,1);
+INSERT INTO ligne_kit_proforma VALUES(2,1,3,3,1);
+INSERT INTO ligne_kit_proforma VALUES(3,1,3,4,1);
+INSERT INTO ligne_kit_proforma VALUES(4,1,3,7,1);
+INSERT INTO ligne_kit_proforma VALUES(5,1,3,10,1);
+INSERT INTO ligne_kit_proforma VALUES(6,1,4,6,1);
+INSERT INTO ligne_kit_proforma VALUES(7,2,8,9,1);
+INSERT INTO ligne_kit_proforma VALUES(8,2,8,4,1);
+INSERT INTO ligne_kit_proforma VALUES(9,2,9,12,1);
+INSERT INTO ligne_kit_proforma VALUES(10,2,10,6,1);
+CREATE TABLE alembic_version (
+	version_num VARCHAR(32) NOT NULL, 
+	CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+INSERT INTO alembic_version VALUES('2d3dfba9e78f');
+CREATE TABLE IF NOT EXISTS "produit" (
+	id INTEGER NOT NULL, 
+	nom_produit VARCHAR(128) NOT NULL, 
+	model VARCHAR(128), 
+	marque VARCHAR(128), 
+	code_produit VARCHAR(256) NOT NULL, 
+	description TEXT, 
+	origine VARCHAR(256), 
+	image VARCHAR(255), 
+	PRIMARY KEY (id), 
+	UNIQUE (code_produit)
+);
+INSERT INTO produit VALUES(3,'SONDE CARDIAQUE','PN2-4',NULL,'DB1936-2026',NULL,NULL,NULL);
+INSERT INTO produit VALUES(4,'SONDE CONVEXE','C2-8',NULL,'7ECC3A-2026',NULL,NULL,NULL);
+INSERT INTO produit VALUES(6,'IMPRIMANTE',NULL,'SONY','FB99A0-2026',NULL,'JAPON',NULL);
+INSERT INTO produit VALUES(7,'SONDE ENDOVAGINALE','EVN4-9',NULL,'4C360C-2026',NULL,NULL,NULL);
+INSERT INTO produit VALUES(8,'ECHOGRAPHE','HS30','SAMSUNG','37459D-2026',unistr('Conception mince et compacte,\u000d\u000aPanneau de commande de levage,\u000d\u000a21,5 "LED moniteur,\u000d\u000aClavier rétro-éclairé,\u000d\u000a4  ports sondes actives,\u000d\u000a250Go de HDD,\u000d\u000aFSI (image spectre complet),\u000d\u000aImpulsion d''inversion imagerie harmonique,\u000d\u000aImagerie harmonique  tissulaire,'),'COREE DU SUD','https://res.cloudinary.com/dmjote21b/image/upload/v1773907502/gestock/produits/produit_8_1773907501.png');
+INSERT INTO produit VALUES(9,'ECHOGRAPHE','HS40','SAMSUNG','3F51B4-2026',unistr('Conception mince et compacte,\u000d\u000apanneau de commande de levage,\u000d\u000a21,5 "LCD moniteur,\u000d\u000aÉcran tactile de 10,1 pouces,\u000d\u000aclavier rétro-éclairé,\u000d\u000a4  ports sondes actives,\u000d\u000a250Go de HDD,\u000d\u000aFSI (image spectre complet),\u000d\u000aImpulsion d''inversion imagerie harmonique,\u000d\u000aImagerie harmonique tissulaire,\u000d\u000aDynamic MR,\u000d\u000aVolume ciné,\u000d\u000aAuto IMT,\u000d\u000ascan rapide,\u000d\u000aRealistic Vue™,\u000d\u000aS-Harmonic ™,\u000d\u000aVision claire,\u000d\u000aMultiVision,'),'COREE DU SUD','https://res.cloudinary.com/dmjote21b/image/upload/v1773907488/gestock/produits/produit_9_1773907486.png');
+INSERT INTO produit VALUES(10,'SONDE LINEAIRE','LN5-12',NULL,'A73C73-2026',NULL,NULL,NULL);
+INSERT INTO produit VALUES(11,'SONDE VOLUMIQUE','VN4-8',NULL,'948620-2026',NULL,NULL,NULL);
+INSERT INTO produit VALUES(12,'ECHOGRAPHE','HS60','SAMSUNG','A10A35-2026',NULL,'COREE DU SUD',NULL);
+CREATE TABLE certificat_reparation (
+	id INTEGER NOT NULL, 
+	numero_certificat VARCHAR(50) NOT NULL, 
+	date_creation DATETIME, 
+	date_reparation DATE NOT NULL, 
+	observations TEXT, 
+	technicien VARCHAR(100), 
+	client_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(client_id) REFERENCES client (id)
+);
+INSERT INTO certificat_reparation VALUES(1,'CERT-2026-0001','2026-03-23 14:55:18.297902','2026-03-10','','AKE WILFRIED',1);
+CREATE TABLE reparation_detail (
+	id INTEGER NOT NULL, 
+	taches_effectuees TEXT NOT NULL, 
+	cout_reparation FLOAT, 
+	garantie_mois INTEGER, 
+	certificat_id INTEGER NOT NULL, 
+	produit_id INTEGER NOT NULL, numero_serie VARCHAR(100) NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(certificat_id) REFERENCES certificat_reparation (id), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id)
+);
+INSERT INTO reparation_detail VALUES(1,'Changement chassis',0.0,3,1,6,'S-009875-FU');
+CREATE TABLE IF NOT EXISTS "ligne_bon_livraison" (
+	id INTEGER NOT NULL, 
+	bon_id INTEGER NOT NULL, 
+	ligne_commande_id INTEGER NOT NULL, 
+	produit_id INTEGER NOT NULL, 
+	quantite INTEGER NOT NULL, 
+	numero_serie VARCHAR(120), 
+	stock_id INTEGER, 
+	PRIMARY KEY (id), 
+	CONSTRAINT fk_ligne_bon_livraison_stock FOREIGN KEY(stock_id) REFERENCES stock (id), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id), 
+	FOREIGN KEY(ligne_commande_id) REFERENCES ligne_bon_commande (id), 
+	FOREIGN KEY(bon_id) REFERENCES bon_livraison (id)
+);
+INSERT INTO ligne_bon_livraison VALUES(1,1,1,12,1,'EZ-006571-T',2);
+INSERT INTO ligne_bon_livraison VALUES(2,2,2,12,1,'RAD-45708',2);
+INSERT INTO ligne_bon_livraison VALUES(3,3,3,8,1,'SH-4539-PP',1);
+CREATE TABLE IF NOT EXISTS "ligne_achat" (
+	id INTEGER NOT NULL, 
+	achat_id INTEGER NOT NULL, 
+	produit_id INTEGER NOT NULL, 
+	quantite INTEGER NOT NULL, 
+	prix_unitaire FLOAT NOT NULL, 
+	total_ligne FLOAT NOT NULL, 
+	type_conditionnement VARCHAR(6) NOT NULL, 
+	stock_id INTEGER, 
+	PRIMARY KEY (id), 
+	CONSTRAINT fk_ligne_achat_stock_id FOREIGN KEY(stock_id) REFERENCES stock (id), 
+	FOREIGN KEY(achat_id) REFERENCES achat (id), 
+	FOREIGN KEY(produit_id) REFERENCES produit (id)
+);
+INSERT INTO ligne_achat VALUES(1,1,6,2,2300000.0,4600000.0,'carton',NULL);
+INSERT INTO ligne_achat VALUES(2,2,12,2,12000000.0,24000000.0,'unite',2);
+CREATE TABLE IF NOT EXISTS "vente" (
+	id INTEGER NOT NULL, 
+	client_id INTEGER NOT NULL, 
+	date_vente DATETIME, 
+	total NUMERIC(10, 2) NOT NULL, 
+	montant_paye NUMERIC(10, 2), 
+	reste_a_payer NUMERIC(10, 2) NOT NULL, 
+	statut_paiement VARCHAR(20), 
+	vendeur_id INTEGER NOT NULL, 
+	compagnie_id INTEGER NOT NULL, 
+	bon_livraison_id INTEGER, 
+	PRIMARY KEY (id), 
+	CONSTRAINT fk_vente_compagnie FOREIGN KEY(compagnie_id) REFERENCES vendeur_compagnie (id), 
+	CONSTRAINT fk_vente_vendeur FOREIGN KEY(vendeur_id) REFERENCES vendeur (id), 
+	CONSTRAINT fk_vente_bon_livraison FOREIGN KEY(bon_livraison_id) REFERENCES bon_livraison (id), 
+	FOREIGN KEY(client_id) REFERENCES client (id)
+);
+INSERT INTO vente VALUES(1,2,'2026-03-31 15:59:00.928389',0,0,0,'impaye',1,1,1);
+INSERT INTO vente VALUES(2,3,'2026-03-31 16:16:22.548064',12000000,4000000,8000000,'partiel',1,1,2);
+INSERT INTO vente VALUES(3,3,'2026-03-31 17:11:17.188657',3000000,1000000,2000000,'partiel',1,1,3);
+CREATE TABLE _alembic_tmp_bon_commande (
+	id INTEGER NOT NULL, 
+	numero VARCHAR(30) NOT NULL, 
+	date_creation DATETIME, 
+	total NUMERIC(12, 2), 
+	status VARCHAR(19) NOT NULL, 
+	client_id INTEGER NOT NULL, 
+	vendeur_id INTEGER NOT NULL, 
+	compagnie_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	CONSTRAINT fk_bon_commande_vendeur_id FOREIGN KEY(vendeur_id) REFERENCES vendeur (id), 
+	CONSTRAINT fk_bon_commande_compagnie_id FOREIGN KEY(compagnie_id) REFERENCES vendeur_compagnie (id), 
+	FOREIGN KEY(client_id) REFERENCES client (id), 
+	UNIQUE (numero)
+);
+CREATE INDEX ix_user_username ON user (username);
+CREATE INDEX ix_user_joined_at ON user (joined_at);
+CREATE INDEX ix_stock_date_creation ON stock (date_creation);
+CREATE INDEX ix_produit_nom_produit ON produit (nom_produit);
+CREATE INDEX ix_produit_marque ON produit (marque);
+CREATE INDEX ix_produit_model ON produit (model);
+CREATE UNIQUE INDEX ix_certificat_reparation_numero_certificat ON certificat_reparation (numero_certificat);
+CREATE INDEX ix_vente_compagnie_id ON vente (compagnie_id);
+CREATE INDEX ix_vente_date_vente ON vente (date_vente);
+CREATE INDEX ix_vente_vendeur_id ON vente (vendeur_id);
+COMMIT;
