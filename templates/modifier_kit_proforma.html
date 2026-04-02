@@ -112,9 +112,7 @@
                                                 <option value="">Choisir</option>
                                                 {% for produit in produits %}
                                                 <option value="{{ produit.id }}" {% if produit.id == ligne.produit_id %}selected{% endif %}>
-                                                    {{ produit.nom_produut }}
-                                                    {% if produit.marque %} - {{ produit.marque }}{% endif %}
-                                                    {% if produit.model %} - {{ produit.model }}{% endif %}
+                                                    {{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}
                                                 </option>
                                                 {% endfor %}
                                             </select>
@@ -163,14 +161,12 @@
                                 <tbody id="hors-bloc-lignes">
                                     {% for ligne in produits_hors_bloc %}
                                     <tr class="ligne-produit">
-                                        <tr>
+                                        <td>
                                             <select name="produit_hors_bloc[]" class="form-select form-select-sm" required>
                                                 <option value="">Choisir</option>
                                                 {% for produit in produits %}
                                                 <option value="{{ produit.id }}" {% if produit.id == ligne.produit_id %}selected{% endif %}>
-                                                    {{ produit.nom_produit }}
-                                                    {% if produit.marque %} - {{ produit.marque }}{% endif %}
-                                                    {% if produit.model %} - {{ produit.model }}{% endif %}
+                                                    {{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}
                                                 </option>
                                                 {% endfor %}
                                             </select>
@@ -233,14 +229,15 @@
 
 <!-- Passer les données produits au JavaScript -->
 <script>
-    // Définir les données produits avec marque et modèle
+    // Définir les données produits avec nom formaté "Nom - Modèle"
     const produitsData = [
     {% for produit in produits %}
     {
         id: {{ produit.id }},
         nom: "{{ produit.nom_produit|replace('"', '\\"')|safe }}",
+        model: "{{ produit.model|replace('"', '\\"')|safe if produit.model else '' }}",
         marque: "{{ produit.marque|replace('"', '\\"')|safe if produit.marque else '' }}",
-        model: "{{ produit.model|replace('"', '\\"')|safe if produit.model else '' }}"
+        nomComplet: "{{ produit.nom_produit|replace('"', '\\"')|safe }}{% if produit.model %} - {{ produit.model }}{% endif %}"
     }{% if not loop.last %},{% endif %}
     {% endfor %}
 ];
@@ -250,16 +247,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     let blocCounter = {{ blocs_dict|length }};
     
-    // Fonction pour obtenir le nom complet du produit
+    // Fonction pour obtenir le nom complet du produit (Nom - Modèle)
     function getNomComplet(produit) {
-        let nomComplet = produit.nom;
-        if (produit.marque && produit.marque !== 'null' && produit.marque !== '') {
-            nomComplet += ` - ${produit.marque}`;
-        }
         if (produit.model && produit.model !== 'null' && produit.model !== '') {
-            nomComplet += ` - ${produit.model}`;
+            return `${produit.nom} - ${produit.model}`;
         }
-        return nomComplet;
+        return produit.nom;
     }
     
     // Fonction pour créer les options de produits

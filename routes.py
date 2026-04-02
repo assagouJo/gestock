@@ -397,20 +397,21 @@ def produit():
     
     if form.validate_on_submit():
         try:
+            # 🔥 Convertir le nom du produit en majuscules
+            nom_produit_upper = form.nom_produit.data.strip().upper()
+            
             # ✅ Vérifier si le produit existe déjà
             exist_produit = Produit.query.filter(
-                Produit.nom_produit == form.nom_produit.data
-                # Produit.marque == form.marque.data,
-                # Produit.model == form.model.data
+                Produit.nom_produit == nom_produit_upper
             ).first()
 
             if exist_produit:
                 if exist_produit.marque == form.marque.data and exist_produit.model == form.model.data:
                     flash(f"Ce produit existe déjà avec le code {exist_produit.code_produit}", "danger")
                     return redirect(url_for("produit"))
-                else :
-                    flash(f"Un produit nommé '{form.nom_produit.data}' existe déjà mais avec des caractéristiques différentes. Voulez-vous créer une variante ?", "warning")
-                    
+                else:
+                    flash(f"Un produit nommé '{nom_produit_upper}' existe déjà mais avec des caractéristiques différentes. Voulez-vous créer une variante ?", "warning")
+                    # Continuer quand même ou rediriger selon votre logique
 
             # ✅ Gestion de l'image
             image_url = None
@@ -429,9 +430,9 @@ def produit():
                     flash(f"Erreur lors de l'upload de l'image: {str(e)}", "warning")
                     # Continuer sans image
 
-            # ✅ Création du produit
+            # ✅ Création du produit avec nom en majuscules
             nouveau_produit = Produit(
-                nom_produit=form.nom_produit.data.strip(),
+                nom_produit=nom_produit_upper,  # 🔥 Utiliser la version en majuscules
                 marque=form.marque.data.strip() if form.marque.data else None,
                 model=form.model.data.strip() if form.model.data else None,
                 origine=form.origine.data.strip() if form.origine.data else None,
@@ -452,8 +453,6 @@ def produit():
         return redirect(url_for("produit"))
     
     return render_template('produit.html', form=form, produits=produits)
-    
-
 
 @app.route('/gestion_materiel/produit/edit/<int:id>', methods=['POST'])
 @login_required
@@ -2737,8 +2736,8 @@ def liste_proformas():
 @login_required
 def nouvelle_proforma():
 
-    clients = Client.query.all()
-    produits = Produit.query.all()
+    clients = Client.query.order_by(Client.nom_client.asc()).all()  # ← Trier les clients aussi
+    produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
     conditionnements = TypeConditionnement
 
     return render_template(
@@ -2871,8 +2870,8 @@ def proforma_pdf(proforma_id):
 @login_required
 def nouveau_kit_proforma():
 
-    clients = Client.query.all()
-    produits = Produit.query.all()
+    clients = Client.query.order_by(Client.nom_client.asc()).all()  # ← Trier les clients aussi
+    produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
 
     return render_template(
         "nouveau_kit.html",
@@ -3073,8 +3072,9 @@ def modifier_kit_proforma(kit_id):
             traceback.print_exc()
     
     # GET request
-    clients = Client.query.all()
-    produits = Produit.query.all()
+
+    clients = Client.query.order_by(Client.nom_client.asc()).all()  # ← Trier les clients aussi
+    produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
     
     return render_template('modifier_kit_proforma.html', 
                          kit=kit, 
