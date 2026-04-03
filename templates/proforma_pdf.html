@@ -52,19 +52,16 @@
     }
     
     .left img {
-        height: 80px;
-        width: 80px;
+        max-height: 80px;
+        max-width: 100px;
     }
     
     .right {
         text-align: right;
-        font-size: 9px;
+        font-size: 10px;
         line-height: 1.5;
     }
     
-    .right strong {
-        font-size: 13px;
-    }
     
     .entete {
         text-align: center;
@@ -308,16 +305,16 @@
 
 <!-- INFOS PROFORMA -->
 <div class="info-doc">
-    <div><span style="font-size: 12px;">Date : {{ proforma.date.strftime('%d/%m/%Y') if proforma.date else '' }}</span></div>
-    <div><span style="font-size: 12px;">N° :{{ proforma.numero }}</span></div>
+    <div><strong >Date : </strong>{{ proforma.date.strftime('%d/%m/%Y') if proforma.date else '' }}</div>
+    <div><strong >Numéro : </strong>{{ proforma.numero }}</div>
 </div>
 
 <!-- INFOS CLIENT -->
 <div class="client-box">
     <div>
-        <span style="font-size: 14px;">DOIT :</span> <strong style="font-size: 12px;color: red;">{{ proforma.client.nom_client if proforma.client else '' }}</strong><br>
+        <span style="font-size: 12px;">DOIT :</span> <strong style="font-size: 12px;color: red;">{{ proforma.client.nom_client if proforma.client else '' }}</strong><br>
         {% if proforma.client and proforma.attn %}
-        <span style="font-size: 14px;">ATTN :</span> <span style="font-size: 12px;">{{ proforma.attn or '' }}</span>
+        <span style="font-size: 12px;">ATTN :</span> <strong style="font-size: 12px;">{{ proforma.attn or '' }}</strong>
         {% endif %}
     </div>
     <div>

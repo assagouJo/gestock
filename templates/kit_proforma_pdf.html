@@ -62,7 +62,7 @@
     .right {
         text-align: right;
         font-size: 10px;
-        line-height: 1.3;
+        line-height: 1.5;
     }
     
     /* Entête */
@@ -326,13 +326,13 @@
 <div class="header">
     <div class="left">
         {% if compagnie and compagnie.logo %}
-        <img src="{{ compagnie.logo }}" alt="Logo" style="max-height: 120px; max-width: 120px;">
+        <img src="{{ compagnie.logo }}" alt="Logo">
         {% endif %}
     </div>
     <div class="right">
-        <strong style="color: red;">TIME INTERNATIONAL CO. LTD</strong><br>
+        <span style="color: red;">TIME INTERNATIONAL CO. LTD</span><br>
         REPRESENTATION A ABIDJAN <br>
-        <strong style="color: red;">I - MEDICAL</strong><br>
+        <span style="color: red;">I - MEDICAL</span><br>
         Tel : (225) 27 21 59 38 82 <br>
         E-MAIL : info@imboe.com <br>
         MARCORY BOULEVARD VGE <br>
@@ -366,13 +366,13 @@
 <div class="conditions-box">
     <table class="conditions-table">
         {% if kit.condition_paiement %}
-        <tr><td><strong style="font-size: 12px; width: 35%;">Condition de paiement</strong></td><td style="font-size: 13px;">{{ kit.condition_paiement }}</td></tr>
+        <tr><td><strong style="font-size: 12px; width: 30%;">Condition de paiement</strong></td><td style="font-size: 13px;">{{ kit.condition_paiement }}</td></tr>
         {% endif %}
         {% if kit.delai_livraison %}
-        <tr><td><strong style="font-size: 12px; width: 35%;">Delai de livraison</strong></td><td style="font-size: 13px;">{{ kit.delai_livraison }}</td></tr>
+        <tr><td><strong style="font-size: 12px; width: 30%;">Delai de livraison</strong></td><td style="font-size: 13px;">{{ kit.delai_livraison }}</td></tr>
         {% endif %}
         {% if kit.garantie %}
-        <tr><td><strong style="font-size: 12px; width: 35%;">Garantie</strong></td><td style="font-size: 13px;">{{ kit.garantie }}</td></tr>
+        <tr><td><strong style="font-size: 12px; width: 30%;">Garantie</strong></td><td style="font-size: 13px;">{{ kit.garantie }}</td></tr>
         {% endif %}
     </table>
 </div>
@@ -608,8 +608,8 @@
 
 <div class="main-content">
     <div class="footer-prof">
-        <div class="footer-left"><span style="font-size: 14px; text-decoration: underline; line-height: 1.8;">SIGNATURE DU CLIENT</span></div>
-        <div class="footer-right"><span style="font-size: 14px; text-decoration: underline; line-height: 1.8">LE RESPONSABLE COMMERCIAL</span></div>
+        <div class="footer-left"><strong style="font-size: 12px;" >SIGNATURE DU CLIENT</strong></div>
+        <div class="footer-right"><strong style="font-size: 12px;" >LE RESPONSABLE COMMERCIAL</strong></div>
     </div>
 </div>
 {% endblock %}
