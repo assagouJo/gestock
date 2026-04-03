@@ -3,19 +3,45 @@
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}">
 <style>
+    /* Police Bookman Old Style via Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Bookman+Old+Style&display=swap');
+    
+    /* Application de la police */
+    * {
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+    }
+    
+    body {
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+        font-weight: normal;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #333;
+        padding: 20px;
+    }
+    
+    /* Pour le texte en gras */
+    strong, b, th, h1, h2, h3, h4, h5, h6,
+    .bold, .font-bold, .produit-principal {
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+        font-weight: bold;
+    }
+    
+    /* Pour le texte semi-gras */
+    .produit-principal, .total-row, .detail-label {
+        font-weight: 600;
+    }
+    
+    /* Pour les éléments monospace */
+    code, pre, .monospace, .numero-serie {
+        font-family: 'Courier New', monospace;
+    }
+    
     /* Styles identiques à kit_proforma */
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-    }
-    
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        line-height: 1.4;
-        color: #333;
-        padding: 20px;
     }
     
     .header {
@@ -49,6 +75,7 @@
         font-size: 18px;
         text-transform: uppercase;
         letter-spacing: 1px;
+        font-weight: bold;
     }
     
     .info-doc {
@@ -106,6 +133,7 @@
         padding: 10px;
         text-align: left;
         font-size: 12px;
+        font-weight: bold;
     }
     
     .table-produits td {
@@ -117,19 +145,18 @@
     .col-photo {
         width: 25%;
         text-align: center;
-
     }
     
     .col-produit {
         width: 35%;
     }
     
-    .col-quantite  {
+    .col-quantite {
         width: 10%;
-        text-align:center;
+        text-align: center;
     }
     
-    .col-soustotal .col-prix{
+    .col-soustotal, .col-prix {
         width: 15%;
         text-align: right;
     }
@@ -140,12 +167,10 @@
         object-fit: cover;
         border: 1px solid #ddd;
         border-radius: 4px;
-         border: none !important;
+        border: none !important;
         box-shadow: none !important;
         outline: none !important;
     }
-    
-
     
     .produit-nom {
         font-weight: bold;
@@ -165,11 +190,10 @@
     }
     
     .detail-label {
-        font-weight: bold;
+        font-weight: 600;
         min-width: 20px;
         display: inline-block;
     }
-    
     
     .total-row {
         background: #f2f2f2;
@@ -221,7 +245,6 @@
         text-transform: uppercase;
     }
     
-    
     .mention {
         text-align: center;
         margin-top: 20px;
@@ -231,15 +254,24 @@
         padding-top: 10px;
     }
     
+    /* Pour l'impression PDF */
     @media print {
         body {
+            font-size: 11px;
             padding: 0;
         }
+        
+        * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
         .table-produits th {
             background: #333 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
+        
         .produit-photo {
             border: 1px solid #ddd;
         }
@@ -343,7 +375,7 @@
             <!-- COLONNE PRODUIT -->
             <td class="col-produit">
                 <div>
-                    <span class="produit-nom">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</span>
+                    <strong class="produit-nom">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
                     
                     {% if ligne.produit %}
                     <div class="details-vertical">

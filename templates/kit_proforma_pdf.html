@@ -5,24 +5,45 @@
 <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}"> -->
 
 <style>
-    /* Tous les styles sont maintenant INLINE - pas de téléchargement externe */
+    /* Police Bookman Old Style via Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Bookman+Old+Style&display=swap');
     
-    /* Styles de base */
-    
+    /* Application de la police à TOUS les éléments */
     * {
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
         box-sizing: border-box;
         margin: 0;
         padding: 0;
     }
-    @page{
+    
+    @page {
         margin: 5mm 6mm 8mm 6mm;
     }
     
     body {
-        /* font-family: Arial, Helvetica, sans-serif; */
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+        font-weight: normal;
         font-size: 12px;
         line-height: 1.4;
         color: #333;
+    }
+    
+    /* Pour le texte en gras */
+    strong, b, th, h1, h2, h3, h4, h5, h6,
+    .bold, .font-bold, .produit-principal,
+    .detail-label, .total-row, .montant-chiffre strong {
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+        font-weight: bold;
+    }
+    
+    /* Pour le texte semi-gras */
+    .produit-principal, .total-row, .detail-label {
+        font-weight: 600;
+    }
+    
+    /* Pour les éléments monospace */
+    code, pre, .monospace, .numero-serie {
+        font-family: 'Courier New', monospace;
     }
     
     /* Header */
@@ -58,6 +79,7 @@
         border-bottom: 1px solid red;
         padding-bottom: 5px;
         display: inline-block;
+        font-weight: bold;
     }
     
     /* Info document */
@@ -108,6 +130,7 @@
         padding: 4px 4px;
         text-align: left;
         font-size: 12px;
+        font-family: 'Bookman Old Style', 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
     }
     
     .table-produits td {
@@ -129,10 +152,6 @@
     }
     
     /* Produit principal */
-    /* .produit-principal {
-        background-color: #f0f0f0 !important;
-    } */
-    
     .produit-principal td {
         font-weight: bold;
         margin-left: 3px;
@@ -154,7 +173,7 @@
     }
     
     .detail-label {
-        font-weight: bold;
+        font-weight: 600;
         font-size: 12px;
         color: #000000;
         min-width: 45px;
@@ -169,62 +188,56 @@
     .detail-value {
         color: #323232;
         font-size: 10px;
-        line-height: 1,6;
+        line-height: 1.6;
     }
     
-   /* Conteneur d'image - CORRIGÉ */
-.produit-image-container {
-    background-color: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* Conteneur d'image - CORRIGÉ */
+    .produit-image-container {
+        background-color: transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        min-width: 200px;
+        max-width: 300px;
+        height: auto;
+        min-height: 150px;
+        max-height: 250px;
+        margin: 0 auto;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
     
-    /* Utiliser des pourcentages pour plus de flexibilité */
-    width: 100%;
-    min-width: 200px;
-    max-width: 300px;
-    height: auto;
-    min-height: 150px;
-    max-height: 250px;
+    /* L'image s'adapte à la taille du conteneur */
+    .produit-image {
+        width: 100%;
+        height: auto;
+        max-width: 280px;
+        max-height: 220px;
+        object-fit: contain;
+        display: block;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
     
-    margin: 0 auto;
+    /* Cellule centrée */
+    .img {
+        text-align: center;
+        vertical-align: middle;
+        width: 200px;
+    }
     
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-/* L'image s'adapte à la taille du conteneur */
-.produit-image {
-    width: 100%;
-    height: auto;
-    max-width: 280px;
-    max-height: 220px;
-    object-fit: contain;
-    display: block;
-    
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-    
-}
-
-/* Cellule centrée */
-.img {
-    text-align: center;
-    vertical-align: middle;
-    width: 200px;
-}
-
-/* Fallback */
-.img img {
-    margin-top: 10px;
-    max-width: 140px;
-    max-height: 150px;
-    width: auto;
-    height: auto;
-    border: none;
-}
+    /* Fallback */
+    .img img {
+        margin-top: 10px;
+        max-width: 140px;
+        max-height: 150px;
+        width: auto;
+        height: auto;
+        border: none;
+    }
     
     /* Total row */
     .total-row td {
@@ -236,7 +249,6 @@
     /* Montant en lettres */
     .montant-chiffre {
         margin-top: 3px;
-        /* margin-bottom: 5px; */
         padding: 2px;
         border: 1px solid #747474;
         background-color: #f9f9f9;
@@ -249,17 +261,20 @@
         justify-content: space-between;
         margin-top: 25px;
     }
-
     
     .footer-left, .footer-right {
         text-align: center;
-        /* padding-top: 10px; */
     }
     
     /* Pour l'impression */
     @media print {
         body {
             font-size: 11px;
+        }
+        
+        * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         
         .produit-image-container {
@@ -272,6 +287,12 @@
         
         .table-produits {
             page-break-inside: auto;
+        }
+        
+        .table-produits th {
+            background-color: #616161 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         
         tr {
@@ -301,10 +322,10 @@
 {% endblock %}
 
 {% block content %}
+<!-- Le reste de votre contenu HTML reste IDENTIQUE -->
 <div class="header">
     <div class="left">
         {% if compagnie and compagnie.logo %}
-        <!-- Image en base64 serait mieux ici, mais on garde l'URL pour l'instant -->
         <img src="{{ compagnie.logo }}" alt="Logo" style="max-height: 120px; max-width: 120px;">
         {% endif %}
     </div>
@@ -373,7 +394,6 @@
                 
                 <!-- Produit principal -->
                 <tr class="produit-principal">
-                    <!-- Colonne Désignation: nom + toutes les caractéristiques -->
                     <td>
                         <strong>{{ produit_principal.produit.nom_produit if produit_principal.produit else 'Produit' }}</strong>
                         
@@ -416,12 +436,10 @@
                         {% endif %}
                     </td>
                     
-                    <!-- Colonne Quantité -->
                     <td style="text-align: center; vertical-align: top;">
                         {{ produit_principal.quantite }}
                     </td>
                     
-                    <!-- Colonne Image -->
                     <td class="img">
                         {% if has_image %}
                         <div class="produit-image-container">
@@ -436,12 +454,11 @@
                     </td>
                 </tr>
                 
-                <!-- Produits secondaires (chacun sa propre ligne) -->
+                <!-- Produits secondaires -->
                 {% if bloc.lignes|length > 1 %}
                     {% for ligne in bloc.lignes[1:] %}
                     {% set has_secondary_image = ligne.produit and ligne.produit.image %}
                     <tr>
-                        <!-- Colonne Désignation: nom + caractéristiques du sous-produit -->
                         <td>
                             <strong style="font-size: 12px;">{{ ligne.produit.nom_produit if ligne.produit else 'Produit' }}</strong>
                             
@@ -478,12 +495,10 @@
                             {% endif %}
                         </td>
                         
-                        <!-- Colonne Quantité du sous-produit -->
                         <td style="text-align: center; vertical-align: top;">
                             {{ ligne.quantite }}
                         </td>
                         
-                        <!-- Colonne Image du sous-produit -->
                         <td class="img">
                             {% if has_secondary_image %}
                             <div class="produit-image-container">
@@ -498,7 +513,6 @@
                     {% endfor %}
                 {% endif %}
                 
-                <!-- Séparateur entre blocs -->
                 {% if not loop.last %}
                 <tr>
                     <td colspan="3" style="border-bottom: 1px dashed #999; padding: 1px 0;"></td>
@@ -584,12 +598,12 @@
         <td colspan="2" style="font-size: 14px;">MONTANT TOTAL HT/HD</td>
         <td style="text-align: right;"><strong style="font-size: 14px;">{{ "{:,.0f}".format(kit.prix_global|float) if kit.prix_global else '0' }} F CFA</strong></td>
     </tr>
-</tbody>
+    </tbody>
 </table>
 
 <div class="montant-chiffre">
-        <strong style="font-size: 14px;">Arrêtée la présente proforma à la somme de :</strong><br>
-        <strong style="color: red;font-size: 16px;">{{ total_lettre }}</strong>
+    <strong style="font-size: 14px;">Arrêtée la présente proforma à la somme de :</strong><br>
+    <strong style="color: red; font-size: 16px;">{{ total_lettre }}</strong>
 </div>
 
 <div class="main-content">
