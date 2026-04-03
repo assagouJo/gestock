@@ -106,6 +106,7 @@
                     <table class="table table-bordered" id="produitsTable">
                         <thead>
                             <tr>
+                                <th style="width: 30px; cursor: pointer;"></th>
                                 <th>Produit</th>
                                 <th>Conditionnement</th>
                                 <th>Quantité</th>
@@ -117,6 +118,9 @@
                         <tbody id="lignesContainer">
                             {% for ligne in proforma.lignes %}
                             <tr class="ligne-produit">
+                                <td class="drag-handle" style="cursor: grab; text-align: center;">
+                                    <i class="fas fa-grip-vertical" style="color: #ccc;"></i>
+                                </td>
                                 <td>
                                     <select name="produit_id[]" class="form-select produit-select" required>
                                         <option value="">Choisir</option>
@@ -149,14 +153,14 @@
                                         <i class="fas fa-trash"></i> Supprimer
                                     </button>
                                  </td>
-                            </tr>
+                             </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr class="table-active">
-                                <td colspan="4" class="text-end"><strong>TOTAL</strong></td>
+                                <td colspan="5" class="text-end"><strong>TOTAL</strong></td>
                                 <td colspan="2"><strong id="totalGlobal">{{ "{:,.0f}".format(proforma.total) }} F CFA</strong></td>
-                            </tr>
+                             </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -170,6 +174,9 @@
     </form>
 </div>
 
+<!-- Inclusion de SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <script>
     const produitsData = {
         {% for produit in produits %}
@@ -177,11 +184,44 @@
         {% endfor %}
     };
     
+    let sortable = null;
+    
+    // Initialiser le drag & drop
+    function initSortable() {
+        const container = document.getElementById('lignesContainer');
+        if (container && !sortable) {
+            sortable = new Sortable(container, {
+                handle: '.drag-handle',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function() {
+                    // Juste recalculer les totaux après le déplacement
+                    recalculerTousLesTotaux();
+                }
+            });
+        }
+    }
+    
+    // Recalculer tous les sous-totaux
+    function recalculerTousLesTotaux() {
+        document.querySelectorAll('.ligne-produit').forEach(row => {
+            const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
+            const prixUnitaire = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
+            const sousTotal = quantite * prixUnitaire;
+            const sousTotalSpan = row.querySelector('.sous-total');
+            sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' F';
+        });
+        calculerTotalGlobal();
+    }
+    
     function ajouterLigne() {
         const tbody = document.getElementById('lignesContainer');
         const newRow = document.createElement('tr');
         newRow.className = 'ligne-produit';
         newRow.innerHTML = `
+            <td class="drag-handle" style="cursor: grab; text-align: center;">
+                <i class="fas fa-grip-vertical" style="color: #ccc;"></i>
+            </td>
             <td>
                 <select name="produit_id[]" class="form-select produit-select" required onchange="mettreAJourPrix(this)">
                     <option value="">Choisir</option>
@@ -191,7 +231,7 @@
                     </option>
                     {% endfor %}
                 </select>
-             </td>
+              </td>
             <td>
                 <select name="conditionnement[]" class="form-select">
                     <option value="">Standard</option>
@@ -199,21 +239,21 @@
                     <option value="{{ cond.value }}">{{ cond.value }}</option>
                     {% endfor %}
                 </select>
-             </td>
+              </td>
             <td>
                 <input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required onchange="calculerTotalLigne(this)">
-             </td>
+              </td>
             <td>
                 <input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1000" required onchange="calculerTotalLigne(this)">
-             </td>
+              </td>
             <td>
                 <span class="sous-total">0 F</span>
-             </td>
+              </td>
             <td class="text-center">
                 <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">
-                    <i class="fas fa-trash"></i>
+                    <i class="fas fa-trash"></i> Supprimer
                 </button>
-             </td>
+              </td>
         `;
         tbody.appendChild(newRow);
     }
@@ -250,16 +290,44 @@
     
     function supprimerLigne(btn) {
         const row = btn.closest('tr');
-        row.remove();
-        calculerTotalGlobal();
+        if (document.querySelectorAll('.ligne-produit').length > 1) {
+            row.remove();
+            calculerTotalGlobal();
+        } else {
+            alert("Vous devez conserver au moins une ligne de produit");
+        }
     }
     
-    // Initialiser les calculs au chargement
+    // Initialiser au chargement
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialiser le drag & drop
+        initSortable();
+        
+        // Ajouter les écouteurs d'événements
         document.querySelectorAll('.quantite, .prix-unitaire').forEach(input => {
             input.addEventListener('change', () => calculerTotalLigne(input));
         });
         calculerTotalGlobal();
     });
 </script>
+
+<style>
+    /* Style pour le drag & drop - discret */
+    .sortable-ghost {
+        opacity: 0.3;
+        background-color: #e9ecef;
+    }
+    
+    .drag-handle:hover {
+        cursor: grab;
+    }
+    
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    
+    .drag-handle:hover i {
+        color: #666 !important;
+    }
+</style>
 {% endblock %}
