@@ -535,6 +535,8 @@ class LigneKitProforma(db.Model):
 
 class Proforma(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    proforma_title = db.Column(db.String(400))
+    proforma_comment = db.Column(db.String(400))
     condition_paiement = db.Column(db.String(200))
     delai_livraison = db.Column(db.String(200))
     garantie = db.Column(db.String(200))

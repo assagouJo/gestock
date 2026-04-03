@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Proforma{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Modifier Proforma</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn btn-sm btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+    
+    <form method="POST" id="proformaForm">
+        <!-- Section Client -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Informations Client</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="client_id" class="form-label">Client *</label>
+                        <select name="client_id" id="client_id" class="form-select" required>
+                            <option value="">Sélectionnez un client</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if proforma.client_id == client.id %}selected{% endif %}>
+                                {{ client.nom_client }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="attn" class="form-label">ATTN (À l'attention de)</label>
+                        <input type="text" name="attn" id="attn" class="form-control" value="{{ proforma.attn or '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section Conditions -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Conditions Commerciales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="condition_paiement" class="form-label">Condition de paiement</label>
+                        <select name="condition_paiement" id="condition_paiement" class="form-select">
+                            <option value="">Sélectionnez</option>
+                            <option value="À réception de facture" {% if proforma.condition_paiement == "À réception de facture" %}selected{% endif %}>À réception de facture</option>
+                            <option value="30 jours fin de mois" {% if proforma.condition_paiement == "30 jours fin de mois" %}selected{% endif %}>30 jours fin de mois</option>
+                            <option value="60 jours" {% if proforma.condition_paiement == "60 jours" %}selected{% endif %}>60 jours</option>
+                            <option value="Virement bancaire" {% if proforma.condition_paiement == "Virement bancaire" %}selected{% endif %}>Virement bancaire</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="delai_livraison" class="form-label">Délai de livraison</label>
+                        <input type="text" name="delai_livraison" id="delai_livraison" class="form-control" value="{{ proforma.delai_livraison or '' }}" placeholder="Ex: 15 jours">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="garantie" class="form-label">Garantie</label>
+                        <input type="text" name="garantie" id="garantie" class="form-control" value="{{ proforma.garantie or '' }}" placeholder="Ex: 12 mois">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- NOUVEAU: Section Titre et Commentaire -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5>Informations complémentaires</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="proforma_title" class="form-label">Titre de la proforma (optionnel)</label>
+                        <input type="text" 
+                               name="proforma_title" 
+                               id="proforma_title" 
+                               class="form-control" 
+                               placeholder="Ex: DEVIS MATERIEL MEDICAL - CAMPAGNE 2025"
+                               value="{{ proforma.proforma_title or '' }}">
+                        <small class="text-muted">Ce titre apparaîtra sur une ligne complète dans le tableau des produits</small>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label for="proforma_comment" class="form-label">Commentaire (optionnel)</label>
+                        <textarea name="proforma_comment" 
+                                  id="proforma_comment" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Ex: Livraison à prévoir avant le 30/03/2025. Installation incluse.">{{ proforma.proforma_comment or '' }}</textarea>
+                        <small class="text-muted">Ce commentaire apparaîtra avant les signatures</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section Produits -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Produits</h5>
+                <button type="button" class="btn btn-sm btn-primary" onclick="ajouterLigne()">
+                    <i class="fas fa-plus"></i> Ajouter un produit
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="produitsTable">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Conditionnement</th>
+                                <th>Quantité</th>
+                                <th>Prix Unitaire (F CFA)</th>
+                                <th>Sous-Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lignesContainer">
+                            {% for ligne in proforma.lignes %}
+                            <tr class="ligne-produit">
+                                <td>
+                                    <select name="produit_id[]" class="form-select produit-select" required>
+                                        <option value="">Choisir</option>
+                                        {% for produit in produits %}
+                                        <option value="{{ produit.id }}" data-prix="{{ produit.prix_vente or 0 }}" {% if ligne.produit_id == produit.id %}selected{% endif %}>
+                                            {{ produit.nom_produit }} - {{ produit.marque or '' }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="conditionnement[]" class="form-select">
+                                        <option value="">Standard</option>
+                                        {% for cond in conditionnements %}
+                                        <option value="{{ cond.value }}" {% if ligne.conditionnement == cond.value %}selected{% endif %}>{{ cond.value }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" name="quantite[]" class="form-control quantite" value="{{ ligne.quantite }}" min="1" step="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="prix[]" class="form-control prix-unitaire" value="{{ ligne.prix_unitaire }}" min="0" step="1000" required>
+                                </td>
+                                <td>
+                                    <span class="sous-total">{{ "{:,.0f}".format(ligne.sous_total) }} F</span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                 </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td colspan="4" class="text-end"><strong>TOTAL</strong></td>
+                                <td colspan="2"><strong id="totalGlobal">{{ "{:,.0f}".format(proforma.total) }} F CFA</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mb-5">
+            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const produitsData = {
+        {% for produit in produits %}
+        {{ produit.id }}: {{ produit.prix_vente or 0 }},
+        {% endfor %}
+    };
+    
+    function ajouterLigne() {
+        const tbody = document.getElementById('lignesContainer');
+        const newRow = document.createElement('tr');
+        newRow.className = 'ligne-produit';
+        newRow.innerHTML = `
+            <td>
+                <select name="produit_id[]" class="form-select produit-select" required onchange="mettreAJourPrix(this)">
+                    <option value="">Choisir</option>
+                    {% for produit in produits %}
+                    <option value="{{ produit.id }}" data-prix="{{ produit.prix_vente or 0 }}">
+                        {{ produit.nom_produit }} - {{ produit.marque or '' }}
+                    </option>
+                    {% endfor %}
+                </select>
+             </td>
+            <td>
+                <select name="conditionnement[]" class="form-select">
+                    <option value="">Standard</option>
+                    {% for cond in conditionnements %}
+                    <option value="{{ cond.value }}">{{ cond.value }}</option>
+                    {% endfor %}
+                </select>
+             </td>
+            <td>
+                <input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required onchange="calculerTotalLigne(this)">
+             </td>
+            <td>
+                <input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1000" required onchange="calculerTotalLigne(this)">
+             </td>
+            <td>
+                <span class="sous-total">0 F</span>
+             </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+             </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+    
+    function mettreAJourPrix(select) {
+        const row = select.closest('tr');
+        const prixInput = row.querySelector('.prix-unitaire');
+        const selectedOption = select.options[select.selectedIndex];
+        const prix = selectedOption.getAttribute('data-prix') || 0;
+        prixInput.value = prix;
+        calculerTotalLigne(prixInput);
+    }
+    
+    function calculerTotalLigne(element) {
+        const row = element.closest('tr');
+        const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
+        const prixUnitaire = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
+        const sousTotal = quantite * prixUnitaire;
+        
+        const sousTotalSpan = row.querySelector('.sous-total');
+        sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' F';
+        
+        calculerTotalGlobal();
+    }
+    
+    function calculerTotalGlobal() {
+        let total = 0;
+        document.querySelectorAll('.sous-total').forEach(span => {
+            const valeur = parseFloat(span.textContent.replace(' F', '').replace(/\s/g, '')) || 0;
+            total += valeur;
+        });
+        document.getElementById('totalGlobal').textContent = total.toLocaleString('fr-FR') + ' F CFA';
+    }
+    
+    function supprimerLigne(btn) {
+        const row = btn.closest('tr');
+        row.remove();
+        calculerTotalGlobal();
+    }
+    
+    // Initialiser les calculs au chargement
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.quantite, .prix-unitaire').forEach(input => {
+            input.addEventListener('change', () => calculerTotalLigne(input));
+        });
+        calculerTotalGlobal();
+    });
+</script>
+{% endblock %}

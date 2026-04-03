@@ -9,64 +9,86 @@
 <h4 class="text-success">📄 Liste des Proformas</h4>
 
 <a href="{{ url_for('nouvelle_proforma') }}" class="btn btn-success">
-Nouvelle Proforma
+    <i class="fas fa-plus"></i> Nouvelle Proforma
 </a>
 </div>
 
+<!-- Message flash pour les notifications -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
 {% if proformas %}
 
-<div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+<div class="table-responsive" style="max-height:500px; overflow-y:auto;">
 
 <table class="table table-hover table-bordered align-middle">
 
 <thead class="table-dark sticky-top">
-
 <tr>
-<th>Numero</th>
-<th>Client</th>
-<th>Date</th>
-<th>Total</th>
-<th>Action</th>
+    <th>Numéro</th>
+    <th>Client</th>
+    <th>Date</th>
+    <th>Total</th>
+    <th width="200">Actions</th>
 </tr>
-
 </thead>
 
 <tbody>
-
 {% for p in proformas %}
-
-<tr class="proforma-row"
-    data-id="{{ p.id }}"
-    style="cursor:pointer">
-
-<td>{{ p.numero }}</td>
-
-<td>{{ p.client.nom_client if p.client.nom_client else p.attn }}</td>
-
-<td>{{ p.date.strftime("%d/%m/%Y") }}</td>
-
-<td>{{ "{:,.0f}".format(p.total) }} FCFA</td>
-
-<td>
-
-<a href="{{ url_for('details_proforma', proforma_id=p.id) }}"
-class="btn btn-sm btn-primary">
-Voir
-</a>
-
-<a href="{{ url_for('proforma_pdf', proforma_id=p.id) }}"
-target="_blank"
-class="btn btn-sm btn-secondary">
-PDF
-</a>
-
-</td>
-
+<tr class="proforma-row" data-id="{{ p.id }}">
+    <td><strong>{{ p.numero }}</strong></td>
+    <td>{{ p.client.nom_client if p.client and p.client.nom_client else p.attn }}</td>
+    <td>{{ p.date.strftime("%d/%m/%Y") if p.date else '' }}</td>
+    <td class="text-end"><strong>{{ "{:,.0f}".format(p.total) }} FCFA</strong></td>
+    <td class="text-center">
+        <!-- Bouton Voir Détails -->
+        <a href="{{ url_for('details_proforma', proforma_id=p.id) }}" 
+           class="btn btn-sm btn-info" 
+           title="Voir les détails">
+            <i class="fas fa-eye"></i> Voir
+        </a>
+        
+        <!-- Bouton Modifier -->
+        <a href="{{ url_for('modifier_proforma', proforma_id=p.id) }}" 
+           class="btn btn-sm btn-warning" 
+           title="Modifier la proforma">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        
+        <!-- Bouton PDF -->
+        <a href="{{ url_for('proforma_pdf', proforma_id=p.id) }}"
+           target="_blank"
+           class="btn btn-sm btn-secondary"
+           title="Télécharger PDF">
+            <i class="fas fa-file-pdf"></i> PDF
+        </a>
+        
+        <!-- Bouton Dupliquer -->
+        <button type="button"
+                class="btn btn-sm btn-success"
+                onclick="dupliquerProforma({{ p.id }}, '{{ p.numero }}')"
+                title="Dupliquer la proforma">
+            <i class="fas fa-copy"></i> Dupliquer
+        </button>
+        
+        <!-- Bouton Supprimer -->
+        <button type="button"
+                class="btn btn-sm btn-danger"
+                onclick="confirmerSuppression({{ p.id }}, '{{ p.numero }}')"
+                title="Supprimer la proforma">
+            <i class="fas fa-trash"></i> Supprimer
+        </button>
+    </td>
 </tr>
-
 {% endfor %}
-
 </tbody>
 
 </table>
@@ -76,32 +98,137 @@ PDF
 {% else %}
 
 <div class="alert alert-warning text-center">
-Aucune proforma enregistrée.
+    <i class="fas fa-info-circle"></i> Aucune proforma enregistrée.
+    <br>
+    <a href="{{ url_for('nouvelle_proforma') }}" class="btn btn-sm btn-success mt-2">
+        <i class="fas fa-plus"></i> Créer la première proforma
+    </a>
 </div>
 
 {% endif %}
 
 </div>
 
+<!-- Modal de confirmation pour la suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer la proforma <strong id="proformaNumero"></strong> ?</p>
+                <p class="text-danger mb-0">⚠️ Cette action est irréversible. Toutes les lignes associées seront également supprimées.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmer la suppression
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation pour la duplication -->
+<div class="modal fade" id="duplicateModal" tabindex="-1" aria-labelledby="duplicateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="duplicateModalLabel">
+                    <i class="fas fa-copy"></i> Confirmation de duplication
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir dupliquer la proforma <strong id="duplicateProformaNumero"></strong> ?</p>
+                <p>Une nouvelle proforma sera créée avec les mêmes produits et conditions.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <form id="duplicateForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-copy"></i> Confirmer la duplication
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
+// Confirmation de suppression
+function confirmerSuppression(proformaId, proformaNumero) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    document.getElementById('proformaNumero').textContent = proformaNumero;
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = "{{ url_for('supprimer_proforma', proforma_id=0) }}".replace('0', proformaId);
+    modal.show();
+}
 
-document.addEventListener("DOMContentLoaded", function(){
+// Confirmation de duplication
+function dupliquerProforma(proformaId, proformaNumero) {
+    const modal = new bootstrap.Modal(document.getElementById('duplicateModal'));
+    document.getElementById('duplicateProformaNumero').textContent = proformaNumero;
+    const duplicateForm = document.getElementById('duplicateForm');
+    duplicateForm.action = "{{ url_for('dupliquer_proforma', proforma_id=0) }}".replace('0', proformaId);
+    modal.show();
+}
 
-document.querySelectorAll(".proforma-row").forEach(row => {
-
-row.addEventListener("dblclick", function(){
-
-let id = this.dataset.id
-
-window.location.href = `/proforma/edit/${id}`
-
-})
-
-})
-
-})
-
+// Double-clic sur une ligne pour modifier
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".proforma-row").forEach(row => {
+        row.addEventListener("dblclick", function() {
+            let id = this.dataset.id;
+            window.location.href = `/proforma/modifier/${id}`;
+        });
+    });
+});
 </script>
+
+<style>
+.proforma-row:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.btn-sm {
+    margin: 2px;
+}
+
+.table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+</style>
 
 {% endblock %}

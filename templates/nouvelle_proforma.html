@@ -56,7 +56,40 @@
 
 </div>
 
-<hr>
+<br>
+
+<!-- NOUVEAU: Titre et Commentaire -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <strong>Informations complémentaires</strong>
+            </div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label for="proforma_title">Titre de la proforma (optionnel)</label>
+                    <input type="text" 
+                           name="proforma_title" 
+                           id="proforma_title" 
+                           class="form-control" 
+                           placeholder="Ex: DEVIS MATERIEL MEDICAL - CAMPAGNE 2025">
+                    <small class="text-muted">Ce titre apparaîtra sur une ligne complète dans le tableau des produits</small>
+                </div>
+                <div class="form-group">
+                    <label for="proforma_comment">Commentaire (optionnel)</label>
+                    <textarea name="proforma_comment" 
+                              id="proforma_comment" 
+                              class="form-control" 
+                              rows="3" 
+                              placeholder="Ex: Livraison à prévoir avant le 30/03/2025. Installation incluse."></textarea>
+                    <small class="text-muted">Ce commentaire apparaîtra avant les signatures</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
 
 <h5>Produits</h5>
 

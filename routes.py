@@ -2750,7 +2750,6 @@ def nouvelle_proforma():
     )
 
 
-
 @app.route("/proforma/create", methods=["POST"])
 @login_required
 def create_proforma():
@@ -2760,6 +2759,8 @@ def create_proforma():
     delai_livraison = request.form.get("delai_livraison")
     garantie = request.form.get("garantie")
     attn = request.form.get("attn")
+    proforma_title = request.form.get("proforma_title")  # NOUVEAU
+    proforma_comment = request.form.get("proforma_comment")  # NOUVEAU
 
     if not client_id:
         flash("Veuillez choisir un client")
@@ -2769,14 +2770,15 @@ def create_proforma():
 
     numero = f"PRO-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-
     proforma = Proforma(
         numero=numero,
         client_id=client_id,
         condition_paiement=condition_paiement,
         delai_livraison=delai_livraison,
         garantie=garantie,
-        attn=attn
+        attn=attn,
+        proforma_title=proforma_title,  # NOUVEAU
+        proforma_comment=proforma_comment  # NOUVEAU
     )
 
     db.session.add(proforma)
@@ -2789,8 +2791,10 @@ def create_proforma():
     total = 0
 
     for i in range(len(produits)):
-
-        produit_id = produits[i]
+        if not produits[i]:
+            continue
+            
+        produit_id = int(produits[i])
         quantite = int(quantites[i])
         prix_unitaire = float(prix[i])
 
@@ -2800,7 +2804,7 @@ def create_proforma():
         ligne = LigneProforma(
             proforma_id=proforma.id,
             produit_id=produit_id,
-            conditionnement=conditionnement[i],   # AJOUT ICI
+            conditionnement=conditionnement[i] if i < len(conditionnement) else None,
             quantite=quantite,
             prix_unitaire=prix_unitaire,
             sous_total=sous_total
@@ -2811,13 +2815,161 @@ def create_proforma():
     proforma.total = total
 
     db.session.commit()
-
-    return redirect(url_for("details_proforma", proforma_id=proforma.id))
     
+    flash("Proforma créée avec succès", "success")
+    return redirect(url_for("details_proforma", proforma_id=proforma.id))
+
+
+@app.route("/proforma/modifier/<int:proforma_id>", methods=["GET", "POST"])
+@login_required
+def modifier_proforma(proforma_id):
+    proforma = Proforma.query.get_or_404(proforma_id)
+    
+    if request.method == "GET":
+        clients = Client.query.order_by(Client.nom_client.asc()).all()
+        produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
+        conditionnements = TypeConditionnement
+        
+        return render_template(
+            "modifier_proforma.html",
+            proforma=proforma,
+            clients=clients,
+            produits=produits,
+            conditionnements=conditionnements
+        )
+    
+    # METHOD POST - Mise à jour
+    client_id = request.form.get("client_id")
+    condition_paiement = request.form.get("condition_paiement")
+    delai_livraison = request.form.get("delai_livraison")
+    garantie = request.form.get("garantie")
+    attn = request.form.get("attn")
+    proforma_title = request.form.get("proforma_title")  # NOUVEAU
+    proforma_comment = request.form.get("proforma_comment")  # NOUVEAU
+    
+    if not client_id:
+        flash("Veuillez choisir un client", "danger")
+        return redirect(url_for("modifier_proforma", proforma_id=proforma_id))
+    
+    # Mise à jour des informations de la proforma
+    proforma.client_id = client_id
+    proforma.condition_paiement = condition_paiement
+    proforma.delai_livraison = delai_livraison
+    proforma.garantie = garantie
+    proforma.attn = attn
+    proforma.proforma_title = proforma_title  # NOUVEAU
+    proforma.proforma_comment = proforma_comment  # NOUVEAU
+    
+    # Supprimer les anciennes lignes
+    for ligne in proforma.lignes:
+        db.session.delete(ligne)
+    
+    # Récupérer les nouvelles données
+    produits = request.form.getlist("produit_id[]")
+    quantites = request.form.getlist("quantite[]")
+    prix = request.form.getlist("prix[]")
+    conditionnements = request.form.getlist("conditionnement[]")
+    
+    total = 0
+    
+    for i in range(len(produits)):
+        if not produits[i] or not quantites[i] or not prix[i]:
+            continue
+            
+        produit_id = int(produits[i])
+        quantite = int(quantites[i])
+        prix_unitaire = float(prix[i])
+        conditionnement = conditionnements[i] if i < len(conditionnements) else None
+        
+        sous_total = quantite * prix_unitaire
+        total += sous_total
+        
+        ligne = LigneProforma(
+            proforma_id=proforma.id,
+            produit_id=produit_id,
+            conditionnement=conditionnement,
+            quantite=quantite,
+            prix_unitaire=prix_unitaire,
+            sous_total=sous_total
+        )
+        
+        db.session.add(ligne)
+    
+    proforma.total = total
+    
+    db.session.commit()
+    
+    flash("Proforma modifiée avec succès", "success")
+    return redirect(url_for("details_proforma", proforma_id=proforma_id))
+
+
+@app.route("/proforma/supprimer/<int:proforma_id>", methods=["POST"])
+@login_required
+def supprimer_proforma(proforma_id):
+    proforma = Proforma.query.get_or_404(proforma_id)
+    
+    try:
+        db.session.delete(proforma)
+        db.session.commit()
+        flash("Proforma supprimée avec succès", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la suppression : {str(e)}", "danger")
+    
+    return redirect(url_for("liste_proformas"))
+
+
+@app.route("/proforma/dupliquer/<int:proforma_id>", methods=["POST"])
+@login_required
+def dupliquer_proforma(proforma_id):
+    from datetime import datetime
+    
+    proforma_original = Proforma.query.get_or_404(proforma_id)
+    
+    try:
+        # Créer une nouvelle proforma
+        nouveau_numero = f"PRO-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        nouvelle_proforma = Proforma(
+            numero=nouveau_numero,
+            client_id=proforma_original.client_id,
+            condition_paiement=proforma_original.condition_paiement,
+            delai_livraison=proforma_original.delai_livraison,
+            garantie=proforma_original.garantie,
+            attn=proforma_original.attn,
+            proforma_title=proforma_original.proforma_title,  # NOUVEAU
+            proforma_comment=proforma_original.proforma_comment,  # NOUVEAU
+            total=proforma_original.total
+        )
+        
+        db.session.add(nouvelle_proforma)
+        db.session.flush()
+        
+        # Dupliquer les lignes
+        for ligne in proforma_original.lignes:
+            nouvelle_ligne = LigneProforma(
+                proforma_id=nouvelle_proforma.id,
+                produit_id=ligne.produit_id,
+                conditionnement=ligne.conditionnement,
+                quantite=ligne.quantite,
+                prix_unitaire=ligne.prix_unitaire,
+                sous_total=ligne.sous_total
+            )
+            db.session.add(nouvelle_ligne)
+        
+        db.session.commit()
+        
+        flash("Proforma dupliquée avec succès", "success")
+        return redirect(url_for("modifier_proforma", proforma_id=nouvelle_proforma.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la duplication : {str(e)}", "danger")
+        return redirect(url_for("liste_proformas"))
+
 
 @app.route("/proforma/<int:proforma_id>")
 def details_proforma(proforma_id):
-
     proforma = Proforma.query.get_or_404(proforma_id)
     return render_template(
         "details_proforma.html",
@@ -2825,25 +2977,23 @@ def details_proforma(proforma_id):
     )
     
 
-
-
 @app.route("/proforma/<int:proforma_id>/pdf")
 @login_required
 def proforma_pdf(proforma_id):
-
+    from num2words import num2words
+    
     proforma = Proforma.query.get_or_404(proforma_id)
-
     compagnie = Compagnie.query.first()
-
+    
     # récupérer tous les produits
     produits = Produit.query.all()
-
+    
     # dictionnaire id -> produit (nécessaire pour les kits)
     produits_id_map = {p.id: p for p in produits}
-
+    
     # total en lettres
     total_lettre = num2words(proforma.total, lang="fr").capitalize()
-
+    
     html = render_template(
         "proforma_pdf.html",
         proforma=proforma,
@@ -2852,19 +3002,18 @@ def proforma_pdf(proforma_id):
         total_lettre=total_lettre,
         produits_id_map=produits_id_map
     )
-
+    
     pdf = HTML(
         string=html,
         base_url=request.root_url
     ).write_pdf()
-
+    
     response = make_response(pdf)
-
     response.headers["Content-Type"] = "application/pdf"
     response.headers[
         "Content-Disposition"
     ] = f"inline; filename=proforma_{proforma.numero}.pdf"
-
+    
     return response
 
 
