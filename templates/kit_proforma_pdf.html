@@ -153,7 +153,7 @@
     
     /* Produit principal */
     .produit-principal td {
-        font-weight: bold;
+        font-weight: 900;
         margin-left: 3px;
         padding: 4px 4px !important;
     }
@@ -366,7 +366,7 @@
 <div class="conditions-box">
     <table class="conditions-table">
         {% if kit.condition_paiement %}
-        <tr><td><strong style="font-size: 12px; width: 30%;">Condition de paiement</strong></td><td style="font-size: 13px;">{{ kit.condition_paiement }}</td></tr>
+        <tr><td><strong style="font-size: 12px; width: 30%;">Conditions de paiement</strong></td><td style="font-size: 13px;">{{ kit.condition_paiement }}</td></tr>
         {% endif %}
         {% if kit.delai_livraison %}
         <tr><td><strong style="font-size: 12px; width: 30%;">Delai de livraison</strong></td><td style="font-size: 13px;">{{ kit.delai_livraison }}</td></tr>

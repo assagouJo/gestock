@@ -48,14 +48,8 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="condition_paiement" class="form-label">Condition de paiement</label>
-                        <select name="condition_paiement" id="condition_paiement" class="form-select">
-                            <option value="">Sélectionnez</option>
-                            <option value="À réception de facture" {% if proforma.condition_paiement == "À réception de facture" %}selected{% endif %}>À réception de facture</option>
-                            <option value="30 jours fin de mois" {% if proforma.condition_paiement == "30 jours fin de mois" %}selected{% endif %}>30 jours fin de mois</option>
-                            <option value="60 jours" {% if proforma.condition_paiement == "60 jours" %}selected{% endif %}>60 jours</option>
-                            <option value="Virement bancaire" {% if proforma.condition_paiement == "Virement bancaire" %}selected{% endif %}>Virement bancaire</option>
-                        </select>
+                        <label for="condition_paiement" class="form-label">Conditions de paiement</label>
+                        <input type="text" name="condition_paiement" id="condition_paiement" class="form-control" value="{{ proforma.condition_paiement or '' }}" placeholder="Ex: conditions de paiement">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="delai_livraison" class="form-label">Délai de livraison</label>
@@ -152,7 +146,7 @@
                                 </td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash"></i> Supprimer
                                     </button>
                                  </td>
                             </tr>

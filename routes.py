@@ -433,10 +433,10 @@ def produit():
             # ✅ Création du produit avec nom en majuscules
             nouveau_produit = Produit(
                 nom_produit=nom_produit_upper,  # 🔥 Utiliser la version en majuscules
-                marque=form.marque.data.strip() if form.marque.data else None,
-                model=form.model.data.strip() if form.model.data else None,
-                origine=form.origine.data.strip() if form.origine.data else None,
-                description=form.description.data.strip() if form.description.data else None,
+                marque=form.marque.data.strip() if form.marque.data else '',
+                model=form.model.data.strip() if form.model.data else '',
+                origine=form.origine.data.strip() if form.origine.data else '',
+                description=form.description.data.strip() if form.description.data else '',
                 code_produit=generate_code_produit(),
                 image=image_url
             )

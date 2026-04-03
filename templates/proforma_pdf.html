@@ -29,7 +29,7 @@
     
     /* Pour le texte semi-gras */
     .produit-nom, .total-row, .detail-label {
-        font-weight: bold;
+        font-weight: 900;
     }
     
     /* Pour les éléments monospace */
@@ -72,6 +72,7 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         font-weight: bold;
+        color: red;
     }
     
     /* Style pour le titre optionnel */
@@ -390,7 +391,7 @@
     <table class="conditions-table">
         {% if proforma.condition_paiement %}
         <tr>
-            <td>Condition de paiement</td>
+            <td>Conditions de paiement</td>
             <td>{{ proforma.condition_paiement }}</td>
         </tr>
         {% endif %}
@@ -513,7 +514,7 @@
 <div class="montant-lettre">
     <p>
         <strong>Arrêtée la présente proforma à la somme de :</strong><br>
-        <strong style="font-style: italic; color: red; font-size: 18px;font-weight: bold;">{{ total_lettre }} francs CFA</strong>
+        <strong style="font-style: italic; color: red; font-size: 18px;font-weight: 900;">{{ total_lettre }} francs CFA</strong>
     </p>
 </div>
 
