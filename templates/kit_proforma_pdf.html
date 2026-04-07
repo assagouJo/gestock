@@ -389,19 +389,19 @@
     <table class="conditions-table">
         {% if kit.condition_paiement %}
         <tr>
-            <td><strong style="font-size: 12px; width: 30%;">Conditions de paiement</strong></td>
+            <td style="width: 30%;" ><strong style="font-size: 12px;">Conditions de paiement</strong></td>
             <td style="font-size: 13px;">{{ kit.condition_paiement }}</td>
         </tr>
         {% endif %}
         {% if kit.delai_livraison %}
         <tr>
-            <td><strong style="font-size: 12px; width: 30%;">Delai de livraison</strong></td>
+            <td style="width: 30%;"><strong style="font-size: 12px;">Delai de livraison</strong></td>
             <td style="font-size: 13px;">{{ kit.delai_livraison }}</td>
         </tr>
         {% endif %}
         {% if kit.garantie %}
         <tr>
-            <td><strong style="font-size: 12px; width: 30%;">Garantie</strong></td>
+            <td style="width: 30%;"><strong style="font-size: 12px;">Garantie</strong></td>
             <td style="font-size: 13px;">{{ kit.garantie }}</td>
         </tr>
         {% endif %}
