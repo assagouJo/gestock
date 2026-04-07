@@ -135,6 +135,7 @@
         font-weight: bold;
     }
     
+    /* TABLEAU PRINCIPAL - CORRIGÉ */
     .table-produits {
         width: 100%;
         border-collapse: collapse;
@@ -187,7 +188,7 @@
     }
     
     .produit-photo {
-        width: 80px;
+        width: 70px;
         height: 70px;
         object-fit: cover;
         border: 1px solid #ddd;
@@ -300,7 +301,9 @@
         padding-top: 10px;
     }
     
-    /* Pour l'impression PDF */
+    /* ============================================ */
+    /* STYLES POUR L'IMPRESSION - EN-TÊTE UNE SEULE FOIS */
+    /* ============================================ */
     @media print {
         body {
             font-size: 11px;
@@ -328,6 +331,43 @@
         
         .comment-box {
             background-color: #f8f9fa !important;
+        }
+        
+        /* RÈGLES CRITIQUES - ÉVITE DE COUPER LES LIGNES */
+        .table-produits tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+            break-inside: avoid;
+        }
+        
+        .table-produits td, 
+        .table-produits th {
+            break-inside: avoid;
+        }
+        
+        /* IMPORTANT: Empêche la répétition de l'en-tête sur chaque page */
+        .table-produits thead {
+            display: table-row-group;
+        }
+        
+        /* La ligne total reste avec le tableau */
+        .total-row {
+            page-break-before: avoid;
+            page-break-inside: avoid;
+        }
+        
+        /* Évite la coupure des blocs d'informations */
+        .client-box,
+        .conditions-box,
+        .montant-lettre,
+        .comment-box {
+            page-break-inside: avoid;
+        }
+        
+        /* Garantit qu'au moins 2 lignes restent ensemble */
+        .table-produits tbody tr {
+            orphans: 2;
+            widows: 2;
         }
     }
 </style>
@@ -359,7 +399,6 @@
 <div class="entete">
     <h3>FACTURE PROFORMA</h3>
 </div>
-
 
 <!-- INFOS PROFORMA -->
 <div class="info-doc">
@@ -425,14 +464,17 @@
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <!-- TITRE OPTIONNEL DE LA PROFORMA -->
-            {% if proforma.proforma_title %}
-            <td colspan="5" class="proforma-title">
-                <h4>{{ proforma.proforma_title }}</h4>
+        <!-- TITRE OPTIONNEL DE LA PROFORMA -->
+        {% if proforma.proforma_title %}
+        <tr class="title-row">
+            <td colspan="5">
+                <div class="proforma-title">
+                    <h4>{{ proforma.proforma_title }}</h4>
+                </div>
             </td>
-            {% endif %}
         </tr>
+        {% endif %}
+        
         {% for ligne in proforma.lignes %}
         <tr>                       
             <!-- COLONNE PRODUIT -->
@@ -466,13 +508,13 @@
                         {% if ligne.produit.description %}
                         <div class="detail-item">
                             <span class="detail-label desc">Description:</span><br>
-                                <ul style="margin: 5px 0 0 20px; padding-left: 0;">
-                                    {% for desc in ligne.produit.description.split(',') %}
-                                        {% if desc.strip() %}
-                                        <li style="font-size: 12px; margin-bottom: 3px;">{{ desc.strip() }}</li>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
+                            <ul style="margin: 5px 0 0 20px; padding-left: 0;">
+                                {% for desc in ligne.produit.description.split(',') %}
+                                    {% if desc.strip() %}
+                                    <li style="font-size: 12px; margin-bottom: 3px;">{{ desc.strip() }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
                         </div>
                         {% endif %}
                     </div>

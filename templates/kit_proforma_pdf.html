@@ -1,9 +1,6 @@
 {% extends "base_print.html" %}
 
 {% block styles %}
-<!-- SUPPRIMEZ la ligne ci-dessous qui cause le téléchargement externe -->
-<!-- <link rel="stylesheet" href="{{ url_for('static', filename='style/proforma_pdf.css') }}"> -->
-
 <style>
     /* Police Bookman Old Style via Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Bookman+Old+Style&display=swap');
@@ -266,7 +263,10 @@
         text-align: center;
     }
     
-    /* Pour l'impression */
+    /* ============================================ */
+    /* STYLES POUR L'IMPRESSION - ÉVITE LA COUPURE DES LIGNES */
+    /* EN-TÊTE N'APPARAÎT QU'UNE SEULE FOIS */
+    /* ============================================ */
     @media print {
         body {
             font-size: 11px;
@@ -282,11 +282,6 @@
             height: 140px;
             border: 1px solid #ccc;
             box-shadow: none;
-            page-break-inside: avoid;
-        }
-        
-        .table-produits {
-            page-break-inside: auto;
         }
         
         .table-produits th {
@@ -295,17 +290,50 @@
             print-color-adjust: exact;
         }
         
-        tr {
+        /* RÈGLES CRITIQUES - ÉVITE DE COUPER LES LIGNES ENTRE DEUX PAGES */
+        /* NE PAS mettre page-break-inside: avoid sur le tableau lui-même */
+        
+        /* Chaque ligne du tableau reste ensemble sur une seule page */
+        .table-produits tr {
             page-break-inside: avoid;
             page-break-after: auto;
+            break-inside: avoid;
         }
         
-        thead {
-            display: table-header-group;
+        /* Les cellules ne sont jamais coupées */
+        .table-produits td, 
+        .table-produits th {
+            break-inside: avoid;
         }
         
-        tfoot {
-            display: table-footer-group;
+        /* IMPORTANT: Empêche la répétition de l'en-tête sur chaque page */
+        .table-produits thead {
+            display: table-row-group;
+        }
+        
+        /* La ligne total reste avec le tableau, pas de saut avant */
+        .total-row {
+            page-break-before: avoid;
+            page-break-inside: avoid;
+        }
+        
+        /* Évite la coupure des blocs d'informations */
+        .client-box,
+        .conditions-box,
+        .montant-chiffre {
+            page-break-inside: avoid;
+        }
+        
+        /* Garantit qu'au moins 2 lignes restent ensemble */
+        .table-produits tbody tr {
+            orphans: 2;
+            widows: 2;
+        }
+        
+        /* Évite la coupure des produits principaux */
+        .produit-principal {
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
     }
     
@@ -313,16 +341,10 @@
     .page-break {
         page-break-before: always;
     }
-    
-    /* Éviter les coupures */
-    .produit-principal, .produit-secondaire {
-        page-break-inside: avoid;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Le reste de votre contenu HTML reste IDENTIQUE -->
 <div class="header">
     <div class="left">
         {% if compagnie and compagnie.logo %}
@@ -366,13 +388,22 @@
 <div class="conditions-box">
     <table class="conditions-table">
         {% if kit.condition_paiement %}
-        <tr><td><strong style="font-size: 12px; width: 30%;">Conditions de paiement</strong></td><td style="font-size: 13px;">{{ kit.condition_paiement }}</td></tr>
+        <tr>
+            <td><strong style="font-size: 12px; width: 30%;">Conditions de paiement</strong></td>
+            <td style="font-size: 13px;">{{ kit.condition_paiement }}</td>
+        </tr>
         {% endif %}
         {% if kit.delai_livraison %}
-        <tr><td><strong style="font-size: 12px; width: 30%;">Delai de livraison</strong></td><td style="font-size: 13px;">{{ kit.delai_livraison }}</td></tr>
+        <tr>
+            <td><strong style="font-size: 12px; width: 30%;">Delai de livraison</strong></td>
+            <td style="font-size: 13px;">{{ kit.delai_livraison }}</td>
+        </tr>
         {% endif %}
         {% if kit.garantie %}
-        <tr><td><strong style="font-size: 12px; width: 30%;">Garantie</strong></td><td style="font-size: 13px;">{{ kit.garantie }}</td></tr>
+        <tr>
+            <td><strong style="font-size: 12px; width: 30%;">Garantie</strong></td>
+            <td style="font-size: 13px;">{{ kit.garantie }}</td>
+        </tr>
         {% endif %}
     </table>
 </div>
@@ -571,7 +602,7 @@
                         </div>
                         {% endif %}
                     </div>
-                </td>
+                 </td>
                 <td style="text-align: center; vertical-align: middle;">
                     {{ ligne.quantite }}
                 </td>
@@ -608,8 +639,8 @@
 
 <div class="main-content">
     <div class="footer-prof">
-        <div class="footer-left"><strong style="font-size: 12px;" >SIGNATURE DU CLIENT</strong></div>
-        <div class="footer-right"><strong style="font-size: 12px;" >LE RESPONSABLE COMMERCIAL</strong></div>
+        <div class="footer-left"><strong style="font-size: 12px;">SIGNATURE DU CLIENT</strong></div>
+        <div class="footer-right"><strong style="font-size: 12px;">LE RESPONSABLE COMMERCIAL</strong></div>
     </div>
 </div>
 {% endblock %}
