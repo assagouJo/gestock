@@ -960,10 +960,6 @@ def ajouter_stock():
             if not produit:
                 continue
 
-            # Vérifier que le modèle correspond
-            if produit.model != model_nom:
-                flash(f"Le modèle {model_nom} ne correspond pas au produit sélectionné", "danger")
-                continue
 
             # Vérifier si stock existe déjà avec les mêmes critères
             stock_existant = Stock.query.filter_by(
