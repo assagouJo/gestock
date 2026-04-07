@@ -2750,6 +2750,20 @@ def nouvelle_proforma():
     )
 
 
+def generer_numero_proforma():
+    """Génère le prochain numéro de proforma à 5 chiffres"""
+    # Récupérer le dernier numéro
+    dernier_proforma = Proforma.query.order_by(Proforma.id.desc()).first()
+    
+    if dernier_proforma and dernier_proforma.numero_interne:
+        prochain_numero = dernier_proforma.numero_interne + 1
+    else:
+        prochain_numero = 1
+    
+    # Formater à 5 chiffres
+    return f"{prochain_numero:05d}"
+
+
 @app.route("/proforma/create", methods=["POST"])
 @login_required
 def create_proforma():
@@ -2768,7 +2782,7 @@ def create_proforma():
     
     conditionnement = request.form.getlist("conditionnement[]")
 
-    numero = f"PRO-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    numero = '6'+generer_numero_proforma()
 
     proforma = Proforma(
         numero=numero,
@@ -3042,7 +3056,7 @@ def create_kit_proforma():
         delai_livraison = request.form.get("delai_livraison")
         garantie = request.form.get("garantie")
 
-        numero = f"{datetime.now().strftime('%Y%m%M%S')}"
+        numero = '3'+generer_numero_proforma()
 
         # Création du kit
         kit = KitProforma(
