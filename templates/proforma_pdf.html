@@ -384,7 +384,7 @@
 <div class="header">
     <div class="left">
         {% if compagnie and compagnie.logo %}
-        <img src="{{ url_for('static', filename='images/logoimedical2.jpeg') }}" alt="Logo I-MEDICAL">
+        <img src="{{ compagnie.logo }}" alt="Logo">
         {% else %}
         <div style="font-size: 18px; font-weight: bold;">I-MEDICAL</div>
         {% endif %}
