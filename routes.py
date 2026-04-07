@@ -2782,7 +2782,7 @@ def create_proforma():
     
     conditionnement = request.form.getlist("conditionnement[]")
 
-    numero = '6'+generer_numero_proforma()
+    numero = generer_numero_proforma()
 
     proforma = Proforma(
         numero=numero,
@@ -3056,7 +3056,7 @@ def create_kit_proforma():
         delai_livraison = request.form.get("delai_livraison")
         garantie = request.form.get("garantie")
 
-        numero = '3'+generer_numero_proforma()
+        numero = f"{datetime.now().strftime('%m%M%S')}"
 
         # Création du kit
         kit = KitProforma(
