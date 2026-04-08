@@ -2024,7 +2024,6 @@ def create_bon_livraison():
 
 
 
-
 @app.route("/bon-livraison/delete", methods=["POST"])
 @login_required
 def delete_bon_livraisons():
@@ -2047,16 +2046,33 @@ def delete_bon_livraisons():
             if not bon:
                 continue
             
-            # 🔥 Vérifier si le BL a une vente associée
-            from app.models import Vente
+            # Vérifier si le BL a une vente associée
             vente_associee = Vente.query.filter_by(bon_livraison_id=bon.id).first()
+            
             if vente_associee:
-                bl_bloques.append({
-                    'numero': bon.numero,
-                    'vente_id': vente_associee.id,
-                    'raison': 'vente_associee'
-                })
-                continue
+                # Vérifier si la vente a des paiements effectués
+                paiements = Paiement.query.filter_by(vente_id=vente_associee.id).all()
+                a_des_paiements = len(paiements) > 0
+                
+                # Vérifier si des paiements ont été effectués (montant > 0)
+                montant_total_paye = sum(float(p.montant or 0) for p in paiements)
+                a_des_paiements_effectifs = montant_total_paye > 0
+                
+                # 🔥 NOUVELLE LOGIQUE : On bloque UNIQUEMENT si des paiements ont été effectués
+                if a_des_paiements_effectifs:
+                    bl_bloques.append({
+                        'numero': bon.numero,
+                        'vente_id': vente_associee.id,
+                        'statut_paiement': vente_associee.statut_paiement,
+                        'montant_paye': montant_total_paye,
+                        'raison': 'vente_avec_paiement'
+                    })
+                    continue
+                else:
+                    # Aucun paiement effectif - on peut supprimer le BL et la vente
+                    flash(f"ℹ️ Le BL {bon.numero} avait une vente sans paiement, suppression autorisée", "info")
+                    # Supprimer aussi la vente associée puisqu'elle n'a pas de paiement
+                    db.session.delete(vente_associee)
             
             commandes_a_verifier.add(bon.commande_id)
             bl_supprimes.append(bon)
@@ -2103,7 +2119,7 @@ def delete_bon_livraisons():
         
         if bl_bloques:
             for bl in bl_bloques:
-                flash(f"❌ Impossible de supprimer le BL {bl['numero']} : vente N°{bl['vente_id']} associée", "danger")
+                flash(f"❌ Impossible de supprimer le BL {bl['numero']} : une vente (N°{bl['vente_id']}) avec paiement effectif de {bl['montant_paye']} FCFA est associée", "danger")
         
     except Exception as e:
         db.session.rollback()

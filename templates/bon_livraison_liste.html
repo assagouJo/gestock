@@ -6,104 +6,103 @@
 <div class="container mt-4">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-<h4 class="fw-bold text-success">🚚 Bons de Livraison</h4>
-
-<div>
-    <a href="{{ url_for('nouveau_bon_livraison') }}" class="btn btn-success btn-sm me-2">
-        ➕ Nouveau Bon
-    </a>
-    <form method="POST" action="{{ url_for('delete_bon_livraisons') }}" style="display: inline;">
-        <button type="submit" class="btn btn-danger btn-sm"
-        onclick="return confirm('Supprimer les bons sélectionnés ?')">
-        🗑 Supprimer
-        </button>
-    </form>
-</div>
+    <h4 class="fw-bold text-success">🚚 Bons de Livraison</h4>
+    
+    <div>
+        <a href="{{ url_for('nouveau_bon_livraison') }}" class="btn btn-success btn-sm me-2">
+            ➕ Nouveau Bon
+        </a>
+    </div>
 </div>
 
 {% if bons %}
 
-<div class="card">
+<!-- Formulaire unique qui englobe tout le tableau -->
+<form method="POST" action="{{ url_for('delete_bon_livraisons') }}" id="deleteForm" onsubmit="return confirmDelete()">
+    
+    <div class="card">
+        <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="check_all">
+                        </th>
+                        <th>Date</th>
+                        <th>N° Bon</th>
+                        <th>Client</th>
+                        <th>Statut</th>
+                        <th width="300">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bon in bons %}
+                    <tr>
+                        <td class="text-center">
+                            <input type="checkbox" name="bons_ids[]" value="{{ bon.id }}" class="bon-checkbox">
+                        </td>
+                        <td class="small">{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
+                        <td class="small fw-bold">{{ bon.numero }}</td>
+                        <td class="small">{{ bon.client.nom_client }}</td>
+                        <td>
+                            <span class="badge {% if bon.status == 'livree' %}bg-success
+                                          {% elif bon.status == 'partielle' %}bg-warning
+                                          {% elif bon.status == 'annule' %}bg-danger
+                                          {% else %}bg-secondary{% endif %}">
+                                {% if bon.status == 'livree' %}Livrée
+                                {% elif bon.status == 'partielle' %}Livraison Partielle
+                                {% elif bon.status == 'annule' %}Annulée
+                                {% else %}{{ bon.status }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}" 
+                                   class="btn btn-outline-success">
+                                    👁 Voir
+                                </a>
 
-<div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+                                <a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}" 
+                                   class="btn btn-outline-warning">
+                                    ✏ Modifier
+                                </a>
 
-<table class="table table-hover table-bordered align-middle">
-
-<thead class="table-dark sticky-top">
-<tr>
-<th>
-<input type="checkbox" id="check_all">
-</th>
-<th>Date</th>
-<th>N°</th>
-<th>Client</th>
-<th>Status</th>
-<th width="320">Action</th>
-</tr>
-</thead>
-
-<tbody>
-{% for bon in bons %}
-<tr>
-<td>
-<input type="checkbox" name="bons_ids[]" value="{{ bon.id }}">
-</td>
-<td class="small fw-light">{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
-<td class="small fw-light">{{ bon.numero }}</td>
-<td class="small fw-light">{{ bon.client.nom_client }}</td>
-<td>
-    <span class="badge {% if bon.status == 'livree' %}
-    bg-success
-    {% elif bon.status == 'partielle' %}
-    bg-warning
-    {% elif bon.status == 'annule' %}
-    bg-danger
-    {% else %}
-    bg-secondary
-    {% endif %}">
-        {{ bon.status }}
-    </span>
-</td>
-<td>
-    <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}"
-       class="btn btn-sm btn-outline-success">
-        👁 Voir
-    </a>
-
-    <a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}"
-       class="btn btn-sm btn-outline-warning">
-        ✏ Modifier
-    </a>
-
-    {% set vente_existante = verifier_vente_existante(bon.id) if bon.status == 'livree' else None %}
-    {% if bon.status == 'livree' %}
-        {% if vente_existante %}
-            <a href="{{ url_for('paiement_vente', vente_id=vente_existante.id) }}"
-            class="btn btn-sm btn-outline-info">
-                💰 Voir vente
-            </a>
-        {% else %}
-            <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}"
-            class="btn btn-sm btn-outline-primary">
-                💰 Créer Vente
-            </a>
-        {% endif %}
-    {% endif %}
-</td>
-</tr>
-{% endfor %}
-</tbody>
-
-</table>
-
-</div>
-
-</div>
+                                {% if bon.status == 'livree' %}
+                                    {% set vente_existante = verifier_vente_existante(bon.id) %}
+                                    {% if vente_existante %}
+                                        <a href="{{ url_for('paiement_vente', vente_id=vente_existante.id) }}" 
+                                           class="btn btn-outline-info">
+                                            💰 Vente
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}" 
+                                           class="btn btn-outline-primary">
+                                            💰 Créer Vente
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Bouton de suppression à l'intérieur du formulaire -->
+    <div class="mt-3 d-flex justify-content-end">
+        <button type="submit" class="btn btn-danger" id="deleteBtn">
+            🗑 Supprimer les bons sélectionnés
+        </button>
+    </div>
+    
+</form>
 
 {% else %}
 
 <div class="alert alert-warning text-center">
-Aucun bon de livraison enregistré.
+    <i class="fas fa-info-circle"></i> Aucun bon de livraison enregistré.
 </div>
 
 {% endif %}
@@ -111,12 +110,58 @@ Aucun bon de livraison enregistré.
 </div>
 
 <script>
-document.getElementById("check_all").onclick = function() {
-    let checkboxes = document.querySelectorAll('input[name="bons_ids[]"]');
-    for (let cb of checkboxes) {
-        cb.checked = this.checked;
+document.addEventListener('DOMContentLoaded', function() {
+    // Sélectionner/déselectionner tous les checkboxes
+    const checkAll = document.getElementById('check_all');
+    if (checkAll) {
+        checkAll.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('input[name="bons_ids[]"]');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
     }
-};
+});
 </script>
+
+<script>
+// Fonction de confirmation avant suppression
+function confirmDelete() {
+    const checkboxes = document.querySelectorAll('input[name="bons_ids[]"]:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (selectedIds.length === 0) {
+        alert('⚠️ Veuillez sélectionner au moins un bon de livraison à supprimer.');
+        return false;
+    }
+    
+    const message = selectedIds.length === 1 
+        ? '🗑 Êtes-vous sûr de vouloir supprimer ce bon de livraison ?\n\nCette action restaurera le stock et est irréversible.'
+        : `🗑 Êtes-vous sûr de vouloir supprimer ${selectedIds.length} bons de livraison ?\n\nCette action restaurera le stock et est irréversible.`;
+    
+    return confirm(message);
+}
+</script>
+
+<style>
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.btn-group {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+}
+</style>
 
 {% endblock %}
