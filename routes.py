@@ -2753,59 +2753,50 @@ def nouvelle_proforma():
     )
 
 
-def generer_numero_proforma():
-    """Génère le prochain numéro de proforma à 5 chiffres"""
-    # Récupérer le dernier numéro
-    dernier_proforma = Proforma.query.order_by(Proforma.id.desc()).first()
-    
-    if dernier_proforma and dernier_proforma.numero:
-        prochain_numero = dernier_proforma.numero + 1
-    else:
-        prochain_numero = 1
-    
-    # Formater à 5 chiffres
-    return f"{prochain_numero:05d}"
-
 
 @app.route("/proforma/create", methods=["POST"])
 @login_required
 def create_proforma():
-
+    from datetime import datetime
+    
     client_id = request.form.get("client_id")
     condition_paiement = request.form.get("condition_paiement")
     delai_livraison = request.form.get("delai_livraison")
     garantie = request.form.get("garantie")
     attn = request.form.get("attn")
-    proforma_title = request.form.get("proforma_title")  # NOUVEAU
-    proforma_comment = request.form.get("proforma_comment")  # NOUVEAU
+    proforma_title = request.form.get("proforma_title")
+    proforma_comment = request.form.get("proforma_comment")
 
     if not client_id:
-        flash("Veuillez choisir un client")
+        flash("Veuillez choisir un client", "danger")
         return redirect(url_for("nouvelle_proforma"))
     
     conditionnement = request.form.getlist("conditionnement[]")
 
     try:
+        # Générer le numéro au format PRO-YYYYMMDDHHMMSS (compatible avec les existants)
+        numero_proforma = f"{datetime.now().strftime('%Y%H%M%S')}"
+        
+        print(f"🔍 Génération du numéro: {numero_proforma}")
+        
+        # Création de la proforma AVEC le numéro
         proforma = Proforma(
             client_id=client_id,
             condition_paiement=condition_paiement,
             delai_livraison=delai_livraison,
             garantie=garantie,
             attn=attn,
-            proforma_title=proforma_title,  # NOUVEAU
-            proforma_comment=proforma_comment  # NOUVEAU
+            proforma_title=proforma_title,
+            proforma_comment=proforma_comment,
+            numero=numero_proforma  # ← Le numéro est assigné directement
         )
 
         db.session.add(proforma)
-        db.session.flush()
+        db.session.flush()  # Pour obtenir l'ID si nécessaire
         
-        if 'generate_code_proforma' not in globals():
-            print("⚠️ generate_code_proforma non trouvée dans globals")
-            from helper import generate_code_proforma  # Ré-import forcé
-
-        proforma.numero = generate_code_proforma(proforma.id)
-        print(f"✅ Code généré: {proforma.numero}")  # Debug
-
+        print(f"✅ Proforma ajoutée avec ID: {proforma.id}, Numéro: {proforma.numero}")
+        
+        # Traitement des produits
         produits = request.form.getlist("produit_id[]")
         quantites = request.form.getlist("quantite[]")
         prix = request.form.getlist("prix[]")
@@ -2816,9 +2807,13 @@ def create_proforma():
             if not produits[i]:
                 continue
                 
-            produit_id = int(produits[i])
-            quantite = int(quantites[i])
-            prix_unitaire = float(prix[i])
+            try:
+                produit_id = int(produits[i])
+                quantite = int(quantites[i])
+                prix_unitaire = float(prix[i])
+            except (ValueError, TypeError) as e:
+                print(f"❌ Erreur de conversion ligne {i}: {e}")
+                continue
 
             sous_total = quantite * prix_unitaire
             total += sous_total
@@ -2831,22 +2826,24 @@ def create_proforma():
                 prix_unitaire=prix_unitaire,
                 sous_total=sous_total
             )
-
             db.session.add(ligne)
 
         proforma.total = total
-
+        
+        # Vérification finale avant commit
+        if not proforma.numero:
+            raise ValueError("Le numéro de proforma n'a pas été généré correctement")
+            
         db.session.commit()
         
-        flash("Proforma créée avec succès", "success")
+        flash(f"✅ Proforma {proforma.numero} créée avec succès", "success")
         return redirect(url_for("details_proforma", proforma_id=proforma.id))
-    
+        
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Erreur détaillée: {str(e)}")  # Debug
+        print(f"❌ ERREUR COMPLÈTE: {str(e)}")
         flash(f"❌ Erreur lors de la création: {str(e)}", "danger")
         return redirect(url_for("nouvelle_proforma"))
-
 
 
 @app.route("/proforma/modifier/<int:proforma_id>", methods=["GET", "POST"])
