@@ -13,7 +13,7 @@ from cloudinary.uploader import upload
 from decimal import Decimal
 from sqlalchemy import func, exists
 from sqlalchemy.exc import SQLAlchemyError
-from helper import verifier_vente_existante, generate_numero_facture, generate_code_produit, generate_code_bon_commande, generate_code_bon_livraison
+from helper import verifier_vente_existante, generate_numero_facture, generate_code_produit, generate_code_bon_commande, generate_code_bon_livraison, generate_code_proforma
 from werkzeug.security import generate_password_hash
 import cloudinary.uploader
 from cloudinary.uploader import upload
@@ -2785,10 +2785,8 @@ def create_proforma():
     
     conditionnement = request.form.getlist("conditionnement[]")
 
-    numero = generer_numero_proforma()
 
     proforma = Proforma(
-        numero=numero,
         client_id=client_id,
         condition_paiement=condition_paiement,
         delai_livraison=delai_livraison,
@@ -2800,6 +2798,8 @@ def create_proforma():
 
     db.session.add(proforma)
     db.session.flush()
+    
+    proforma.numero=generate_code_proforma(proforma.id)
 
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")

@@ -91,7 +91,7 @@ def generate_code_produit():
 
 def generate_code_proforma(id):
     annee = datetime.now().year
-    return f"PF-{annee}-{20000000+id}"
+    return f"PF-{annee}-{2000+id}"
 
 
 def generate_code_bon_commande(id):
