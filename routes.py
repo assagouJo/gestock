@@ -2758,8 +2758,8 @@ def generer_numero_proforma():
     # Récupérer le dernier numéro
     dernier_proforma = Proforma.query.order_by(Proforma.id.desc()).first()
     
-    if dernier_proforma and dernier_proforma.numero_interne:
-        prochain_numero = dernier_proforma.numero_interne + 1
+    if dernier_proforma and dernier_proforma.numero:
+        prochain_numero = dernier_proforma.numero + 1
     else:
         prochain_numero = 1
     
