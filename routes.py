@@ -1221,33 +1221,22 @@ def creer_vente_depuis_bon(bon_id):
             flash("Ce bon de livraison n'est pas lié à une commande", "warning")
             return redirect(url_for('detail_bon_livraison', id=bon.id))
         
-        # ==========================================
-        # 🔥 RÉCUPÉRATION DU VENDEUR
-        # ==========================================
-        vendeur = Vendeur.query.first()
-        if not vendeur:
-            vendeur = Vendeur(nom="Vendeur par défaut", telephone="00000000")
-            db.session.add(vendeur)
-            db.session.commit()
+        # Récupération du vendeur depuis le bon de commande
+        commande = bon.commande
         
-        compagnie = VendeurCompagnie.query.first()
-        if not compagnie:
-            flash("Aucune compagnie configurée", "danger")
-            return redirect(url_for('liste_bons_livraison'))
+        if not commande.vendeur_id:
+            flash("Le bon de commande n'a pas de vendeur assigné.", "warning")
+            return redirect(url_for('modifier_bon_commande', id=commande.id))
         
-        # ==========================================
-        # 🔥 CRÉER LE MAPPING DES PRIX DEPUIS LA COMMANDE
-        # ==========================================
+        vendeur = commande.vendeur
+        compagnie = commande.compagnie
+        
         from decimal import Decimal
-        
-        # Créer un dictionnaire des prix par ligne de commande
         prix_par_ligne_commande = {}
-        for ligne_commande in bon.commande.lignes:
+        for ligne_commande in commande.lignes:
             prix_par_ligne_commande[ligne_commande.id] = ligne_commande.prix_unitaire or Decimal('0.00')
         
-        # ==========================================
-        # CRÉER LA VENTE
-        # ==========================================
+        # Créer la vente
         total = Decimal('0.00')
         
         vente = Vente(
@@ -1264,19 +1253,12 @@ def creer_vente_depuis_bon(bon_id):
         db.session.add(vente)
         db.session.flush()
         
-        # ==========================================
-        # 🔥 CRÉER LES LIGNES DE VENTE SANS VÉRIFIER LE STOCK
-        # ==========================================
+        # Créer les lignes de vente
         lignes_crees = 0
         for ligne_bon in bon.lignes:
-            # Vérifier que le stock existe
             if not ligne_bon.stock:
-                flash(f"Stock non trouvé pour une ligne", "warning")
                 continue
             
-            # 🔥 NE PAS VÉRIFIER stock.quantite ici car déjà fait lors de la livraison
-            
-            # Récupérer le prix depuis la ligne de commande
             prix_unitaire = prix_par_ligne_commande.get(ligne_bon.ligne_commande_id, Decimal('0.00'))
             
             ligne_vente = LigneVente(
@@ -1294,26 +1276,28 @@ def creer_vente_depuis_bon(bon_id):
             flash("Aucune ligne valide n'a pu être créée pour la vente", "danger")
             return redirect(url_for('detail_bon_livraison', id=bon.id))
         
-        # Mettre à jour les totaux
         vente.total = total
         vente.reste_a_payer = total
         
-        # Créer la facture
+        # ==========================================
+        # 🔥 CRÉER LA FACTURE - SANS vendeur_id et compagnie_id
+        # ==========================================
         numero_facture = generate_numero_facture(vente.id)
         facture = Facture(
             vente_id=vente.id,
             numero=numero_facture,
             date_facture=datetime.now(),
-            total=vente.total,
-            montant_paye=vente.montant_paye,
-            reste_a_payer=vente.reste_a_payer,
+            total=float(vente.total),
+            montant_paye=float(vente.montant_paye),
+            reste_a_payer=float(vente.reste_a_payer),
             statut=vente.statut_paiement
+            # ⚠️ PAS de vendeur_id, PAS de compagnie_id
         )
         db.session.add(facture)
         
         db.session.commit()
         
-        flash(f"✅ Vente #{vente.id} créée avec succès à partir du bon {bon.numero}", "success")
+        flash(f"✅ Vente #{vente.id} créée avec succès - Vendeur: {vendeur.nom} (de la commande {commande.numero})", "success")
         return redirect(url_for('paiement_vente', vente_id=vente.id))
         
     except Exception as e:
