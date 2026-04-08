@@ -2785,56 +2785,68 @@ def create_proforma():
     
     conditionnement = request.form.getlist("conditionnement[]")
 
-
-    proforma = Proforma(
-        client_id=client_id,
-        condition_paiement=condition_paiement,
-        delai_livraison=delai_livraison,
-        garantie=garantie,
-        attn=attn,
-        proforma_title=proforma_title,  # NOUVEAU
-        proforma_comment=proforma_comment  # NOUVEAU
-    )
-
-    db.session.add(proforma)
-    db.session.flush()
-    
-    proforma.numero=generate_code_proforma(proforma.id)
-
-    produits = request.form.getlist("produit_id[]")
-    quantites = request.form.getlist("quantite[]")
-    prix = request.form.getlist("prix[]")
-
-    total = 0
-
-    for i in range(len(produits)):
-        if not produits[i]:
-            continue
-            
-        produit_id = int(produits[i])
-        quantite = int(quantites[i])
-        prix_unitaire = float(prix[i])
-
-        sous_total = quantite * prix_unitaire
-        total += sous_total
-
-        ligne = LigneProforma(
-            proforma_id=proforma.id,
-            produit_id=produit_id,
-            conditionnement=conditionnement[i] if i < len(conditionnement) else None,
-            quantite=quantite,
-            prix_unitaire=prix_unitaire,
-            sous_total=sous_total
+    try:
+        proforma = Proforma(
+            client_id=client_id,
+            condition_paiement=condition_paiement,
+            delai_livraison=delai_livraison,
+            garantie=garantie,
+            attn=attn,
+            proforma_title=proforma_title,  # NOUVEAU
+            proforma_comment=proforma_comment  # NOUVEAU
         )
 
-        db.session.add(ligne)
+        db.session.add(proforma)
+        db.session.flush()
+        
+        if 'generate_code_proforma' not in globals():
+            print("⚠️ generate_code_proforma non trouvée dans globals")
+            from helper import generate_code_proforma  # Ré-import forcé
 
-    proforma.total = total
+        proforma.numero = generate_code_proforma(proforma.id)
+        print(f"✅ Code généré: {proforma.numero}")  # Debug
 
-    db.session.commit()
+        produits = request.form.getlist("produit_id[]")
+        quantites = request.form.getlist("quantite[]")
+        prix = request.form.getlist("prix[]")
+
+        total = 0
+
+        for i in range(len(produits)):
+            if not produits[i]:
+                continue
+                
+            produit_id = int(produits[i])
+            quantite = int(quantites[i])
+            prix_unitaire = float(prix[i])
+
+            sous_total = quantite * prix_unitaire
+            total += sous_total
+
+            ligne = LigneProforma(
+                proforma_id=proforma.id,
+                produit_id=produit_id,
+                conditionnement=conditionnement[i] if i < len(conditionnement) else None,
+                quantite=quantite,
+                prix_unitaire=prix_unitaire,
+                sous_total=sous_total
+            )
+
+            db.session.add(ligne)
+
+        proforma.total = total
+
+        db.session.commit()
+        
+        flash("Proforma créée avec succès", "success")
+        return redirect(url_for("details_proforma", proforma_id=proforma.id))
     
-    flash("Proforma créée avec succès", "success")
-    return redirect(url_for("details_proforma", proforma_id=proforma.id))
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erreur détaillée: {str(e)}")  # Debug
+        flash(f"❌ Erreur lors de la création: {str(e)}", "danger")
+        return redirect(url_for("nouvelle_proforma"))
+
 
 
 @app.route("/proforma/modifier/<int:proforma_id>", methods=["GET", "POST"])

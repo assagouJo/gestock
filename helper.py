@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 import barcode
+from flask import current_app 
 from barcode.writer import ImageWriter
 import os
 
@@ -90,8 +91,18 @@ def generate_code_produit():
 
 
 def generate_code_proforma(id):
-    annee = datetime.now().year
-    return f"PF-{annee}-{2000+id}"
+    """Génère le code proforma au format PF-ANNEE-2000+ID"""
+    try:
+        annee = datetime.now().year
+        code = f"PF-{annee}-{2000 + id}"
+        print(f"✅ Code proforma généré: {code}")  # Debug
+        return code
+    except Exception as e:
+        print(f"❌ Erreur génération code proforma: {e}")
+        # Fallback : utiliser timestamp
+        from datetime import datetime
+        return f"PF-{datetime.now().year}-{int(datetime.now().timestamp())}"
+
 
 
 def generate_code_bon_commande(id):
