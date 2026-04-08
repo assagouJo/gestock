@@ -288,7 +288,7 @@
                                     <a class="nav-link active text-light" href="{{ url_for('dashboard') }}">Dashboard</a>
                                 </li>
                             {% endif %}
-                            {% if current_user.role in ["admin","superadmin"] %}
+                            {% if current_user.role in ["admin","superadmin","operateur"] %}
                                 <li class=" {{ 'bg-nav2' if is_active('etat_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
                                     <i class="bi bi-box-seam text-light fs-3"></i>
                                     <a class="nav-link text-light" href="{{url_for('etat_stock')}}">Entree Stock</a>
