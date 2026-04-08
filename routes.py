@@ -905,7 +905,6 @@ def ajouter_stock():
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     magasins = request.form.getlist("magasin_id[]")
-    model_noms = request.form.getlist("model_nom[]")
     nouveaux_magasins = request.form.getlist("nouveau_magasin[]")
     types = request.form.getlist("type_conditionnement[]")
 
@@ -914,11 +913,15 @@ def ajouter_stock():
         return redirect(url_for("etat_stock"))
 
     try:
-        for produit_id, quantite, magasin_id, model_nom, nouveau_nom, type_cond in zip(
-            produits, quantites, magasins, model_noms, nouveaux_magasins, types
+
+        stocks_ajoutes = []
+        stocks_actualises = []
+
+        for produit_id, quantite, magasin_id, nouveau_nom, type_cond in zip(
+            produits, quantites, magasins, nouveaux_magasins, types
         ):
 
-            if not produit_id or not quantite or not type_cond or not model_nom:
+            if not produit_id or not quantite or not type_cond:
                 continue
 
             try:
@@ -982,11 +985,15 @@ def ajouter_stock():
                 )
                 db.session.add(nouveau_stock)
                 
-                # Afficher le numéro de lot généré
-                flash(f"Stock ajouté avec succès ✅ - Lot N°{nouveau_stock.numero_lot}", "success")
+                stocks_ajoutes.append(f"{produit.nom_produit} +{quantite} - Lot N°{nouveau_stock.numero_lot}")
 
         db.session.commit()
-        flash("Tous les stocks ont été enregistrés avec succès ✅", "success")
+        if stocks_ajoutes:
+            flash(f"✅ Nouveaux stocks créés :\n" + "\n".join(stocks_ajoutes), "success")
+        if stocks_actualises:
+            flash(f"🔄 Stocks mis à jour :\n" + "\n".join(stocks_actualises), "info")
+        if not stocks_ajoutes and not stocks_actualises:
+            flash("⚠️ Aucun stock n'a été ajouté", "warning")
 
     except Exception as e:
         db.session.rollback()
