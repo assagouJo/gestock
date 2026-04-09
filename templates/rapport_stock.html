@@ -2,8 +2,8 @@
 {% block title %}Rapport | gestock{% endblock %}
 
 {% block content %}
-    <form method="GET" action="{{ url_for('rapport_stock') }}" class="row g-3 mb-2" style="height: 100px;">
-        <div class="col-md-4"  >
+    <form method="GET" action="{{ url_for('rapport_stock') }}" class="row g-3 mb-4" style="height: 100px;">
+        <div class="col-md-4">
             <select name="produit_id" class="form-select">
                 <option value="">-- Choisir Produit --</option>
                 {% for p in produits %}
@@ -34,18 +34,34 @@
 
     <hr>
 
-    {# TEST SIMPLE #}
-    <h3>Résultats ({{ stocks|length }})</h3>
+    <h3>Produits en stock ({{ stocks|length }})</h3>
     
-    {% for s in stocks %}
-        <div style="border:1px solid #ccc; margin:10px; padding:10px;">
-            <strong>Produit:</strong> {{ s.produit.nom_produit }}<br>
-            <strong>Magasin:</strong> {{ s.magasin.nom }}<br>
-            <strong>Quantité:</strong> {{ s.quantite }}
+    {% if stocks %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Produit</th>
+                        <th>Magasin</th>
+                        <th>Conditionnement</th>
+                        <th>Quantité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in stocks %}
+                    <tr>
+                        <td>{{ s.produit.nom_produit }}</td>
+                        <td>{{ s.magasin.nom }}</td>
+                        <td>{{ s.type_conditionnement.value }}</td>
+                        <td class="fw-bold">{{ s.quantite }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     {% else %}
         <div class="alert alert-warning">
-            Aucun résultat trouvé.
+            Aucun produit en stock trouvé.
         </div>
-    {% endfor %}
+    {% endif %}
 {% endblock %}
