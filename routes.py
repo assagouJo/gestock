@@ -4045,29 +4045,51 @@ def compagnie():
 @app.route("/rapport/stock")
 @login_required
 def rapport_stock():
-
     produit_id = request.args.get("produit_id", type=int)
     magasin_id = request.args.get("magasin_id", type=int)
+
+    # DÉBOGAGE
+    print(f"=== FILTRAGE ===")
+    print(f"Produit ID reçu: {produit_id}")
+    print(f"Magasin ID reçu: {magasin_id}")
 
     query = Stock.query
 
     if produit_id:
         query = query.filter(Stock.produit_id == produit_id)
+        print(f"Filtre appliqué sur produit_id = {produit_id}")
 
     if magasin_id:
         query = query.filter(Stock.magasin_id == magasin_id)
+        print(f"Filtre appliqué sur magasin_id = {magasin_id}")
 
     stocks = query.all()
-
+    
+    # DÉBOGAGE
+    print(f"Nombre de stocks trouvés après filtre: {len(stocks)}")
+    if stocks:
+        for s in stocks:
+            print(f"Stock trouvé: produit_id={s.produit_id}, magasin_id={s.magasin_id}")
+    else:
+        print("AUCUN stock trouvé")
+        
     produits = Produit.query.all()
     magasins = Magasin.query.all()
+    
+    # Afficher tous les IDs disponibles
+    print(f"Produits disponibles: {[(p.id, p.nom_produit) for p in produits]}")
+    print(f"Magasins disponibles: {[(m.id, m.nom) for m in magasins]}")
 
     return render_template(
         "rapport_stock.html",
         stocks=stocks,
         produits=produits,
-        magasins=magasins
+        magasins=magasins,
+        selected_produit_id=produit_id,
+        selected_magasin_id=magasin_id
     )
+
+
 
 
 

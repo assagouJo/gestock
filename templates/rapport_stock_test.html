@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Rapport Stock</title>
+</head>
+<body>
+    <h1>Test Rapport Stock</h1>
+    
+    <form method="GET" action="{{ url_for('rapport_stock') }}">
+        <select name="produit_id">
+            <option value="">-- Choisir Produit --</option>
+            {% for p in produits %}
+            <option value="{{ p.id }}" {% if selected_produit_id == p.id %}selected{% endif %}>
+                {{ p.nom_produit }}
+            </option>
+            {% endfor %}
+        </select>
+        
+        <select name="magasin_id">
+            <option value="">-- Choisir Magasin --</option>
+            {% for m in magasins %}
+            <option value="{{ m.id }}" {% if selected_magasin_id == m.id %}selected{% endif %}>
+                {{ m.nom }}
+            </option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit">Filtrer</button>
+    </form>
+    
+    <hr>
+    
+    <h2>Résultats ({{ stocks|length }})</h2>
+    
+    {% if stocks %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Magasin</th>
+                    <th>Conditionnement</th>
+                    <th>Quantité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in stocks %}
+                <tr>
+                    <td>{{ s.produit.nom_produit }}</td>
+                    <td>{{ s.magasin.nom }}</td>
+                    <td>{{ s.type_conditionnement.value }}</td>
+                    <td>{{ s.quantite }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aucun résultat trouvé</p>
+    {% endif %}
+    
+    <!-- Débogage -->
+    <div style="margin-top: 50px; padding: 10px; background: #f0f0f0;">
+        <h3>Débogage</h3>
+        <p>Nombre de stocks: {{ stocks|length }}</p>
+        <p>Selected produit_id: {{ selected_produit_id }}</p>
+        <p>Selected magasin_id: {{ selected_magasin_id }}</p>
+        <p>Request args: {{ request.args }}</p>
+    </div>
+</body>
+</html>
