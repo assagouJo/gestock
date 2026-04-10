@@ -604,6 +604,7 @@ class BonCommande(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero = db.Column(db.String(30), unique=True, nullable=False)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    date_commande = db.Column(db.DateTime, nullable=True)
     total = db.Column(db.Numeric(12,2), default=0)
 
     status = db.Column(

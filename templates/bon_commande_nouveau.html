@@ -110,7 +110,7 @@ function ajouterLigne(produitId = '', quantite = 1, prix = '') {
             <input type="number" name="quantite[]" class="form-control quantite-input" value="${quantite}" min="1" required>
         </div>
         <td>
-            <input type="number" name="prix_unitaire[]" class="form-control prix-input" value="${prix}" min="0" required>
+            <input type="number" name="prix_unitaire[]" class="form-control prix-input" value="${prix}" min="0" step="any" required>
         </div>
         <td class="sous-total">0 FCFA</td>
         <td class="text-center">

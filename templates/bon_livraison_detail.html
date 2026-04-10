@@ -594,29 +594,7 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-    
-    <!-- RÉCAPITULATIF -->
-    <div class="summary-section">
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="summary-label">TOTAL PRODUITS</div>
-                <div class="summary-value">{{ bon.lignes|length }}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-label">QUANTITÉ TOTALE</div>
-                <div class="summary-value">{{ bon.lignes|sum(attribute='quantite') }}</div>
-            </div>
-            {% if bon.commande %}
-            <div class="summary-card">
-                <div class="summary-label">PROGRESSION COMMANDE</div>
-                <div class="summary-value small">
-                    {{ bon.commande.quantite_totale_livree }}/{{ bon.commande.quantite_totale }}
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
+    </div>    
     
     <!-- NOTES COMPLÉMENTAIRES -->
     {% if bon.nota_bene and bon.nota_bene|trim %}
@@ -634,11 +612,6 @@
         <div class="signature-block">
             <div class="signature-line">SERVICE TECHNIQUE</div>
         </div>
-    </div>
-    
-    <!-- PIED DE PAGE -->
-    <div class="mention">
-        <small>Merci de vérifier la conformité de la marchandise à réception.</small>
     </div>
 </div>
 
