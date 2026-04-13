@@ -502,14 +502,14 @@
     <!-- INFORMATIONS CLIENT & LIVRAISON -->
     <div class="info-grid">
         <div class="info-card">
-            <h4>📦 CLIENT</h4>
+            <h4>INFO CLIENT</h4>
             <div class="info-row">
-                <div class="info-label">Raison sociale</div>
+                <div class="info-label">Client : </div>
                 <div class="info-value client-name">{{ bon.client.nom_client }}</div>
             </div>
             {% if bon.client.attn %}
             <div class="info-row">
-                <div class="info-label">À l'attention de</div>
+                <div class="info-label">ATTN : </div>
                 <div class="info-value">{{ bon.client.attn }}</div>
             </div>
             {% endif %}
@@ -538,16 +538,6 @@
                         <span style="color:#4caf50; font-weight:bold;">✓ Livraison complète</span>
                     {% else %}
                         <span style="color:#999;">{{ bon.status }}</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">N° Commande liée</div>
-                <div class="info-value">
-                    {% if bon.commande %}
-                        <strong>{{ bon.commande.numero }}</strong>
-                    {% else %}
-                        -
                     {% endif %}
                 </div>
             </div>
@@ -607,10 +597,10 @@
     <!-- SIGNATURES -->
     <div class="signatures">
         <div class="signature-block">
-            <div class="signature-line">LE CLIENT (Cachet et signature)</div>
+            <div class="signature-line" style="font-weight: 800; font-size: 18px;">LE CLIENT (Cachet et signature)</div>
         </div>
         <div class="signature-block">
-            <div class="signature-line">SERVICE TECHNIQUE</div>
+            <div class="signature-line" style="font-weight: 800; font-size: 18px;">SERVICE TECHNIQUE</div>
         </div>
     </div>
 </div>
