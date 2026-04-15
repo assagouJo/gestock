@@ -1,84 +1,351 @@
 {% extends "base.html" %}
-{% block title %} Gestion Compagnie | gestock{% endblock %}
+{% block title %}Gestion Compagnie | Gestock{% endblock %}
 
 {% block styles %}
-    
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .compagnie-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .compagnie-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+    }
+
+    .compagnie-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .compagnie-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+        font-size: 0.85rem;
+    }
+
+    /* Carte */
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    /* Formulaire */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-control {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Logo */
+    .logo-container {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .logo-preview {
+        max-height: 120px;
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .logo-placeholder {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        border-radius: 60px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .logo-placeholder i {
+        font-size: 3rem;
+        color: white;
+    }
+
+    /* Bouton */
+    .btn-save {
+        background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    /* Alertes */
+    .alert-custom {
+        border-radius: 10px;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success-custom {
+        background: rgba(46, 204, 113, 0.1);
+        border-left: 4px solid var(--success-color);
+        color: #27ae60;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .compagnie-header {
+            text-align: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .logo-placeholder i {
+            font-size: 2rem;
+        }
+    }
+</style>
 {% endblock %}
+
 {% block content %}
-
-<div class="row my-4">
-  <div class="col-md-6">
-
-    <div class="card shadow-sm">
-      <div class="card-body">
-
-        <h4 class="mb-3">Informations de la compagnie</h4>
-
-        <form method="post" enctype="multipart/form-data">
-          {{ form.hidden_tag() }}
-
-          <!-- Logo -->
-          <div class="mb-3">
-            {{ form.logo.label(class="form-label") }}
-            {{ form.logo(class="form-control") }}
-          </div>
-
-          {% if compagnie and compagnie.logo %}
-            <div class="mb-3 text-center">
-              <img src="{{ url_for('static', filename='images/' ~ compagnie.logo) }}"
-                   alt="Logo compagnie"
-                   class="img-thumbnail"
-                   style="max-height: 100px;">
-            </div>
-          {% endif %}
-
-          <!-- Nom -->
-          <div class="mb-3">
-            {{ form.nom.label(class="form-label") }}
-            {{ form.nom(class="form-control") }}
-          </div>
-
-          <!-- Téléphone -->
-          <div class="mb-3">
-            {{ form.telephone.label(class="form-label") }}
-            {{ form.telephone(class="form-control") }}
-          </div>
-
-          <!-- Email -->
-          <div class="mb-3">
-            {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control") }}
-          </div>
-
-          <!-- Adresse -->
-          <div class="mb-3">
-            {{ form.adresse.label(class="form-label") }}
-            {{ form.adresse(class="form-control") }}
-          </div>
-
-          <!-- Ville -->
-          <div class="mb-3">
-            {{ form.ville.label(class="form-label") }}
-            {{ form.ville(class="form-control") }}
-          </div>
-
-          <!-- RCCM -->
-          <div class="mb-3">
-            {{ form.numero_rcc.label(class="form-label") }}
-            {{ form.numero_rcc(class="form-control") }}
-          </div>
-
-          <!-- Bouton -->
-          <button type="submit" class="btn btn-success w-100">
-            Enregistrer
-          </button>
-
-        </form>
-
-      </div>
+<div class="compagnie-container">
+    <!-- En-tête -->
+    <div class="compagnie-header">
+        <h4>
+            <i class="fas fa-building"></i> Gestion de la Compagnie
+        </h4>
+        <p>Modifiez les informations de votre entreprise</p>
     </div>
 
-  </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    
+                    <!-- Message flash de succès -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-{% if category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="post" enctype="multipart/form-data" id="compagnieForm">
+                        {{ form.hidden_tag() }}
+
+                        <!-- Logo -->
+                        <div class="logo-container">
+                            <label class="form-label text-center d-block">
+                                <i class="fas fa-image"></i> Logo de l'entreprise
+                            </label>
+                            
+                            {% if compagnie and compagnie.logo %}
+                                <div class="mb-3 text-center">
+                                    <img src="{{ url_for('static', filename='images/' ~ compagnie.logo) }}"
+                                         alt="Logo compagnie"
+                                         class="logo-preview"
+                                         id="logoPreview">
+                                </div>
+                            {% else %}
+                                <div class="logo-placeholder mb-3">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                {{ form.logo(class="form-control", accept="image/*", id="logoInput") }}
+                                <small class="text-muted">Formats acceptés: JPG, PNG, GIF (max 2MB)</small>
+                            </div>
+                        </div>
+
+                        <!-- Nom -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Nom de l'entreprise
+                            </label>
+                            {{ form.nom(class="form-control", placeholder="Ex: GESTOCK SARL") }}
+                            {% if form.nom.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.nom.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Téléphone -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-phone-alt"></i> Téléphone
+                            </label>
+                            {{ form.telephone(class="form-control", placeholder="Ex: +237 6XX XXX XXX") }}
+                            {% if form.telephone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.telephone.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            {{ form.email(class="form-control", placeholder="Ex: contact@gestock.com") }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Adresse -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Adresse
+                            </label>
+                            {{ form.adresse(class="form-control", placeholder="Ex: Douala, Bonamoussadi") }}
+                            {% if form.adresse.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.adresse.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Ville -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-city"></i> Ville
+                            </label>
+                            {{ form.ville(class="form-control", placeholder="Ex: Douala, Yaoundé") }}
+                            {% if form.ville.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.ville.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- RCCM -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-file-alt"></i> Numéro RCCM
+                            </label>
+                            {{ form.numero_rcc(class="form-control", placeholder="Ex: RC/DLA/2024/XXXX") }}
+                            {% if form.numero_rcc.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.numero_rcc.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Bouton -->
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+// Aperçu du logo avant upload
+document.getElementById('logoInput')?.addEventListener('change', function(e) {
+    const preview = document.getElementById('logoPreview');
+    if (preview && e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            preview.src = ev.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+});
+
+// Validation du formulaire
+document.getElementById('compagnieForm')?.addEventListener('submit', function(e) {
+    const nom = document.querySelector('[name="nom"]')?.value.trim();
+    if (!nom) {
+        e.preventDefault();
+        alert('Veuillez saisir le nom de l\'entreprise');
+        return false;
+    }
+    return true;
+});
+</script>
 {% endblock %}

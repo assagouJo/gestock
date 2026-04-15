@@ -1,218 +1,987 @@
 {% extends "base.html" %}
-{% block title %}User | gestock{% endblock %}
+{% block title %}Gestion Utilisateurs | Gestock{% endblock %}
 
 {% block styles %}
-    
-{% endblock %}
-{% block content %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
 
-<div class="row">
-    <div class="col">
-        <a class="btn btn-outline-success me-3" data-bs-toggle="modal" 
-        data-bs-target="#addusermodal">Nouveau Utilisateur</a>        
-        <!-- <button class="btn btn-danger">Reinitialiser Mot de Passe</button>         -->
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .user-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .user-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--primary-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Barre de recherche */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .search-results {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 40px; }
+    .table-custom th:nth-child(2) { width: 60px; }
+    .table-custom th:nth-child(3) { width: 25%; }
+    .table-custom th:nth-child(4) { width: 30%; }
+    .table-custom th:nth-child(5) { width: 20%; }
+    .table-custom th:nth-child(6) { width: 15%; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 10px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: left;
+    }
+
+    .table-custom thead th:first-child {
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table-custom td {
+        padding: 10px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table-custom td:first-child {
+        text-align: center;
+    }
+
+    /* Ligne masquée par le filtre */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+
+    /* Badges */
+    .badge-role {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-admin {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .badge-superadmin {
+        background: var(--warning-color);
+        color: #856404;
+    }
+
+    .badge-user {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .badge-default {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .badge-username {
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        cursor: help;
+    }
+
+    .checkbox-custom {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        margin: 0;
+        accent-color: var(--primary-color);
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 25px;
+        background: #f8f9fa;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Boutons action */
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-reset {
+        background: var(--warning-color);
+        color: #856404;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset:hover {
+        background: #e67e22;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-reset:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+        color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .user-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-container">
+    <!-- En-tête -->
+    <div class="user-header">
+        <h4>
+            <i class="fas fa-users"></i> Gestion des Utilisateurs
+        </h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addusermodal">
+            <i class="fas fa-plus-circle"></i> Nouvel Utilisateur
+        </button>
     </div>
-</div>
-<hr>
-{% if user %}
-  <!-- <div class=""> -->
-      <form action="{{ url_for('delete_users') }}" method="post">
+
+    {% if user %}
+    <!-- Statistiques -->
+    {% set total_users = user|length %}
+    {% set admin_count = user|selectattr('role', 'equalto', 'admin')|list|length %}
+    {% set superadmin_count = user|selectattr('role', 'equalto', 'superadmin')|list|length %}
+    {% set simple_count = user|selectattr('role', 'equalto', 'user')|list|length %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ total_users }}</div>
+            <div class="stat-label">Total utilisateurs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👑</div>
+            <div class="stat-value">{{ admin_count + superadmin_count }}</div>
+            <div class="stat-label">Administrateurs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👤</div>
+            <div class="stat-value">{{ simple_count }}</div>
+            <div class="stat-label">Utilisateurs</div>
+        </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-input" 
+                   placeholder="Rechercher par nom, email ou rôle...">
+            <button type="button" id="clearSearch" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Effacer
+            </button>
+        </div>
+        <div class="search-results" id="searchResults">
+            <i class="fas fa-info-circle"></i> 
+            <span id="resultCount">{{ total_users }}</span> utilisateur(s) affiché(s)
+        </div>
+    </div>
+
+    <!-- Formulaire de suppression -->
+    <form action="{{ url_for('delete_users') }}" method="post" id="deleteForm">
         {{ form.hidden_tag() }}
         
-        <table class="table caption-top table-striped w-50 px-1">
-          <caption class="fs-3 fw-semibold">
-            Liste des Utilisateurs
-        </caption>
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          <th scope="col">Id</th>
-          <th scope="col">Nom Utilisateur</th>
-          <th scope="col">Email</th>
-          <th scope="col">Role</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in user %}
-        <tr class="user-row"
-            data-id="{{ user.id }}"
-            data-username="{{ user.username }}"
-            data-email="{{ user.email }}"
-            style="cursor:pointer">
-          <td>
-            <input class="form-check-input border-success produit-checkbox" 
-            name="user_ids"
-            type="checkbox" value="{{user.id}}">
-          </td>
-          <td>{{ loop.index }}</td>
-          <td>{{user.username.capitalize()}}</td>
-          <td>{{user.email}}</td>
-          <td>{{user.role}}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <button type="submit" class="btn btn-outline-danger" 
-      onclick="return confirm('Voulez-vous supprimer ce ou ces utilisateurs ?')">Suprimer User
-    </button>
-    <button type="button"
-        class="btn btn-warning ms-2"
-        onclick="submitResetPassword()">
-        Réinitialiser mot de passe
-    </button>
-    </form>
-  <!-- </div> -->
-</div>
-{% else %}
-<div class="alert alert-warning text-center">
-        Aucun User enregistré pour le moment.
-    </div>
-{% endif %}
-
-<!-- Modal -->
-
-<div class="modal fade" id="addusermodal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-
-      <!-- HEADER -->
-      <div class="modal-header">
-        <h5 class="modal-title text-success fw-bold" id="modalTitle">
-          Creer Utilisateur
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <!-- BODY -->
-      <div class="modal-body">
-        <form method="post"
-              id = "produitForm"
-              action="{{ url_for('creer_user') }}"
-              class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
-
-          {{ form.hidden_tag() }}
-
-          <div class="mb-3">
-          {{ form.username.label(class="form-label") }}
-          {{ form.username(class="form-control") }}
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="fas fa-list-ul"></i> Liste des utilisateurs
+                    <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_users }}</span>
+                </div>
+                <div class="export-buttons">
+                    <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                        <i class="fas fa-print"></i> Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all" class="checkbox-custom"></th>
+                            <th>#</th>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        {% for utilisateur in user %}
+                        <tr class="user-row" 
+                            data-id="{{ utilisateur.id }}"
+                            data-username="{{ utilisateur.username|lower }}"
+                            data-email="{{ utilisateur.email|lower }}"
+                            data-role="{{ utilisateur.role|lower }}"
+                            data-username-full="{{ utilisateur.username }}"
+                            data-email-full="{{ utilisateur.email }}">
+                            
+                            <td class="text-center">
+                                <input type="checkbox" name="user_ids" 
+                                       value="{{ utilisateur.id }}" 
+                                       class="checkbox-custom user-checkbox">
+                            </td>
+                            <td class="text-center">{{ loop.index }}</div>
+                            
+                            <!-- USERNAME AVEC TOOLTIP -->
+                            <td>
+                                <span class="badge-username" 
+                                      title="Nom d'utilisateur: {{ utilisateur.username }}"
+                                      style="cursor: help;">
+                                    <i class="fas fa-user"></i> {{ utilisateur.username|capitalize|truncate(20, true) }}
+                                </span>
+                            </div>
+                            
+                            <!-- EMAIL AVEC TOOLTIP -->
+                            <td>
+                                <span style="cursor: help;" title="Email: {{ utilisateur.email }}">
+                                    <i class="fas fa-envelope text-info"></i> {{ utilisateur.email|truncate(25, true) }}
+                                </span>
+                            </div>
+                            
+                            <!-- RÔLE AVEC TOOLTIP -->
+                            <td>
+                                {% if utilisateur.role == 'admin' %}
+                                    <span class="badge-role badge-admin" title="Administrateur - Accès complet">
+                                        <i class="fas fa-user-shield"></i> Administrateur
+                                    </span>
+                                {% elif utilisateur.role == 'superadmin' %}
+                                    <span class="badge-role badge-superadmin" title="Super Administrateur - Tous les droits">
+                                        <i class="fas fa-crown"></i> Super Admin
+                                    </span>
+                                {% elif utilisateur.role == 'user' %}
+                                    <span class="badge-role badge-user" title="Utilisateur standard - Accès limité">
+                                        <i class="fas fa-user"></i> Utilisateur
+                                    </span>
+                                {% else %}
+                                    <span class="badge-role badge-default" title="Rôle: {{ utilisateur.role }}">
+                                        {{ utilisateur.role|capitalize }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <td class="text-center">
+                                <div class="action-group d-flex gap-1 justify-content-center">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-warning edit-user" 
+                                            title="Modifier l'utilisateur"
+                                            data-id="{{ utilisateur.id }}"
+                                            data-username="{{ utilisateur.username }}"
+                                            data-email="{{ utilisateur.email }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-primary reset-password" 
+                                            title="Réinitialiser le mot de passe"
+                                            data-id="{{ utilisateur.id }}"
+                                            data-username="{{ utilisateur.username }}">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="5" class="text-end fw-bold">TOTAL UTILISATEURS :</div>
+                            <td class="fw-bold">{{ total_users }}</div>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
 
-        <div class="mb-3">
-          {{ form.email.label(class="form-label") }}
-          {{ form.email(class="form-control") }}
-        </div>
-
-        <div class="mb-3" id="password_input">
-          {{ form.password.label(class="form-label") }}
-          {{ form.password(class="form-control") }}
-        </div>
-
-        <div class="mb-3">
-          {{ form.role.label(class="form-label") }}
-          {{ form.role(class="form-select") }}
-        </div>
-
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-              Annuler
+        <div class="mt-3 d-flex gap-2">
+            <button type="button" onclick="selectAll()" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-check-double"></i> Tout sélectionner
             </button>
-            {{ form.submit(class="btn btn-success") }}            
-          </div>
-
-        </form>
-
-      </div>
-
+            <button type="button" onclick="deselectAll()" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times"></i> Tout désélectionner
+            </button>
+            <button type="submit" class="btn btn-delete btn-sm" id="deleteBtn" onclick="return confirmDelete()">
+                <i class="fas fa-trash-alt"></i> Supprimer sélection
+            </button>
+            <button type="button" class="btn btn-reset btn-sm" id="resetBtn" onclick="submitResetPassword()">
+                <i class="fas fa-sync-alt"></i> Réinitialiser mot de passe
+            </button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun utilisateur enregistré pour le moment.
+        <br>
+        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addusermodal">
+            <i class="fas fa-plus-circle"></i> Créer le premier utilisateur
+        </button>
     </div>
-  </div>
+    {% endif %}
 </div>
+
+<!-- MODAL : AJOUTER/MODIFIER UTILISATEUR -->
+<div class="modal fade" id="addusermodal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="fas fa-user-plus"></i> Créer un utilisateur
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="userForm" action="{{ url_for('creer_user') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Nom d'utilisateur
+                        </label>
+                        {{ form.username(class="form-control", placeholder="Entrez le nom d'utilisateur") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        {{ form.email(class="form-control", placeholder="exemple@email.com") }}
+                    </div>
+
+                    <div class="mb-3" id="password_input">
+                        <label class="form-label">
+                            <i class="fas fa-lock"></i> Mot de passe
+                        </label>
+                        {{ form.password(class="form-control", placeholder="Entrez le mot de passe") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-tag"></i> Rôle
+                        </label>
+                        {{ form.role(class="form-select") }}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-save"></i> Créer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-
-  const modalEl = document.getElementById("addusermodal");
-  const modal = new bootstrap.Modal(modalEl);
-  const form = document.getElementById("produitForm");
-  const title = document.getElementById("modalTitle");
-
-  // 👉 MODE MODIFICATION (double clic)
-  document.querySelectorAll(".user-row").forEach(row => {
-    row.addEventListener("dblclick", function () {
-
-      title.textContent = "Modifier l'utilisateur";
-      document.querySelector("#password_input").style.display = "none";
-      form.action = `/gestion_materiel/user/edit/${this.dataset.id}`;
-
-      form.username.value = this.dataset.username;
-      form.email.value = this.dataset.email;
-      modal.show();
+// Filtrage en temps réel
+function filterUsers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#tableBody .user-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const username = row.dataset.username || '';
+        const email = row.dataset.email || '';
+        const role = row.dataset.role || '';
+        
+        const match = searchTerm === '' || 
+                     username.includes(searchTerm) || 
+                     email.includes(searchTerm) || 
+                     role.includes(searchTerm);
+        
+        if (match) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            if (searchTerm !== '') {
+                highlightRow(row, searchTerm);
+            } else {
+                removeHighlight(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
     });
-  });
+    
+    document.getElementById('resultCount').innerText = visibleCount;
+    document.getElementById('badgeCount').innerText = visibleCount;
+}
 
-  // 👉 MODE AJOUT (bouton Ajouter Client)
-  modalEl.addEventListener("hidden.bs.modal", function () {
-    title.textContent = "Creer un utilisateur";
-    form.action = "{{ url_for('creer_user') }}";
-    form.reset();
-  });
-
-    /* ===============================
-   BOUTON SUPPRESSION CHECKBOX
-  ================================ */
-  const btn = document.querySelector(".btn-outline-danger");
-  const checkboxes = document.querySelectorAll(".produit-checkbox");
-
-  // bouton désactivé au départ
-  if (btn) btn.disabled = true;
-
-  checkboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      btn.disabled = !document.querySelector(".produit-checkbox:checked");
+// Mettre en évidence le texte recherché
+function highlightRow(row, searchTerm) {
+    const usernameSpan = row.querySelector('td:nth-child(3) .badge-username');
+    const emailSpan = row.querySelector('td:nth-child(4) span');
+    const roleSpan = row.querySelector('td:nth-child(5) .badge-role');
+    
+    const elements = [usernameSpan, emailSpan, roleSpan];
+    elements.forEach(el => {
+        if (el && el.innerText) {
+            const originalText = el.innerText;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+            if (newText !== originalText) {
+                el.innerHTML = newText;
+            }
+        }
     });
-  });
+}
 
+function removeHighlight(row) {
+    const usernameSpan = row.querySelector('td:nth-child(3) .badge-username');
+    const emailSpan = row.querySelector('td:nth-child(4) span');
+    const roleSpan = row.querySelector('td:nth-child(5) .badge-role');
+    
+    const elements = [usernameSpan, emailSpan, roleSpan];
+    elements.forEach(el => {
+        if (el && el.innerHTML !== el.innerText) {
+            el.innerHTML = el.innerText;
+        }
+    });
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    filterUsers();
 });
 
-function submitResetPassword() {
-    const checked = document.querySelectorAll('.form-check-input:checked');
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    filterUsers();
+});
 
+// Sélectionner tous les checkboxes
+document.getElementById('select-all')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.user-checkbox:not(.hidden-row)').forEach(cb => cb.checked = e.target.checked);
+    toggleDeleteButton();
+    toggleResetButton();
+});
+
+function selectAll() {
+    document.querySelectorAll('.user-checkbox:not(.hidden-row)').forEach(cb => cb.checked = true);
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) selectAll.checked = true;
+    toggleDeleteButton();
+    toggleResetButton();
+}
+
+function deselectAll() {
+    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) selectAll.checked = false;
+    toggleDeleteButton();
+    toggleResetButton();
+}
+
+function toggleDeleteButton() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (deleteBtn) {
+        if (checkboxes.length > 0) {
+            deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Supprimer ${checkboxes.length} utilisateur(s)`;
+            deleteBtn.disabled = false;
+        } else {
+            deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Supprimer sélection`;
+            deleteBtn.disabled = true;
+        }
+    }
+}
+
+function toggleResetButton() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) {
+        if (checkboxes.length === 1) {
+            resetBtn.disabled = false;
+        } else {
+            resetBtn.disabled = true;
+        }
+    }
+}
+
+function confirmDelete() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('Veuillez sélectionner au moins un utilisateur à supprimer');
+        return false;
+    }
+    return confirm(`⚠️ Supprimer ${checkboxes.length} utilisateur(s) ? Cette action est irréversible.`);
+}
+
+function submitResetPassword() {
+    const checked = document.querySelectorAll('.user-checkbox:checked');
+    
     if (checked.length === 0) {
         alert("Veuillez sélectionner un utilisateur");
         return;
     }
-
+    
     if (checked.length > 1) {
         alert("Veuillez sélectionner un seul utilisateur");
         return;
     }
-
-    if (!confirm("Réinitialiser le mot de passe de cet utilisateur ?")) {
+    
+    const username = checked[0].closest('tr').querySelector('.badge-username')?.innerText || 'cet utilisateur';
+    
+    if (!confirm(`Réinitialiser le mot de passe de ${username} ?`)) {
         return;
     }
-
-    // créer un form dynamique pour reset
+    
     const form = document.createElement("form");
     form.method = "POST";
     form.action = "{{ url_for('reset_user_password') }}";
-
-    // CSRF token
+    
     const csrf = document.createElement("input");
     csrf.type = "hidden";
     csrf.name = "csrf_token";
     csrf.value = "{{ form.csrf_token._value() }}";
-
-    // user_id
+    
     const userId = document.createElement("input");
     userId.type = "hidden";
     userId.name = "user_id";
     userId.value = checked[0].value;
-
+    
     form.appendChild(csrf);
     form.appendChild(userId);
-
     document.body.appendChild(form);
     form.submit();
 }
+
+function exportToExcel() {
+    let csv = [["#", "Nom d'utilisateur", "Email", "Rôle"]];
+    
+    document.querySelectorAll('#tableBody .user-row:not(.hidden-row)').forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            csv.push([
+                index + 1,
+                cells[2]?.innerText,
+                cells[3]?.innerText,
+                cells[4]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'utilisateurs.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+// Double-clic pour modifier
+document.addEventListener("DOMContentLoaded", function() {
+    const modalEl = document.getElementById("addusermodal");
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById("userForm");
+    const title = document.getElementById("modalTitle");
+    const submitBtn = document.getElementById("submitBtn");
+    const passwordDiv = document.getElementById("password_input");
+
+    // Double-clic sur les lignes
+    document.querySelectorAll(".user-row").forEach(row => {
+        row.addEventListener("dblclick", function() {
+            title.innerHTML = '<i class="fas fa-edit"></i> Modifier l\'utilisateur';
+            if (passwordDiv) passwordDiv.style.display = "none";
+            form.action = `/gestion_materiel/user/edit/${this.dataset.id}`;
+            
+            form.username.value = this.dataset.usernameFull || this.dataset.username || "";
+            form.email.value = this.dataset.emailFull || this.dataset.email || "";
+            
+            if (submitBtn) {
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-warning');
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Modifier';
+            }
+            
+            modal.show();
+        });
+    });
+
+    // Boutons modifier
+    document.querySelectorAll('.edit-user').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const row = this.closest('tr');
+            title.innerHTML = '<i class="fas fa-edit"></i> Modifier l\'utilisateur';
+            if (passwordDiv) passwordDiv.style.display = "none";
+            form.action = `/gestion_materiel/user/edit/${this.dataset.id}`;
+            
+            form.username.value = this.dataset.username || "";
+            form.email.value = this.dataset.email || "";
+            
+            if (submitBtn) {
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-warning');
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Modifier';
+            }
+            
+            modal.show();
+        });
+    });
+
+    // Boutons reset password
+    document.querySelectorAll('.reset-password').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const username = this.dataset.username;
+            if (confirm(`Réinitialiser le mot de passe de ${username} ?`)) {
+                const form = document.createElement("form");
+                form.method = "POST";
+                form.action = "{{ url_for('reset_user_password') }}";
+                
+                const csrf = document.createElement("input");
+                csrf.type = "hidden";
+                csrf.name = "csrf_token";
+                csrf.value = "{{ form.csrf_token._value() }}";
+                
+                const userId = document.createElement("input");
+                userId.type = "hidden";
+                userId.name = "user_id";
+                userId.value = this.dataset.id;
+                
+                form.appendChild(csrf);
+                form.appendChild(userId);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+
+    // Reset modal
+    modalEl.addEventListener("hidden.bs.modal", function() {
+        title.innerHTML = '<i class="fas fa-user-plus"></i> Créer un utilisateur';
+        form.action = "{{ url_for('creer_user') }}";
+        form.reset();
+        if (passwordDiv) passwordDiv.style.display = "block";
+        
+        if (submitBtn) {
+            submitBtn.classList.remove('btn-warning');
+            submitBtn.classList.add('btn-success');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Créer';
+        }
+    });
+
+    // Écouter les changements de checkbox
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            toggleDeleteButton();
+            toggleResetButton();
+        });
+    });
+    
+    toggleDeleteButton();
+    toggleResetButton();
+    filterUsers();
+});
 </script>
 {% endblock %}

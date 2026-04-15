@@ -1,132 +1,652 @@
 {% extends "base.html" %}
-{% block title %}Rapport | gestock{% endblock %}
+{% block title %}Gestion Vendeurs | Gestock{% endblock %}
 
 {% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .vendeur-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .vendeur-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .vendeur-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--primary-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 35%; }
+    .table-custom th:nth-child(2) { width: 25%; }
+    .table-custom th:nth-child(3) { width: 20%; }
+    .table-custom th:nth-child(4) { width: 20%; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 15px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: left;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table-custom td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge-vendeur {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: var(--primary-color);
+        color: white;
+        cursor: help;
+    }
+
+    .badge-phone {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .badge-ventes {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--success-color);
+        color: white;
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 25px;
+        background: #f8f9fa;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+    }
+
+    .form-control {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Alertes */
+    .alert-duplicate {
+        background: rgba(243, 156, 18, 0.1);
+        border-left: 4px solid var(--warning-color);
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: none;
+    }
+
+    .alert-duplicate.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Boutons action */
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 6px 15px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .vendeur-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.8rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px 10px;
+        }
+        
+        .badge-vendeur, .badge-phone, .badge-ventes {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">Liste des vendeurs</h4>
-
-        <button class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#modalVendeur">
-            + Ajouter vendeur
+<div class="vendeur-container">
+    <!-- En-tête -->
+    <div class="vendeur-header">
+        <h4>
+            <i class="fas fa-user-tie"></i> Gestion des Vendeurs
+        </h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#modalVendeur">
+            <i class="fas fa-plus-circle"></i> Ajouter vendeur
         </button>
     </div>
 
     {% if vendeurs %}
+    <!-- Calcul des statistiques -->
+    {% set total_vendeurs = vendeurs|length %}
+    {% set total_ventes = 0 %}
+    {% for vendeur in vendeurs %}
+        {% set total_ventes = total_ventes + vendeur.ventes|length %}
+    {% endfor %}
+    {% set moyenne_ventes = (total_ventes / total_vendeurs)|round(1) if total_vendeurs > 0 else 0 %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👨‍💼</div>
+            <div class="stat-value">{{ total_vendeurs }}</div>
+            <div class="stat-label">Total vendeurs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">{{ total_ventes }}</div>
+            <div class="stat-label">Total ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value">{{ moyenne_ventes }}</div>
+            <div class="stat-label">Moyenne/ vendeur</div>
+        </div>
+    </div>
 
-    <!-- Table -->
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-
-            <table class="table table-bordered table-hover mb-0">
-                <thead class="table-light">
+    <!-- Tableau -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-list-ul"></i> Liste des vendeurs
+                <span class="badge bg-secondary ms-2">{{ total_vendeurs }} vendeur(s)</span>
+            </div>
+            <div class="export-buttons">
+                <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                    <i class="fas fa-print"></i> Imprimer
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-custom" id="vendeursTable">
+                <thead>
                     <tr>
                         <th>Nom</th>
                         <th>Téléphone</th>
                         <th>Nombre de ventes</th>
-                        <th width="150">Actions</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     {% for vendeur in vendeurs %}
-                    <tr>
-                        <td>{{ vendeur.nom }}</td>
-                        <td>{{ vendeur.telephone }}</td>
-                        <td>{{ vendeur.ventes|length }}</td>
+                    <tr class="vendeur-row"
+                        data-id="{{ vendeur.id }}"
+                        data-nom="{{ vendeur.nom }}"
+                        data-telephone="{{ vendeur.telephone }}"
+                        style="cursor:pointer">
+                        
+                        <td>
+                            <span class="badge-vendeur" title="{{ vendeur.nom }}">
+                                <i class="fas fa-user me-1"></i>
+                                {{ vendeur.nom|upper|truncate(30, true) }}
+                            </span>
+                        </div>
+                        </td>
+                        <td>
+                            {% if vendeur.telephone %}
+                                <span class="badge-phone">
+                                    <i class="fas fa-phone-alt text-success me-1"></i>
+                                    {{ vendeur.telephone }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </div>
+                        </td>
+                        <td>
+                            <span class="badge-ventes" title="{{ vendeur.ventes|length }} vente(s)">
+                                <i class="fas fa-chart-line me-1"></i>
+                                {{ vendeur.ventes|length }} vente(s)
+                            </span>
+                        </div>
+                        </td>
                         <td>
                             <form method="POST"
                                   action="{{ url_for('supprimer_vendeur', vendeur_id=vendeur.id) }}"
-                                  onsubmit="return confirm('Supprimer ce vendeur ?')">
-
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger">
-                                    Supprimer
+                                  onsubmit="return confirmDelete('{{ vendeur.nom }}', {{ vendeur.ventes|length }})"
+                                  style="display: inline;">
+                                <button type="submit" class="btn-delete" title="Supprimer ce vendeur">
+                                    <i class="fas fa-trash-alt"></i> Supprimer
                                 </button>
-
                             </form>
-                        </td>
+                        </div>
                     </tr>
                     {% endfor %}
                 </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold">TOTAL VENDEURS :</td>
+                        <td class="fw-bold">{{ total_vendeurs }}</td>
+                    </tr>
+                </tfoot>
             </table>
-
         </div>
     </div>
-
     {% else %}
-
-    <!-- Message si aucun vendeur -->
-    <div class="card shadow-sm">
-        <div class="card-body text-center py-3">
-            <h5 class="text-muted mb-2">Aucun vendeur enregistré</h5>
-        </div>
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun vendeur enregistré pour le moment.
+        <br>
+        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#modalVendeur">
+            <i class="fas fa-plus-circle"></i> Ajouter un vendeur
+        </button>
     </div>
-
     {% endif %}
-
 </div>
 
+<!-- MODAL : AJOUTER VENDEUR -->
+<div class="modal fade" id="modalVendeur" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Ajouter un vendeur
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Alerte de vendeur existant -->
+                <div id="duplicateAlert" class="alert-duplicate">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="duplicateMessage"></span>
+                </div>
+                
+                <form method="POST" action="{{ url_for('ajouter_vendeur') }}" id="vendeurForm">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Nom <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="nom" id="nom_vendeur" 
+                               class="form-control" 
+                               placeholder="Ex: Jean Dupont"
+                               required>
+                    </div>
 
-<!-- ================= MODAL AJOUT VENDEUR ================= -->
-<div class="modal fade" id="modalVendeur" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-phone"></i> Téléphone <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="telephone" id="telephone_vendeur" 
+                               class="form-control" 
+                               placeholder="Ex: 6X XXX XXX"
+                               required>
+                    </div>
 
-      <form method="POST" action="{{ url_for('ajouter_vendeur') }}">
-
-        <div class="modal-header">
-          <h5 class="modal-title">Ajouter un vendeur</h5>
-          <button type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"></button>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <div class="modal-body">
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">Nom</label>
-            <input type="text"
-                   name="nom"
-                   class="form-control"
-                   placeholder="Nom du vendeur"
-                   required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">Téléphone</label>
-            <input type="text"
-                   name="telephone"
-                   class="form-control"
-                   placeholder="Téléphone"
-                   required>
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-          <button type="button"
-                  class="btn btn-secondary"
-                  data-bs-dismiss="modal">
-            Annuler
-          </button>
-
-          <button type="submit"
-                  class="btn btn-primary">
-            Enregistrer
-          </button>
-        </div>
-
-      </form>
-
     </div>
-  </div>
 </div>
 
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+// Vérifier si un vendeur existe déjà
+function checkVendeurExists() {
+    const nom = document.getElementById('nom_vendeur')?.value.toLowerCase().trim();
+    if (!nom) return false;
+    
+    const rows = document.querySelectorAll('#vendeursTable tbody tr');
+    let found = false;
+    let message = '';
+    
+    rows.forEach(row => {
+        const existingNom = (row.querySelector('td:nth-child(1) .badge-vendeur')?.innerText || '').toLowerCase();
+        if (existingNom === nom) {
+            found = true;
+            message = `Un vendeur avec le nom "${document.getElementById('nom_vendeur').value}" existe déjà !`;
+        }
+    });
+    
+    const alertDiv = document.getElementById('duplicateAlert');
+    const messageSpan = document.getElementById('duplicateMessage');
+    
+    if (found) {
+        alertDiv.classList.add('show');
+        messageSpan.innerText = message;
+    } else {
+        alertDiv.classList.remove('show');
+    }
+    
+    return found;
+}
+
+// Confirmation de suppression
+function confirmDelete(nom, nbVentes) {
+    if (nbVentes > 0) {
+        return confirm(`⚠️ ATTENTION : Le vendeur "${nom}" a ${nbVentes} vente(s) associée(s).\n\nLa suppression est impossible tant que ces ventes existent.\n\nVoulez-vous continuer ?`);
+    }
+    return confirm(`⚠️ Supprimer le vendeur "${nom}" ? Cette action est irréversible.`);
+}
+
+// Export Excel
+function exportToExcel() {
+    let csv = [["Nom", "Téléphone", "Nombre de ventes"]];
+    
+    document.querySelectorAll('#vendeursTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+            csv.push([
+                cells[0]?.innerText,
+                cells[1]?.innerText,
+                cells[2]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'vendeurs.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+// Double-clic pour modifier
+document.addEventListener("DOMContentLoaded", function() {
+    const modalEl = document.getElementById("modalVendeur");
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById("vendeurForm");
+    const title = document.querySelector("#modalVendeur .modal-title");
+    const submitBtn = document.getElementById("submitBtn");
+    const nomInput = document.getElementById("nom_vendeur");
+    const telephoneInput = document.getElementById("telephone_vendeur");
+
+    // Double-clic sur les lignes pour modifier
+    document.querySelectorAll(".vendeur-row").forEach(row => {
+        row.addEventListener("dblclick", function() {
+            title.innerHTML = '<i class="fas fa-edit me-2"></i>Modifier le vendeur';
+            form.action = `/gestion_materiel/vendeur/edit/${this.dataset.id}`;
+            
+            if (nomInput) nomInput.value = this.dataset.nom || "";
+            if (telephoneInput) telephoneInput.value = this.dataset.telephone || "";
+            
+            if (submitBtn) {
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-warning');
+                submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
+            }
+            
+            modal.show();
+        });
+    });
+
+    // Reset modal
+    modalEl.addEventListener("hidden.bs.modal", function() {
+        title.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Ajouter un vendeur';
+        form.action = "{{ url_for('ajouter_vendeur') }}";
+        form.reset();
+        
+        if (submitBtn) {
+            submitBtn.classList.remove('btn-warning');
+            submitBtn.classList.add('btn-primary');
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Enregistrer';
+        }
+        
+        const alertDiv = document.getElementById('duplicateAlert');
+        if (alertDiv) alertDiv.classList.remove('show');
+    });
+
+    // Vérifier les doublons
+    if (nomInput) {
+        nomInput.addEventListener('input', checkVendeurExists);
+    }
+});
+</script>
 {% endblock %}

@@ -1,79 +1,628 @@
 {% extends "base.html" %}
-{% block title %}Journal d'activité | gestock{% endblock %}
+{% block title %}Journal d'activité | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logs-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .logs-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .logs-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--info-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Filtres */
+    .filters-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Barre de recherche rapide */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .search-results {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 15%; }
+    .table-custom th:nth-child(2) { width: 15%; }
+    .table-custom th:nth-child(3) { width: 20%; }
+    .table-custom th:nth-child(4) { width: 10%; }
+    .table-custom th:nth-child(5) { width: 20%; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 10px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: left;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 10px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Ligne masquée par le filtre */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+
+    /* Badges d'action */
+    .badge-action {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-insert {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .badge-update {
+        background: var(--warning-color);
+        color: #856404;
+    }
+
+    .badge-delete {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    /* Badge utilisateur */
+    .badge-user {
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+        cursor: help;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .logs-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="py-2">
-
-<div class="card shadow-sm p-3 mb-4">
-    <form method="post" class="row g-3 align-items-end">
-        {{ form.hidden_tag() }}
-
-        <div class="col-md-3">
-            {{ form.date_debut.label(class="form-label fw-semibold") }}
-            {{ form.date_debut(class="form-control") }}
+<div class="logs-container">
+    <!-- En-tête -->
+    <div class="logs-header">
+        <h4>
+            <i class="fas fa-history"></i> Journal d'activité
+        </h4>
+        <div class="d-flex gap-2">
+            <span class="badge bg-light text-dark">
+                <i class="fas fa-info-circle"></i> Historique des actions
+            </span>
         </div>
-
-        <div class="col-md-3">
-            {{ form.date_fin.label(class="form-label fw-semibold") }}
-            {{ form.date_fin(class="form-control") }}
-        </div>
-
-        <div class="col-md-3">
-            {{ form.utilisateur.label(class="form-label fw-semibold") }}
-            {{ form.utilisateur(class="form-select") }}
-        </div>
-
-        <div class="col-md-3">
-            {{ form.submit(class="btn btn-success w-100") }}
-        </div>
-    </form>
-</div>
-
-{% if logs is not none %}
-
-    {% if logs %}
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-            <thead class="table-success">
-                <tr>
-                    <th class="text-light">Utilisateur</th>
-                    <th class="text-light">Action</th>
-                    <th class="text-light">Table</th>
-                    <th class="text-light">ID</th>
-                    <th class="text-light">Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>{{ log.username }}</td>
-
-                    <td>
-                        {% if log.action == "INSERT" %}
-                            <span class="badge bg-success">Ajout</span>
-                        {% elif log.action == "UPDATE" %}
-                            <span class="badge bg-warning text-dark">Modification</span>
-                        {% elif log.action == "DELETE" %}
-                            <span class="badge bg-danger">Suppression</span>
-                        {% endif %}
-                    </td>
-
-                    <td>{{ log.table_name }}</td>
-                    <td>{{ log.record_id }}</td>
-                    <td>{{ log.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 
-    {% else %}
-        <div class="alert alert-warning text-center">
-            Aucun log trouvé pour ce filtre.
+    {% if logs is not none %}
+    <!-- Statistiques -->
+    {% set total_logs = logs|length %}
+    {% set insert_count = logs|selectattr('action', 'equalto', 'INSERT')|list|length %}
+    {% set update_count = logs|selectattr('action', 'equalto', 'UPDATE')|list|length %}
+    {% set delete_count = logs|selectattr('action', 'equalto', 'DELETE')|list|length %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value">{{ total_logs }}</div>
+            <div class="stat-label">Total actions</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-icon">➕</div>
+            <div class="stat-value">{{ insert_count }}</div>
+            <div class="stat-label">Ajouts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✏️</div>
+            <div class="stat-value">{{ update_count }}</div>
+            <div class="stat-label">Modifications</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🗑️</div>
+            <div class="stat-value">{{ delete_count }}</div>
+            <div class="stat-label">Suppressions</div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-card">
+        <form method="post" id="filterForm">
+            {{ form.hidden_tag() }}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i> Date début
+                    </label>
+                    {{ form.date_debut(class="form-control", type="date") }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-check"></i> Date fin
+                    </label>
+                    {{ form.date_fin(class="form-control", type="date") }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Utilisateur
+                    </label>
+                    {{ form.utilisateur(class="form-select") }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.submit(class="btn btn-info w-100") }}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Barre de recherche rapide -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-input" 
+                   placeholder="Rechercher par utilisateur, action, table...">
+            <button type="button" id="clearSearch" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Effacer
+            </button>
+        </div>
+        <div class="search-results" id="searchResults">
+            <i class="fas fa-info-circle"></i> 
+            <span id="resultCount">{{ total_logs }}</span> action(s) affichée(s)
+        </div>
+    </div>
+
+    <!-- Tableau des logs -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-list-ul"></i> Journal des actions
+                <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_logs }}</span>
+            </div>
+            <div class="export-buttons">
+                <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                    <i class="fas fa-print"></i> Imprimer
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-custom" id="logsTable">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Action</th>
+                        <th>Table</th>
+                        <th>ID</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for log in logs %}
+                    <tr class="log-row" 
+                        data-username="{{ log.username|lower }}"
+                        data-action="{{ log.action|lower }}"
+                        data-table="{{ log.table_name|lower }}"
+                        data-record-id="{{ log.record_id|lower }}">
+                        
+                        <!-- UTILISATEUR AVEC TOOLTIP -->
+                        <td>
+                            <span class="badge-user" 
+                                  title="Utilisateur: {{ log.username }}"
+                                  style="cursor: help;">
+                                <i class="fas fa-user"></i> {{ log.username|truncate(20, true) }}
+                            </span>
+                        </td>
+                        
+                        <!-- ACTION AVEC TOOLTIP -->
+                        <td>
+                            {% if log.action == "INSERT" %}
+                                <span class="badge-action badge-insert" title="Création d'un nouvel enregistrement">
+                                    <i class="fas fa-plus-circle"></i> Ajout
+                                </span>
+                            {% elif log.action == "UPDATE" %}
+                                <span class="badge-action badge-update" title="Modification d'un enregistrement existant">
+                                    <i class="fas fa-edit"></i> Modification
+                                </span>
+                            {% elif log.action == "DELETE" %}
+                                <span class="badge-action badge-delete" title="Suppression d'un enregistrement">
+                                    <i class="fas fa-trash-alt"></i> Suppression
+                                </span>
+                            {% else %}
+                                <span class="badge-action bg-secondary" title="Action inconnue">
+                                    {{ log.action }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- TABLE AVEC TOOLTIP -->
+                        <td>
+                            <span title="Table: {{ log.table_name }}">
+                                <i class="fas fa-database"></i> {{ log.table_name|truncate(25, true) }}
+                            </span>
+                        </td>
+                        
+                        <!-- RECORD ID -->
+                        <td class="text-center">
+                            <span class="badge bg-secondary" title="ID de l'enregistrement: {{ log.record_id }}">
+                                #{{ log.record_id }}
+                            </span>
+                        </td>
+                        
+                        <!-- DATE -->
+                        <td>
+                            <span title="{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}">
+                                <i class="fas fa-clock"></i> {{ log.created_at.strftime("%d/%m/%Y %H:%M") }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td colspan="5" class="text-end fw-bold">TOTAL ACTIONS : {{ total_logs }}</div>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun log disponible pour le moment.
+    </div>
     {% endif %}
-
-{% endif %}
-
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+// Filtrage en temps réel
+function filterLogs() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#tableBody .log-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const username = row.dataset.username || '';
+        const action = row.dataset.action || '';
+        const table = row.dataset.table || '';
+        const recordId = row.dataset.recordId || '';
+        
+        const match = searchTerm === '' || 
+                     username.includes(searchTerm) || 
+                     action.includes(searchTerm) || 
+                     table.includes(searchTerm) ||
+                     recordId.includes(searchTerm);
+        
+        if (match) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            if (searchTerm !== '') {
+                highlightRow(row, searchTerm);
+            } else {
+                removeHighlight(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    document.getElementById('resultCount').innerText = visibleCount;
+    document.getElementById('badgeCount').innerText = visibleCount;
+}
+
+// Mettre en évidence le texte recherché
+function highlightRow(row, searchTerm) {
+    const cells = row.querySelectorAll('td');
+    cells.forEach(cell => {
+        const originalText = cell.innerText;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        if (newText !== originalText) {
+            cell.innerHTML = newText;
+        }
+    });
+}
+
+function removeHighlight(row) {
+    const cells = row.querySelectorAll('td');
+    cells.forEach(cell => {
+        if (cell.innerHTML !== cell.innerText) {
+            cell.innerHTML = cell.innerText;
+        }
+    });
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    filterLogs();
+});
+
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    filterLogs();
+});
+
+// Export Excel (uniquement les lignes visibles)
+function exportToExcel() {
+    let csv = [["Utilisateur", "Action", "Table", "ID", "Date"]];
+    
+    document.querySelectorAll('#tableBody .log-row:not(.hidden-row)').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            csv.push([
+                cells[0]?.innerText,
+                cells[1]?.innerText,
+                cells[2]?.innerText,
+                cells[3]?.innerText,
+                cells[4]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'journal_activite.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+// Initialiser le filtre
+document.addEventListener('DOMContentLoaded', function() {
+    filterLogs();
+});
+</script>
 {% endblock %}

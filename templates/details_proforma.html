@@ -1,161 +1,474 @@
 {% extends "base.html" %}
 
+{% block title %}Détails Proforma {{ proforma.numero }} | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .proforma-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .proforma-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .proforma-header h5 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* Cartes d'informations */
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 0;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        height: 100%;
+    }
+
+    .info-card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
+    }
+
+    .badge-numero {
+        background: var(--primary-color);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: inline-block;
+    }
+
+    .info-card-body {
+        padding: 20px;
+    }
+
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .info-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--light-color);
+        display: flex;
+        align-items: baseline;
+    }
+
+    .info-list li:last-child {
+        border-bottom: none;
+    }
+
+    .info-list li strong {
+        width: 140px;
+        color: var(--dark-color);
+    }
+
+    .info-list li span {
+        flex: 1;
+        color: #555;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        margin: 20px 0;
+    }
+
+    .table-header {
+        padding: 15px 20px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 1rem;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 15px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    .table-custom td:last-child,
+    .table-custom td:nth-child(5),
+    .table-custom td:nth-child(6) {
+        text-align: right;
+    }
+
+    .table-custom td:first-child {
+        text-align: center;
+    }
+
+    /* Total */
+    .total-card {
+        background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .total-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        letter-spacing: 1px;
+    }
+
+    .total-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    /* Badges */
+    .badge-produit {
+        background: var(--info-color);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+    }
+
+    /* Boutons action */
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .btn-action {
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .proforma-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .info-list li {
+            flex-direction: column;
+        }
+        
+        .info-list li strong {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .action-buttons {
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px 10px;
+        }
+    }
+
+    /* Impression */
+    @media print {
+        .action-buttons, .btn-back, .btn-action {
+            display: none !important;
+        }
+        
+        .proforma-header {
+            background: #2c3e50;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .total-card {
+            background: #27ae60;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .table-custom thead th {
+            background: #2c3e50;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="proforma-container">
+    <!-- En-tête -->
+    <div class="proforma-header">
+        <div>
+            <h5>
+                <i class="fas fa-file-invoice"></i> Détails Proforma
+            </h5>
+            <small class="opacity-75">N° {{ proforma.numero }}</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('liste_proformas') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
 
-<div class="container mt-4">
+    <div class="row g-4">
+        <!-- Informations Proforma -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-info-circle"></i> Informations Proforma
+                </div>
+                <div class="info-card-body">
+                    <ul class="info-list">
+                        <li>
+                            <strong>Numéro :</strong>
+                            <span class="badge-numero">{{ proforma.numero }}</span>
+                        </li>
+                        <li>
+                            <strong>Date :</strong>
+                            <span>{{ proforma.date.strftime("%d/%m/%Y") if proforma.date else '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>Condition paiement :</strong>
+                            <span>{{ proforma.condition_paiement or '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>Délai livraison :</strong>
+                            <span>{{ proforma.delai_livraison or '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>Garantie :</strong>
+                            <span>{{ proforma.garantie or '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>ATTN :</strong>
+                            <span>{{ proforma.attn or '-' }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-<div class="card shadow">
+        <!-- Informations Client -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-user"></i> Informations Client
+                </div>
+                <div class="info-card-body">
+                    <ul class="info-list">
+                        <li>
+                            <strong>Nom :</strong>
+                            <span>{{ proforma.client.nom_client if proforma.client else '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>Téléphone :</strong>
+                            <span>{{ proforma.client.telephone if proforma.client and proforma.client.telephone else '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>Email :</strong>
+                            <span>{{ proforma.client.adresse_email if proforma.client and proforma.client.adresse_email else '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>Ville :</strong>
+                            <span>{{ proforma.client.ville if proforma.client and proforma.client.ville else '-' }}</span>
+                        </li>
+                        <li>
+                            <strong>RCC :</strong>
+                            <span>{{ proforma.client.numero_rcc if proforma.client and proforma.client.numero_rcc else '-' }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <!-- Tableau des produits -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-boxes"></i> Produits commandés
+                <span class="badge bg-secondary ms-2">{{ proforma.lignes|length }} produit(s)</span>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Produit</th>
+                        <th>Conditionnement</th>
+                        <th style="width: 100px;">Quantité</th>
+                        <th style="width: 130px;">Prix Unitaire</th>
+                        <th style="width: 130px;">Sous Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in proforma.lignes %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td>
+                            <strong>{{ ligne.produit.nom_produit if ligne.produit else '-' }}</strong>
+                            {% if ligne.produit and ligne.produit.model %}
+                                <br><small class="text-muted">Modèle: {{ ligne.produit.model }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge-produit">
+                                {{ ligne.conditionnement|capitalize if ligne.conditionnement else 'Unité' }}
+                            </span>
+                        </td>
+                        <td class="text-center">{{ ligne.quantite }}</td>
+                        <td>{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }} FCFA</td>
+                        <td class="fw-bold text-primary">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }} FCFA</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td colspan="5" class="text-end fw-bold">TOTAL :</td>
+                        <td class="fw-bold text-success fs-6">{{ "{:,.0f}".format(proforma.total).replace(',', ' ') }} FCFA</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 
-<h5 class="mb-0">Détails Proforma</h5>
+    <!-- Total -->
+    <div class="row mt-3">
+        <div class="col-md-4 offset-md-8">
+            <div class="total-card">
+                <div class="total-label">
+                    <i class="fas fa-calculator"></i> MONTANT TOTAL
+                </div>
+                <div class="total-value">
+                    {{ "{:,.0f}".format(proforma.total).replace(',', ' ') }} FCFA
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div>
-<a href="#" class="btn btn-light btn-sm">
-Imprimer
-</a>
+    <!-- Boutons d'action -->
+    <div class="action-buttons">
+        <a href="{{ url_for('liste_proformas') }}" class="btn btn-secondary btn-action">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}" class="btn btn-primary btn-action" target="_blank">
+            <i class="fas fa-file-pdf"></i> Télécharger PDF
+        </a>
+        <button type="button" class="btn btn-info btn-action" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+    </div>
 </div>
 
-</div>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 
-<div class="card-body">
-
-<!-- INFO PROFORMA -->
-
-<div class="row mb-4">
-
-<div class="col-md-6">
-
-<h6 class="text-muted">Proforma</h6>
-
-<ul class="list-unstyled">
-
-<li><strong>Numéro :</strong> {{ proforma.numero }}</li>
-<li><strong>Date :</strong> {{ proforma.date.strftime("%d/%m/%Y") }}</li>
-<li><strong>Condition paiement :</strong> {{ proforma.condition_paiement }}</li>
-<li><strong>Délai livraison :</strong> {{ proforma.delai_livraison }}</li>
-<li><strong>Garantie :</strong> {{ proforma.garantie }}</li>
-<li><strong>Attn :</strong> {{ proforma.attn }}</li>
-
-</ul>
-
-</div>
-
-
-<div class="col-md-6">
-
-<h6 class="text-muted">Client</h6>
-
-<ul class="list-unstyled">
-
-<li><strong>Nom :</strong> {{ proforma.client.nom_client }}</li>
-<li><strong>Téléphone :</strong> {{ proforma.client.telephone }}</li>
-<li><strong>Email :</strong> {{ proforma.client.adresse_email }}</li>
-<li><strong>Ville :</strong> {{ proforma.client.ville }}</li>
-<li><strong>RCC :</strong> {{ proforma.client.numero_rcc }}</li>
-
-</ul>
-
-</div>
-
-</div>
-
-
-<!-- TABLE PRODUITS -->
-
-<div class="table-responsive">
-
-<table class="table table-bordered table-striped">
-
-<thead class="table-dark">
-
-<tr>
-
-<th>#</th>
-<th>Produit</th>
-<th>Conditionnement</th>
-<th>Quantité</th>
-<th>Prix Unitaire</th>
-<th>Sous Total</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for ligne in proforma.lignes %}
-
-<tr>
-
-<td>{{ loop.index }}</td>
-
-<td>{{ ligne.produit.nom_produit }}</td>
-
-<td>{{ ligne.conditionnement }}</td>
-
-<td>{{ ligne.quantite }}</td>
-
-<td>{{ "{:,.2f}".format(ligne.prix_unitaire) }}</td>
-
-<td>{{ "{:,.2f}".format(ligne.sous_total) }}</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
-
-<!-- TOTAL -->
-
-<div class="row mt-4">
-
-<div class="col-md-4 offset-md-8">
-
-<div class="card">
-
-<div class="card-body">
-
-<h5 class="d-flex justify-content-between">
-
-<span>Total :</span>
-
-<span class="text-success">
-
-{{ "{:,.2f}".format(proforma.total) }}
-
-</span>
-
-</h5>
-
-</div>
-
-</div>
-
-
-</div>
-
-</div>
-<div class="d-flex align-left  gap-2 w-100">
-    <a href="{{ url_for('liste_proformas') }}" class="btn btn-secondary">
-    Retour
-    </a>
-    
-    <a href="{{ url_for('proforma_pdf', proforma_id=proforma.id) }}" class="btn btn-primary" target="_blank">
-    PDF
-    </a>
-</div>
-</div>
-
-</div>
-
-
-</div>
 
 {% endblock %}

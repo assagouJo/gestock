@@ -56,6 +56,42 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
+    /* Barre de recherche */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .search-results {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
@@ -162,11 +198,11 @@
 
     /* Largeurs fixes des colonnes */
     .table-custom th:nth-child(1) { width: 50px; }
-    .table-custom th:nth-child(2) { width: 100px; }
+    .table-custom th:nth-child(2) { width: 120px; }
     .table-custom th:nth-child(3) { width: 200px; }
     .table-custom th:nth-child(4) { width: 100px; }
     .table-custom th:nth-child(5) { width: 120px; }
-    .table-custom th:nth-child(6) { width: 200px; }
+    .table-custom th:nth-child(6) { width: 180px; }
 
     .table-custom thead th {
         background: var(--dark-color);
@@ -199,6 +235,19 @@
         text-overflow: ellipsis;
     }
 
+    /* Ligne masquée par le filtre */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+
     /* Badge client */
     .badge-client {
         display: inline-block;
@@ -221,6 +270,8 @@
         border-radius: 20px;
         font-size: 0.7rem;
         font-weight: 600;
+        display: inline-block;
+        cursor: help;
     }
 
     /* Prix */
@@ -329,12 +380,27 @@
         </div>
     </div>
 
+    <!-- Barre de recherche -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-input" 
+                   placeholder="Rechercher par numéro de kit, client...">
+            <button type="button" id="clearSearch" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Effacer
+            </button>
+        </div>
+        <div class="search-results" id="searchResults">
+            <i class="fas fa-info-circle"></i> 
+            <span id="resultCount">{{ total_kits }}</span> kit(s) affiché(s)
+        </div>
+    </div>
+
     <!-- Tableau -->
     <div class="table-container">
         <div class="table-header">
             <div class="table-title">
                 <i class="fas fa-list-ul"></i> Liste des kits proforma
-                <span class="badge bg-secondary ms-2">{{ total_kits }} kit(s)</span>
+                <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_kits }}</span>
             </div>
             <div class="export-buttons">
                 <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
@@ -357,15 +423,17 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     {% for kit in kits %}
-                    <tr>
-                        <td class="text-center">{{ loop.index }}</td>
+                    <tr class="kit-row" 
+                        data-numero="{{ kit.numero|lower }}"
+                        data-client="{{ kit.client.nom_client|lower if kit.client else '' }}">
+                        <td class="text-center">{{ loop.index }}</div>
                         <td class="text-center">
                             <span class="badge-numero" title="Kit n°{{ kit.numero }}">
                                 {{ kit.numero }}
                             </span>
-                        </td>
+                        </div>
                         
                         <!-- CLIENT AVEC TOOLTIP -->
                         <td>
@@ -374,15 +442,15 @@
                                   style="cursor: help;">
                                 {{ kit.client.nom_client|truncate(30, true) if kit.client else 'Non spécifié' }}
                             </span>
-                        </td>
+                        </div>
                         
-                        <td class="text-center">{{ kit.date.strftime('%d/%m/%Y') if kit.date else '-' }}</td>
+                        <td class="text-center">{{ kit.date.strftime('%d/%m/%Y') if kit.date else '-' }}</div>
                         
                         <td class="text-center">
                             <span class="prix-value">
                                 {{ "{:,.0f}".format(kit.prix_global).replace(',', ' ') if kit.prix_global else '0' }} F
                             </span>
-                        </td>
+                        </div>
                         
                         <td class="text-center">
                             <div class="action-group">
@@ -400,15 +468,15 @@
                                     <i class="fas fa-trash"></i>
                                 </a>
                             </div>
-                        </td>
+                        </div>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot class="table-secondary">
                     <tr>
-                        <td colspan="4" class="text-end fw-bold">TOTAL :</td>
-                        <td class="text-center fw-bold">{{ "{:,.0f}".format(total_prix).replace(',', ' ') }} F</td>
-                        <td></td>
+                        <td colspan="4" class="text-end fw-bold">TOTAL :</div>
+                        <td class="text-center fw-bold">{{ "{:,.0f}".format(total_prix).replace(',', ' ') }} F</div>
+                        <td></div>
                     </tr>
                 </tfoot>
             </table>
@@ -427,15 +495,97 @@
 </div>
 
 <script>
+// Filtrage en temps réel
+function filterKits() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#tableBody .kit-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const numero = row.dataset.numero || '';
+        const client = row.dataset.client || '';
+        
+        const match = searchTerm === '' || 
+                     numero.includes(searchTerm) || 
+                     client.includes(searchTerm);
+        
+        if (match) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            // Mettre en évidence le texte recherché
+            if (searchTerm !== '') {
+                highlightRow(row, searchTerm);
+            } else {
+                removeHighlight(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    // Mettre à jour les compteurs
+    document.getElementById('resultCount').innerText = visibleCount;
+    document.getElementById('badgeCount').innerText = visibleCount;
+}
+
+// Mettre en évidence le texte recherché
+function highlightRow(row, searchTerm) {
+    const numeroSpan = row.querySelector('.badge-numero');
+    const clientSpan = row.querySelector('.badge-client');
+    
+    if (numeroSpan && numeroSpan.innerText) {
+        const originalText = numeroSpan.innerText;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        if (newText !== originalText) {
+            numeroSpan.innerHTML = newText;
+        }
+    }
+    
+    if (clientSpan && clientSpan.innerText) {
+        const originalText = clientSpan.innerText;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        if (newText !== originalText) {
+            clientSpan.innerHTML = newText;
+        }
+    }
+}
+
+// Supprimer la mise en évidence
+function removeHighlight(row) {
+    const numeroSpan = row.querySelector('.badge-numero');
+    const clientSpan = row.querySelector('.badge-client');
+    
+    if (numeroSpan && numeroSpan.innerHTML !== numeroSpan.innerText) {
+        numeroSpan.innerHTML = numeroSpan.innerText;
+    }
+    
+    if (clientSpan && clientSpan.innerHTML !== clientSpan.innerText) {
+        clientSpan.innerHTML = clientSpan.innerText;
+    }
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    filterKits();
+});
+
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    filterKits();
+});
+
 // Export Excel
 function exportToExcel() {
     let csv = [["#", "Numéro", "Client", "Date", "Prix Global"]];
     
-    document.querySelectorAll('#kitsTable tbody tr').forEach(row => {
+    document.querySelectorAll('#tableBody .kit-row:not(.hidden-row)').forEach((row, index) => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 5) {
             csv.push([
-                cells[0]?.innerText,
+                index + 1,
                 cells[1]?.innerText,
                 cells[2]?.innerText,
                 cells[3]?.innerText,
@@ -452,6 +602,11 @@ function exportToExcel() {
     link.click();
     URL.revokeObjectURL(link.href);
 }
+
+// Initialiser le filtre
+document.addEventListener('DOMContentLoaded', function() {
+    filterKits();
+});
 </script>
 
 <!-- Font Awesome -->

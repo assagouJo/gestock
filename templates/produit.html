@@ -1,555 +1,985 @@
 {% extends "base.html" %}
-{% block title %}Gestion Produits | gestock{% endblock %}
+{% block title %}Gestion Produits | Gestock{% endblock %}
 
 {% block styles %}
 <style>
-    /* Layout de la table - Fixed pour contrôler les largeurs */
-    .table {
-        table-layout: fixed;
-        width: 100%;
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
     }
-    
-    /* Largeurs des colonnes optimisées */
-    .table th:nth-child(1) { width: 5%; }   /* # */
-    .table th:nth-child(2) { width: 12%; }  /* Code Produit */
-    .table th:nth-child(3) { width: 12%; }  /* Image Produit */
-    .table th:nth-child(4) { width: 15%; }  /* Nom Produit */
-    .table th:nth-child(5) { 
-        width: 20%;        /* Description - réduite */
-        min-width: 180px;
-        max-width: 250px;
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    .table th:nth-child(6) { width: 10%; }  /* Marque */
-    .table th:nth-child(7) { width: 10%; }  /* Model */
-    .table th:nth-child(8) { width: 8%; }   /* Origine */
-    
-    /* Style pour toutes les cellules */
-    .table td {
-        white-space: nowrap;
+
+    .produit-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .produit-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .produit-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--info-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Barre de recherche */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        position: relative;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px 12px 45px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+    }
+
+    .search-badge {
+        background: var(--light-color);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        color: var(--dark-color);
+    }
+
+    .search-results {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    .search-results strong {
+        color: var(--info-color);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--info-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
         overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 8px 4px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 40px; }
+    .table-custom th:nth-child(2) { width: 100px; }
+    .table-custom th:nth-child(3) { width: 80px; }
+    .table-custom th:nth-child(4) { width: 180px; }
+    .table-custom th:nth-child(5) { width: 200px; }
+    .table-custom th:nth-child(6) { width: 120px; }
+    .table-custom th:nth-child(7) { width: 120px; }
+    .table-custom th:nth-child(8) { width: 120px; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 10px 8px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--light-color);
         vertical-align: middle;
     }
-    
-    /* Style spécifique pour la colonne description */
-    .table td:nth-child(5) {
-        white-space: normal;
-        padding: 5px !important;
-        vertical-align: top;
-    }
-    
-    .table td:nth-child(5) span {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;  /* Limite à 3 lignes */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-wrap: break-word;
-        font-size: 0.85rem;
-        line-height: 1.4;
-        max-height: 60px;
-        padding: 3px 5px;
-        background: #f8f9fa;
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
         border-radius: 3px;
-        border: 1px solid #eee;
-        transition: all 0.2s;
-        cursor: help;  /* Indique qu'il y a plus d'info au survol */
     }
-    
-    /* Agrandissement de la description au survol */
-    .table td:nth-child(5) span:hover {
-        -webkit-line-clamp: unset;
-        max-height: 200px;
-        overflow-y: auto;
-        background: #fff;
-        border-color: #0d6efd;
-        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
-        position: relative;
-        z-index: 10;
-        cursor: text;
-    }
-    
-    /* Barre de scroll personnalisée pour la description */
-    .table td:nth-child(5) span::-webkit-scrollbar {
-        width: 4px;
-    }
-    .table td:nth-child(5) span::-webkit-scrollbar-thumb {
-        background: #0d6efd;
-        border-radius: 2px;
-    }
-    
-    /* Style pour les images */
-    .table td:nth-child(3) img {
-        max-width: 60px;
-        max-height: 60px;
-        object-fit: contain;
-        transition: transform 0.2s;
-    }
-    
-    .table td:nth-child(3) img:hover {
-        transform: scale(1.5);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        position: relative;
-        z-index: 20;
-    }
-    
-    /* Style pour les autres colonnes */
-    .table td:nth-child(2) span {  /* Code Produit */
-        font-family: monospace;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: #0d6efd;
-    }
-    
-    .table td:nth-child(4) span {  /* Nom Produit */
-        font-weight: 500;
-    }
-    
-    .table td:nth-child(6) span,  /* Marque */
-    .table td:nth-child(7) span,  /* Model */
-    .table td:nth-child(8) span {  /* Origine */
-        font-size: 0.9rem;
-        color: #495057;
-        background: #e9ecef;
-        padding: 2px 6px;
+
+    /* Badges */
+    .badge-code {
+        background: var(--light-color);
+        color: var(--dark-color);
+        padding: 4px 10px;
         border-radius: 12px;
+        font-size: 0.75rem;
+        font-family: monospace;
+        font-weight: 600;
         display: inline-block;
     }
-    
-    /* Checkbox styling */
-    .produit-checkbox {
-        cursor: pointer;
-        width: 18px;
-        height: 18px;
-    }
-    
-    .produit-checkbox:checked {
-        background-color: #198754;
-        border-color: #198754;
-    }
-    
-    /* Ligne au survol */
-    .produit-row:hover {
-        background-color: rgba(13, 110, 253, 0.05) !important;
-    }
-    
-    /* Style pour les cellules vides */
-    .text-muted {
-        font-style: italic;
-        opacity: 0.7;
-    }
-    
-    /* En-tête sticky */
-    .sticky-top {
-        top: 0;
-        z-index: 5;
-    }
-    
-    /* Responsive pour petits écrans */
-    @media (max-width: 1400px) {
-        .table th:nth-child(5) { width: 18%; }
-        .table td:nth-child(5) span { font-size: 0.8rem; }
-    }
-    
-    @media (max-width: 1200px) {
-        .table th:nth-child(2) { width: 10%; }
-        .table th:nth-child(3) { width: 10%; }
-        .table th:nth-child(4) { width: 12%; }
-        .table th:nth-child(5) { width: 22%; }
-    }
-    
-    /* Animation pour le modal */
-    .modal-content {
-        border: none;
+
+    .badge-marque, .badge-modele, .badge-origine {
+        display: inline-block;
+        padding: 4px 10px;
         border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: #e9ecef;
+        color: #495057;
     }
-    
+
+    .nom-produit {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .checkbox-custom {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        margin: 0;
+        accent-color: var(--info-color);
+    }
+
+    .produit-image {
+        max-width: 50px;
+        max-height: 50px;
+        object-fit: contain;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .produit-image:hover {
+        transform: scale(1.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 20;
+        position: relative;
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        overflow: hidden;
+    }
+
     .modal-header {
-        border-radius: 12px 12px 0 0;
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
     }
-    
-    /* Style pour le formulaire */
-    #produitForm {
-        border: 1px solid rgba(25, 135, 84, 0.3);
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
     }
-    
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 25px;
+        background: #f8f9fa;
+    }
+
     .form-label {
         font-weight: 600;
-        color: #198754;
-        margin-bottom: 0.25rem;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
     }
-    
-    /* Badge pour les infos */
-    .info-badge {
-        background-color: #e7f5ff;
-        color: #0d6efd;
-        padding: 2px 8px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        margin-left: 5px;
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    /* Alertes */
+    .alert-duplicate {
+        background: rgba(243, 156, 18, 0.1);
+        border-left: 4px solid var(--warning-color);
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .alert-duplicate.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .produit-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .search-input-group {
+            flex-direction: column;
+        }
+        
+        .search-input {
+            width: 100%;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="py-2">
-    <div class="row">
-        <div class="col">
-            <a class="btn btn-outline-success" data-bs-toggle="modal" 
-               data-bs-target="#addproduitmodal">
-                <i class="fas fa-plus-circle me-1"></i>Ajouter Produit
-            </a>        
+<div class="produit-container">
+    <!-- En-tête -->
+    <div class="produit-header">
+        <h4>
+            <i class="fas fa-box"></i> Gestion des Produits
+        </h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addproduitmodal">
+            <i class="fas fa-plus-circle"></i> Ajouter Produit
+        </button>
+    </div>
+
+    <!-- BARRE DE RECHERCHE -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <div style="position: relative; flex: 1;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="searchInput" 
+                       class="search-input" 
+                       placeholder="Rechercher par nom, modèle, marque, code ou origine...">
+            </div>
+            <button type="button" id="clearSearch" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Effacer
+            </button>
         </div>
-        <div class="col-auto">
-            <span class="badge bg-info text-dark p-2">
-                <i class="fas fa-info-circle me-1"></i>
-                Double-cliquez sur une ligne pour modifier
-            </span>
+        <div class="search-results" id="searchResults">
+            <i class="fas fa-info-circle"></i> 
+            <span id="resultCount"></span>
         </div>
     </div>
-    <hr>
-    
+
     {% if produits %}
-    <form action="{{ url_for('delete_produits') }}" method="post">
-        {{ form.hidden_tag() }}
-        <div class="table-responsive" style="max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #dee2e6;">
-            <caption class="fs-3 fw-semibold p-2 bg-light">
-                Liste des Produits
-                <span class="info-badge">{{ produits|length }} produit(s)</span>
-            </caption>
-            <table class="table table-bordered table-hover align-middle mb-0">
-                <thead class="table-dark sticky-top">
-                    <tr>
-                        <th scope="col" class="text-center">#</th>
-                        <th scope="col">Code Produit</th>
-                        <th scope="col">Image</th>
-                        <th scope="col">Nom Produit</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Marque</th>
-                        <th scope="col">Modèle</th>
-                        <th scope="col">Origine</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for produit in produits %}
-                    <tr class="produit-row"
-                        data-id="{{ produit.id }}"
-                        data-nom="{{ produit.nom_produit }}"
-                        data-description="{{ produit.description }}"
-                        data-marque="{{ produit.marque or '' }}"
-                        data-model="{{ produit.model or '' }}"
-                        data-origine="{{ produit.origine or '' }}"
-                        style="cursor:pointer">
-                        
-                        <td class="text-center">
-                            <input class="form-check-input border-success produit-checkbox"
-                                   name="produit_ids"
-                                   type="checkbox" 
-                                   value="{{ produit.id }}"
-                                   id="check-{{ produit.id }}">
-                        </td>
-                        
-                        <td>
-                            <span class="badge bg-light text-dark border">{{ produit.code_produit }}</span>
-                        </td>
-                        
-                        <td class="text-center">
-                            {% if produit.image %}
-                            <img src="{{ produit.image }}"
-                                 alt="{{ produit.nom_produit }}"
-                                 class="img-fluid rounded border"
-                                 style="max-height: 60px; object-fit: contain;">
-                            {% else %}
-                                <span class="text-muted">
-                                    <i class="fas fa-image fa-2x opacity-50"></i>
-                                </span>
-                            {% endif %}
-                        </td>
-                        
-                        <td>
-                            <span class="">{{ produit.nom_produit }}</span>
-                        </td>
-                        
-                        <td>
-                            <span title="Double-cliquez pour modifier la description complète">
-                                {% if produit.description %}
-                                    {{ produit.description }}
-                                {% else %}
-                                    <span class="text-muted fst-italic">—</span>
-                                {% endif %}
-                            </span>
-                        </td>
-                        
-                        <td>
-                            {% if produit.marque %}
-                                <span>{{ produit.marque }}</span>
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td>
-                            {% if produit.model %}
-                                <span>{{ produit.model }}</span>
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td>
-                            {% if produit.origine %}
-                                <span>{{ produit.origine }}</span>
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Statistiques -->
+    {% set total_produits = produits|length %}
+    {% set avec_marque = produits|selectattr('marque')|list|length %}
+    {% set avec_image = produits|selectattr('image')|list|length %}
+    
+    <div class="stats-grid">
+        <div class="stat-card" onclick="filterByField('all')">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" id="totalCount">{{ total_produits }}</div>
+            <div class="stat-label">Total produits</div>
         </div>
-        
-        <div class="mt-3 d-flex justify-content-between align-items-center">
-            <div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="selectAll">
-                    <i class="fas fa-check-double me-1"></i>Tout sélectionner
+        <div class="stat-card" onclick="filterByField('marque')">
+            <div class="stat-icon">🏷️</div>
+            <div class="stat-value">{{ avec_marque }}</div>
+            <div class="stat-label">Avec marque</div>
+        </div>
+        <div class="stat-card" onclick="filterByField('image')">
+            <div class="stat-icon">🖼️</div>
+            <div class="stat-value">{{ avec_image }}</div>
+            <div class="stat-label">Avec image</div>
+        </div>
+    </div>
+
+    <!-- Formulaire de suppression -->
+    <form action="{{ url_for('delete_produits') }}" method="post" id="deleteForm">
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="fas fa-list-ul"></i> Liste des produits
+                    <span class="badge bg-secondary ms-2" id="visibleCount">{{ total_produits }}</span>
+                </div>
+                <div class="export-buttons">
+                    <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                        <i class="fas fa-print"></i> Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom" id="produitsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all" class="checkbox-custom"></th>
+                            <th>Code</th>
+                            <th>Image</th>
+                            <th>Nom</th>
+                            <th>Description</th>
+                            <th>Marque</th>
+                            <th>Modèle</th>
+                            <th>Origine</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produitsTableBody">
+                        {% for produit in produits %}
+                        <tr class="produit-row"
+                            data-id="{{ produit.id }}"
+                            data-nom="{{ produit.nom_produit }}"
+                            data-description="{{ produit.description or '' }}"
+                            data-marque="{{ produit.marque or '' }}"
+                            data-model="{{ produit.model or '' }}"
+                            data-origine="{{ produit.origine or '' }}"
+                            data-code="{{ produit.code_produit }}"
+                            style="cursor:pointer">
+                            
+                            <td class="text-center">
+                                <input type="checkbox" name="produit_ids" 
+                                       value="{{ produit.id }}" 
+                                       class="checkbox-custom produit-checkbox">
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-code">{{ produit.code_produit }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if produit.image %}
+                                    <img src="{{ produit.image }}" 
+                                         alt="{{ produit.nom_produit }}" 
+                                         class="produit-image">
+                                {% else %}
+                                    <i class="fas fa-image fa-2x text-muted"></i>
+                                {% endif %}
+                            </td>
+                            <td class="nom-produit">{{ produit.nom_produit }}</td>
+                            <td>
+                                {% if produit.description %}
+                                    <div class="description-text">{{ produit.description|truncate(80, true) }}</div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>{% if produit.marque %}{{ produit.marque }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            <td>{% if produit.model %}{{ produit.model }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            <td>{% if produit.origine %}{{ produit.origine }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="7" class="text-end fw-bold">TOTAL PRODUITS :</td>
+                            <td class="fw-bold" id="footerTotal">{{ total_produits }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex gap-2">
+                <button type="button" onclick="selectAll()" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-check-double"></i> Tout
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAll">
-                    <i class="fas fa-times me-1"></i>Tout désélectionner
+                <button type="button" onclick="deselectAll()" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times"></i> Rien
                 </button>
             </div>
-            <button type="submit" class="btn btn-outline-danger" 
-                    onclick="return confirm('Voulez-vous supprimer ce ou ces produits ?')">
-                <i class="fas fa-trash-alt me-1"></i>Supprimer Produit(s)
+            <button type="submit" class="btn btn-delete btn-sm" id="deleteBtn" onclick="return confirmDelete()">
+                <i class="fas fa-trash-alt"></i> Supprimer sélection
             </button>
         </div>
     </form>
-    
     {% else %}
-    <div class="alert alert-warning text-center py-5">
-        <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
-        <h5>Aucun Produit enregistré pour le moment</h5>
-        <p class="mb-0">Cliquez sur "Ajouter Produit" pour commencer</p>
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun produit enregistré pour le moment.
+        <br>
+        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addproduitmodal">
+            <i class="fas fa-plus-circle"></i> Ajouter un produit
+        </button>
     </div>
     {% endif %}
+</div>
 
-    <!-- Modal Ajouter/Modifier Produit -->
-    <div class="modal fade" id="addproduitmodal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <!-- HEADER -->
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold" id="modalTitle">
-                        <i class="fas fa-plus-circle me-2"></i>Ajouter un produit
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <!-- BODY -->
-                <div class="modal-body">
-                    <form method="post"
-                          id="produitForm"
-                          action="{{ url_for('produit') }}"
-                          enctype="multipart/form-data"
-                          class="p-4 rounded">
-                        
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.nom_produit.label(class="form-label") }}
-                                {{ form.nom_produit(class="form-control", placeholder="Ex: Échographe portable") }}
-                                {% if form.nom_produit.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.nom_produit.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.marque.label(class="form-label") }}
-                                {{ form.marque(class="form-control", placeholder="Ex: Siemens") }}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.model.label(class="form-label") }}
-                                {{ form.model(class="form-control", placeholder="Ex: ACUSON X300") }}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.origine.label(class="form-label") }}
-                                {{ form.origine(class="form-control", placeholder="Ex: Allemagne") }}
-                            </div>
+<!-- MODAL : AJOUTER/MODIFIER PRODUIT -->
+<div class="modal fade" id="addproduitmodal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="fas fa-plus-circle me-2"></i>Ajouter un produit
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="produitForm" action="{{ url_for('produit') }}" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Alerte de produit existant -->
+                    <div id="duplicateAlert" class="alert-duplicate">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="duplicateMessage"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Nom du produit <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="nom_produit" id="nom_produit" 
+                                   class="form-control" placeholder="Ex: Échographe portable" required>
                         </div>
                         
-                        <div class="mb-3">
-                            {{ form.description.label(class="form-label") }}
-                            {{ form.description(class="form-control", rows="4", 
-                                placeholder="Description détaillée du produit...") }}
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle"></i> 
-                                Maximum 1000 caractères
-                            </small>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-trademark"></i> Marque
+                            </label>
+                            <input type="text" name="marque" id="marque" 
+                                   class="form-control" placeholder="Ex: Siemens, Samsung, GE">
                         </div>
                         
-                        <div class="mb-3">
-                            {{ form.image.label(class="form-label") }}
-                            {{ form.image(class="form-control", accept="image/*") }}
-                            <small class="text-muted">
-                                <i class="fas fa-image"></i> 
-                                Formats acceptés: JPG, PNG, GIF, WEBP
-                            </small>
-                            <div id="imagePreview" class="mt-2 text-center" style="display: none;">
-                                <img src="" alt="Aperçu" style="max-height: 100px; border: none;outline: none;">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-microchip"></i> Modèle
+                            </label>
+                            <input type="text" name="model" id="model" 
+                                   class="form-control" placeholder="Ex: ACUSON X300, HS30">
                         </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-globe"></i> Origine
+                            </label>
+                            <input type="text" name="origine" id="origine" 
+                                   class="form-control" placeholder="Ex: Allemagne, Corée du Sud, USA">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-align-left"></i> Description
+                        </label>
+                        <textarea name="description" id="description" class="form-control" rows="4" 
+                                  placeholder="Description détaillée du produit..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-image"></i> Image
+                        </label>
+                        <input type="file" name="image" id="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Formats acceptés: JPG, PNG, GIF, WEBP</small>
+                        <div id="imagePreview" class="mt-2 text-center" style="display: none;">
+                            <img src="" alt="Aperçu" style="max-height: 100px; border-radius: 8px;">
+                        </div>
+                    </div>
 
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                <i class="fas fa-times me-1"></i>Annuler
-                            </button>
-                            {{ form.submit(class="btn btn-success") }}
-                        </div>
-                    </form>
-                </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-save"></i> Ajouter
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Ajouter Font Awesome pour les icônes -->
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("Script chargé - Version finale");
+// Données des produits pour la recherche
+let produitsData = [];
+let currentFilter = '';
+
+// Initialiser les données des produits
+function initProduitsData() {
+    const rows = document.querySelectorAll('#produitsTableBody tr');
+    produitsData = Array.from(rows).map(row => ({
+        element: row,
+        nom: (row.querySelector('td:nth-child(4)')?.innerText || '').toLowerCase(),
+        marque: (row.querySelector('td:nth-child(6)')?.innerText || '').toLowerCase(),
+        modele: (row.querySelector('td:nth-child(7)')?.innerText || '').toLowerCase(),
+        origine: (row.querySelector('td:nth-child(8)')?.innerText || '').toLowerCase(),
+        code: (row.querySelector('.badge-code')?.innerText || '').toLowerCase(),
+        description: (row.querySelector('td:nth-child(5)')?.innerText || '').toLowerCase()
+    }));
+}
+
+// Fonction de recherche
+function searchProducts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#produitsTableBody tr');
+    let visibleCount = 0;
     
-    // Récupérer les éléments de base
-    const modalEl = document.getElementById("addproduitmodal");
-    if (!modalEl) {
-        console.error("Modal non trouvé!");
-        return;
+    if (searchTerm === '') {
+        // Afficher toutes les lignes
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        visibleCount = rows.length;
+        document.getElementById('searchResults').innerHTML = `<i class="fas fa-info-circle"></i> <span id="resultCount">${visibleCount} produit(s) au total</span>`;
+    } else {
+        // Filtrer les lignes
+        rows.forEach(row => {
+            const nom = (row.querySelector('td:nth-child(4)')?.innerText || '').toLowerCase();
+            const marque = (row.querySelector('td:nth-child(6)')?.innerText || '').toLowerCase();
+            const modele = (row.querySelector('td:nth-child(7)')?.innerText || '').toLowerCase();
+            const origine = (row.querySelector('td:nth-child(8)')?.innerText || '').toLowerCase();
+            const code = (row.querySelector('.badge-code')?.innerText || '').toLowerCase();
+            const description = (row.querySelector('td:nth-child(5)')?.innerText || '').toLowerCase();
+            
+            const match = nom.includes(searchTerm) || 
+                         marque.includes(searchTerm) || 
+                         modele.includes(searchTerm) || 
+                         origine.includes(searchTerm) || 
+                         code.includes(searchTerm) ||
+                         description.includes(searchTerm);
+            
+            if (match) {
+                row.style.display = '';
+                visibleCount++;
+                // Mettre en évidence le texte recherché
+                highlightText(row, searchTerm);
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('searchResults').innerHTML = `<i class="fas fa-search"></i> <span id="resultCount">${visibleCount} résultat(s) trouvé(s)</span>`;
     }
     
+    // Mettre à jour les compteurs
+    document.getElementById('visibleCount').innerText = visibleCount;
+    document.getElementById('footerTotal').innerText = visibleCount;
+    document.getElementById('totalCount').innerText = visibleCount;
+}
+
+// Mettre en évidence le texte recherché
+function highlightText(row, searchTerm) {
+    if (!searchTerm) return;
+    
+    const cells = [4, 5, 6, 7, 8]; // Index des colonnes à chercher
+    cells.forEach(cellIndex => {
+        const cell = row.querySelector(`td:nth-child(${cellIndex})`);
+        if (cell && cell.innerText) {
+            const originalText = cell.innerText;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+            if (newText !== originalText) {
+                cell.innerHTML = newText;
+            }
+        }
+    });
+}
+
+// Vérifier si un produit existe déjà (avant ajout)
+function checkProductExists() {
+    const nom = document.getElementById('nom_produit')?.value.toLowerCase().trim();
+    const modele = document.getElementById('model')?.value.toLowerCase().trim();
+    const marque = document.getElementById('marque')?.value.toLowerCase().trim();
+    
+    if (!nom && !modele) return false;
+    
+    const rows = document.querySelectorAll('#produitsTableBody tr');
+    let found = false;
+    let message = '';
+    
+    rows.forEach(row => {
+        if (row.style.display === 'none') return;
+        
+        const existingNom = (row.querySelector('td:nth-child(4)')?.innerText || '').toLowerCase();
+        const existingModele = (row.querySelector('td:nth-child(7)')?.innerText || '').toLowerCase();
+        const existingMarque = (row.querySelector('td:nth-child(6)')?.innerText || '').toLowerCase();
+        
+        if (nom && existingNom === nom) {
+            found = true;
+            message = `Un produit avec le nom "${document.getElementById('nom_produit').value}" existe déjà !`;
+        } else if (modele && existingModele === modele && modele !== '') {
+            found = true;
+            message = `Un produit avec le modèle "${document.getElementById('model').value}" existe déjà !`;
+        } else if (nom && modele && existingNom === nom && existingModele === modele) {
+            found = true;
+            message = `Le produit "${document.getElementById('nom_produit').value} - ${document.getElementById('model').value}" existe déjà !`;
+        }
+    });
+    
+    const alertDiv = document.getElementById('duplicateAlert');
+    const messageSpan = document.getElementById('duplicateMessage');
+    
+    if (found) {
+        alertDiv.classList.add('show');
+        messageSpan.innerText = message;
+    } else {
+        alertDiv.classList.remove('show');
+    }
+    
+    return found;
+}
+
+// Filtrer par champ
+function filterByField(field) {
+    const searchInput = document.getElementById('searchInput');
+    if (field === 'all') {
+        searchInput.value = '';
+        searchProducts();
+    }
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    searchProducts();
+});
+
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    searchProducts();
+});
+
+// Vérifier les doublons en temps réel dans le modal
+document.getElementById('nom_produit')?.addEventListener('input', checkProductExists);
+document.getElementById('model')?.addEventListener('input', checkProductExists);
+document.getElementById('marque')?.addEventListener('input', checkProductExists);
+
+// Sélectionner tous les checkboxes
+document.getElementById('select-all')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.produit-checkbox:visible').forEach(cb => cb.checked = e.target.checked);
+    toggleDeleteButton();
+});
+
+function selectAll() {
+    document.querySelectorAll('.produit-checkbox:visible').forEach(cb => cb.checked = true);
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) selectAll.checked = true;
+    toggleDeleteButton();
+}
+
+function deselectAll() {
+    document.querySelectorAll('.produit-checkbox').forEach(cb => cb.checked = false);
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) selectAll.checked = false;
+    toggleDeleteButton();
+}
+
+function toggleDeleteButton() {
+    const checkboxes = document.querySelectorAll('.produit-checkbox:checked');
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (deleteBtn) {
+        if (checkboxes.length > 0) {
+            deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Supprimer ${checkboxes.length} produit(s)`;
+            deleteBtn.disabled = false;
+        } else {
+            deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Supprimer sélection`;
+            deleteBtn.disabled = true;
+        }
+    }
+}
+
+function confirmDelete() {
+    const checkboxes = document.querySelectorAll('.produit-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('Veuillez sélectionner au moins un produit à supprimer');
+        return false;
+    }
+    return confirm(`⚠️ Supprimer ${checkboxes.length} produit(s) ? Cette action est irréversible.`);
+}
+
+function exportToExcel() {
+    let csv = [["Code", "Nom", "Marque", "Modèle", "Origine"]];
+    
+    document.querySelectorAll('#produitsTableBody tr:visible').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 7) {
+            csv.push([
+                cells[1]?.innerText,
+                cells[3]?.innerText,
+                cells[5]?.innerText,
+                cells[6]?.innerText,
+                cells[7]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'produits.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+// Double-clic pour modifier
+document.addEventListener("DOMContentLoaded", function() {
+    initProduitsData();
+    
+    const modalEl = document.getElementById("addproduitmodal");
     const modal = new bootstrap.Modal(modalEl);
     const form = document.getElementById("produitForm");
     const title = document.getElementById("modalTitle");
-    
-    // Attendre que tout soit chargé
-    setTimeout(function() {
-        // Attacher les événements double-clic à chaque ligne
-        const rows = document.querySelectorAll(".produit-row");
-        console.log("Lignes trouvées:", rows.length);
-        
-        rows.forEach(row => {
-            // Utiliser onclick au lieu de dblclick pour tester
-            row.addEventListener("dblclick", function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Récupérer l'ID
-                const id = this.dataset.id;
-                console.log("Double-clic sur produit ID:", id);
-                
-                if (!id) {
-                    alert("Erreur: ID produit non trouvé");
-                    return;
-                }
-                
-                // Changer le titre
-                if (title) {
-                    title.innerHTML = '<i class="fas fa-edit me-2"></i>Modifier le produit';
-                }
-                
-                // Changer l'action du formulaire
-                if (form) {
-                    form.action = `/gestion_materiel/produit/edit/${id}`;
-                    
-                    // Remplir les champs
-                    form.nom_produit.value = this.dataset.nom || '';
-                    form.description.value = this.dataset.description || '';
-                    form.marque.value = this.dataset.marque || '';
-                    form.model.value = this.dataset.model || '';
-                    form.origine.value = this.dataset.origine || '';
-                    
-                    // CHANGER LE BOUTON SUBMIT - recherche directe au moment du clic
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    if (submitBtn) {
-                        submitBtn.classList.remove('btn-success');
-                        submitBtn.classList.add('btn-warning');
-                        submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
-                        console.log("Bouton modifié avec succès");
-                    } else {
-                        console.warn("Bouton submit non trouvé dans le formulaire");
-                        // Alternative: chercher dans tout le document
-                        const altBtn = document.querySelector('#produitForm button[type="submit"]');
-                        if (altBtn) {
-                            altBtn.classList.remove('btn-success');
-                            altBtn.classList.add('btn-warning');
-                            altBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
-                        }
-                    }
-                }
-                
-                // Ajouter message pour l'image
-                const imageField = document.querySelector('.mb-3:has(input[type="file"])');
-                if (imageField) {
-                    let msg = imageField.querySelector('.image-info');
-                    if (!msg) {
-                        msg = document.createElement('small');
-                        msg.className = 'text-info d-block mt-1 image-info';
-                        msg.innerHTML = '<i class="fas fa-info-circle"></i> Laissez vide pour conserver l\'image actuelle';
-                        imageField.appendChild(msg);
-                    }
-                }
-                
-                // Ouvrir le modal
-                modal.show();
-            });
+    const submitBtn = document.getElementById("submitBtn");
+
+    // Double-clic sur les lignes
+    document.querySelectorAll(".produit-row").forEach(row => {
+        row.addEventListener("dblclick", function() {
+            title.innerHTML = '<i class="fas fa-edit me-2"></i>Modifier le produit';
+            form.action = `/gestion_materiel/produit/edit/${this.dataset.id}`;
             
-            // Ajouter un style visuel
-            row.style.cursor = 'pointer';
-            row.title = 'Double-cliquez pour modifier';
-        });
-    }, 500);
-    
-    // Réinitialisation à la fermeture du modal
-    modalEl.addEventListener("hidden.bs.modal", function() {
-        console.log("Modal fermé - réinitialisation");
-        
-        if (title) {
-            title.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Ajouter un produit';
-        }
-        
-        if (form) {
-            form.action = "{{ url_for('produit') }}";
-            form.reset();
+            document.getElementById('nom_produit').value = this.dataset.nom || "";
+            document.getElementById('description').value = this.dataset.description || "";
+            document.getElementById('marque').value = this.dataset.marque || "";
+            document.getElementById('model').value = this.dataset.model || "";
+            document.getElementById('origine').value = this.dataset.origine || "";
             
-            // Remettre le bouton en mode ajout
-            const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
-                submitBtn.classList.remove('btn-warning');
-                submitBtn.classList.add('btn-success');
-                submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Ajouter';
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-warning');
+                submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
             }
             
-            // Supprimer le message d'info image
-            const infoMsg = form.querySelector('.image-info');
-            if (infoMsg) infoMsg.remove();
+            modal.show();
+        });
+    });
+
+    // Reset modal
+    modalEl.addEventListener("hidden.bs.modal", function() {
+        title.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Ajouter un produit';
+        form.action = "{{ url_for('produit') }}";
+        form.reset();
+        
+        if (submitBtn) {
+            submitBtn.classList.remove('btn-warning');
+            submitBtn.classList.add('btn-success');
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Ajouter';
         }
         
-        // Masquer la prévisualisation
         const imagePreview = document.getElementById('imagePreview');
         if (imagePreview) {
             imagePreview.style.display = 'none';
             const previewImg = imagePreview.querySelector('img');
             if (previewImg) previewImg.src = '';
         }
+        
+        const alertDiv = document.getElementById('duplicateAlert');
+        if (alertDiv) alertDiv.classList.remove('show');
+    });
+
+    // Aperçu image
+    const imageInput = document.getElementById('image');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = preview?.querySelector('img');
+            if (e.target.files && e.target.files[0] && previewImg) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    previewImg.src = ev.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
+    // Écouter les changements de checkbox
+    document.querySelectorAll('.produit-checkbox').forEach(cb => {
+        cb.addEventListener('change', toggleDeleteButton);
     });
     
+    toggleDeleteButton();
 });
 </script>
 {% endblock %}

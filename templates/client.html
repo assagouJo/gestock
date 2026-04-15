@@ -1,175 +1,735 @@
 {% extends "base.html" %}
-{% block title %}Gestion Clients | gestock{% endblock %}
+{% block title %}Gestion Clients | Gestock{% endblock %}
 
 {% block styles %}
-    
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .client-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .client-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .client-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--primary-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 40px; }
+    .table-custom th:nth-child(2) { width: 25%; }
+    .table-custom th:nth-child(3) { width: 15%; }
+    .table-custom th:nth-child(4) { width: 15%; }
+    .table-custom th:nth-child(5) { width: 30%; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 10px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: left;
+    }
+
+    .table-custom thead th:first-child {
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table-custom td {
+        padding: 10px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table-custom td:first-child {
+        text-align: center;
+    }
+
+    /* Badges */
+    .badge-client {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--primary-color);
+        color: white;
+        cursor: help;
+    }
+
+    .badge-attn, .badge-phone {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .checkbox-custom {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        margin: 0;
+        accent-color: var(--primary-color);
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 25px;
+        background: #f8f9fa;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+    }
+
+    .form-control {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Alertes */
+    .alert-duplicate {
+        background: rgba(243, 156, 18, 0.1);
+        border-left: 4px solid var(--warning-color);
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: none;
+    }
+
+    .alert-duplicate.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bouton suppression */
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .table-custom th:nth-child(2) { width: 20%; }
+        .table-custom th:nth-child(5) { width: 25%; }
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .client-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px;
+        }
+    }
+</style>
 {% endblock %}
+
 {% block content %}
-<div class="py-2">
-<div class="row">
-    <div class="col">
-        <a class="btn btn-outline-success" data-bs-toggle="modal" 
-        data-bs-target="#addclientmodal">Ajouter Client</a>        
+<div class="client-container">
+    <!-- En-tête -->
+    <div class="client-header">
+        <h4>
+            <i class="fas fa-users"></i> Gestion des Clients
+        </h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addclientmodal">
+            <i class="fas fa-plus-circle"></i> Ajouter Client
+        </button>
     </div>
-</div>
-<hr>
-{% if clients %}
-  <!-- <div class=""> -->
-      <form action="{{ url_for('delete_clients') }}" method="post">
+
+    {% if clients %}
+    <!-- Statistiques -->
+    {% set total_clients = clients|length %}
+    {% set avec_telephone = clients|selectattr('telephone')|list|length %}
+    {% set avec_attn = clients|selectattr('attn')|list|length %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ total_clients }}</div>
+            <div class="stat-label">Total clients</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📞</div>
+            <div class="stat-value">{{ avec_telephone }}</div>
+            <div class="stat-label">Avec téléphone</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✉️</div>
+            <div class="stat-value">{{ avec_attn }}</div>
+            <div class="stat-label">Avec ATTN</div>
+        </div>
+    </div>
+
+    <!-- Formulaire de suppression -->
+    <form action="{{ url_for('delete_clients') }}" method="post" id="deleteForm">
         {{ form.hidden_tag() }}
-    <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
-      <caption class="fs-3 fw-semibold">
-        Liste des clients
-    </caption>
-     <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
-      <table class="table table-hover table-bordered align-middle">
-        <thead class="table-dark sticky-top">
-        <tr>
-          <th scope="col"></th>
-          <th scope="col">Nom</th>
-          <th scope="col">ATTN</th>
-          <th scope="col">Telephone</th>
-          <th scope="col">Adresse</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for client in clients %}
-        <tr class="client-row"
-            data-id="{{ client.id }}"
-            data-nom="{{ client.nom_client }}"
-            data-attn="{{ client.attn }}"
-            data-telephone="{{ client.telephone }}"
-            data-adresse="{{ client.adresse }}"
-            style="cursor:pointer">
-          <td>
-            <input class="form-check-input border-success client-checkbox" 
-            name="client_ids"
-            type="checkbox" value="{{client.id}}">
-          </td>
-          <td>{{client.nom_client.upper()}}</td>
-          <td>{{client.attn}}</td>
-          <td>{{client.telephone}}</td>
-          <td>{{client.adresse}}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-     </div>
-    </div>
-    <button type="submit" class="btn btn-outline-danger" 
-      onclick="return confirm('Voulez-vous supprimer ce ou ces clients ?')">Suprimer Client
-    </button>
-    </form>
-  <!-- </div> -->
-</div>
-{% else %}
-<div class="alert alert-warning text-center">
-        Aucun client enregistré pour le moment.
-    </div>
-{% endif %}
-<!-- Ajouter Client Modal -->
-<div class="modal fade" id="addclientmodal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
+        
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="fas fa-list-ul"></i> Liste des clients
+                    <span class="badge bg-secondary ms-2">{{ total_clients }} client(s)</span>
+                </div>
+                <div class="export-buttons">
+                    <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                        <i class="fas fa-print"></i> Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom" id="clientsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all" class="checkbox-custom"></th>
+                            <th>Nom</th>
+                            <th>ATTN</th>
+                            <th>Téléphone</th>
+                            <th>Adresse</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr class="client-row"
+                            data-id="{{ client.id }}"
+                            data-nom="{{ client.nom_client }}"
+                            data-attn="{{ client.attn or '' }}"
+                            data-telephone="{{ client.telephone or '' }}"
+                            data-adresse="{{ client.adresse or '' }}"
+                            style="cursor:pointer">
+                            
+                            <td class="text-center">
+                                <input type="checkbox" name="client_ids" 
+                                       value="{{ client.id }}" 
+                                       class="checkbox-custom client-checkbox">
+                            </td>
+                            <td>
+                                <span class="badge-client" title="{{ client.nom_client }}">
+                                    {{ client.nom_client|upper|truncate(30, true) }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if client.attn %}
+                                    <span class="badge-attn" title="ATTN: {{ client.attn }}">
+                                        {{ client.attn|truncate(20, true) }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.telephone %}
+                                    <i class="fas fa-phone-alt text-success me-1"></i>
+                                    {{ client.telephone }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.adresse %}
+                                    <i class="fas fa-map-marker-alt text-info me-1"></i>
+                                    {{ client.adresse|truncate(35, true) }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">TOTAL CLIENTS :</td>
+                            <td class="fw-bold">{{ total_clients }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
 
-      <!-- HEADER -->
-      <div class="modal-header">
-        <h5 class="modal-title text-success fw-bold" id="modalTitle">
-          Ajouter un client
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <!-- BODY -->
-      <div class="modal-body">
-        <form method="post"
-              id = "clientForm"
-              action="{{ url_for('client') }}"
-              class="bg-success bg-opacity-25 p-4 rounded shadow-sm">
-
-          {{ form.hidden_tag() }}
-
-          <div class="mb-3">
-            {{ form.nom_client.label(class="form-label") }}
-            {{ form.nom_client(class="form-control") }}
-          </div>
-
-          <div class="mb-3">
-            {{ form.attn.label(class="form-label") }}
-            {{ form.attn(class="form-control") }}
-          </div>
-
-          <div class="mb-3">
-            {{ form.telephone.label(class="form-label") }}
-            {{ form.telephone(class="form-control") }}
-          </div>
-
-          <div class="mb-3">
-            {{ form.adresse.label(class="form-label") }}
-            {{ form.adresse(class="form-control") }}
-          </div>
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-              Annuler
+        <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex gap-2">
+                <button type="button" onclick="selectAll()" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-check-double"></i> Tout
+                </button>
+                <button type="button" onclick="deselectAll()" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times"></i> Rien
+                </button>
+            </div>
+            <button type="submit" class="btn btn-delete btn-sm" id="deleteBtn" onclick="return confirmDelete()">
+                <i class="fas fa-trash-alt"></i> Supprimer sélection
             </button>
-            {{ form.submit(class="btn btn-success") }}
-          </div>
-
-        </form>
-
-      </div>
-
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun client enregistré pour le moment.
+        <br>
+        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addclientmodal">
+            <i class="fas fa-plus-circle"></i> Ajouter un client
+        </button>
     </div>
-  </div>
+    {% endif %}
 </div>
+
+<!-- MODAL : AJOUTER/MODIFIER CLIENT -->
+<div class="modal fade" id="addclientmodal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="fas fa-plus-circle me-2"></i>Ajouter un client
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Alerte de client existant -->
+                <div id="duplicateAlert" class="alert-duplicate">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="duplicateMessage"></span>
+                </div>
+                
+                <form method="post" id="clientForm" action="{{ url_for('client') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Nom du client <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nom_client(class="form-control", placeholder="Ex: ENTREPRISE SARL") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-tag"></i> ATTN (À l'attention de)
+                        </label>
+                        {{ form.attn(class="form-control", placeholder="Ex: Monsieur Jean Dupont") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-phone"></i> Téléphone
+                        </label>
+                        {{ form.telephone(class="form-control", placeholder="Ex: 6X XXX XXX") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Adresse
+                        </label>
+                        {{ form.adresse(class="form-control", placeholder="Ex: Douala, Bonamoussadi") }}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-save"></i> Ajouter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-
-  const modalEl = document.getElementById("addclientmodal");
-  const modal = new bootstrap.Modal(modalEl);
-  const form = document.getElementById("clientForm");
-  const title = document.getElementById("modalTitle");
-
-  // 👉 MODE MODIFICATION (double clic)
-  document.querySelectorAll(".client-row").forEach(row => {
-    row.addEventListener("dblclick", function () {
-
-      title.textContent = "Modifier le client";
-      form.action = `/gestion_materiel/client/edit/${this.dataset.id}`;
-
-      form.nom_client.value = this.dataset.nom;
-      form.attn.value = this.dataset.attn;
-      form.telephone.value = this.dataset.telephone;
-      form.adresse.value = this.dataset.adresse;
-      modal.show();
+// Vérifier si un client existe déjà
+function checkClientExists() {
+    const nom = document.getElementById('nom_client')?.value.toLowerCase().trim();
+    if (!nom) return false;
+    
+    const rows = document.querySelectorAll('#clientsTable tbody tr');
+    let found = false;
+    let message = '';
+    
+    rows.forEach(row => {
+        const existingNom = (row.querySelector('td:nth-child(2) .badge-client')?.innerText || '').toLowerCase();
+        if (existingNom === nom) {
+            found = true;
+            message = `Un client avec le nom "${document.getElementById('nom_client').value}" existe déjà !`;
+        }
     });
-  });
+    
+    const alertDiv = document.getElementById('duplicateAlert');
+    const messageSpan = document.getElementById('duplicateMessage');
+    
+    if (found) {
+        alertDiv.classList.add('show');
+        messageSpan.innerText = message;
+    } else {
+        alertDiv.classList.remove('show');
+    }
+    
+    return found;
+}
 
-  // 👉 MODE AJOUT (bouton Ajouter Client)
-  modalEl.addEventListener("hidden.bs.modal", function () {
-    title.textContent = "Ajouter un client";
-    form.action = "{{ url_for('client') }}";
-    form.reset();
-  });
+// Sélectionner tous les checkboxes
+document.getElementById('select-all')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.client-checkbox').forEach(cb => cb.checked = e.target.checked);
+    toggleDeleteButton();
+});
 
-    /* ===============================
-   BOUTON SUPPRESSION CHECKBOX
-  ================================ */
-  const btn = document.querySelector(".btn-outline-danger");
-  const checkboxes = document.querySelectorAll(".client-checkbox");
+function selectAll() {
+    document.querySelectorAll('.client-checkbox').forEach(cb => cb.checked = true);
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) selectAll.checked = true;
+    toggleDeleteButton();
+}
 
-  // bouton désactivé au départ
-  if (btn) btn.disabled = true;
+function deselectAll() {
+    document.querySelectorAll('.client-checkbox').forEach(cb => cb.checked = false);
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) selectAll.checked = false;
+    toggleDeleteButton();
+}
 
-  checkboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      btn.disabled = !document.querySelector(".client-checkbox:checked");
+function toggleDeleteButton() {
+    const checkboxes = document.querySelectorAll('.client-checkbox:checked');
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (deleteBtn) {
+        if (checkboxes.length > 0) {
+            deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Supprimer ${checkboxes.length} client(s)`;
+            deleteBtn.disabled = false;
+        } else {
+            deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Supprimer sélection`;
+            deleteBtn.disabled = true;
+        }
+    }
+}
+
+function confirmDelete() {
+    const checkboxes = document.querySelectorAll('.client-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('Veuillez sélectionner au moins un client à supprimer');
+        return false;
+    }
+    return confirm(`⚠️ Supprimer ${checkboxes.length} client(s) ? Cette action est irréversible.`);
+}
+
+function exportToExcel() {
+    let csv = [["Nom", "ATTN", "Téléphone", "Adresse"]];
+    
+    document.querySelectorAll('#clientsTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            csv.push([
+                cells[1]?.innerText,
+                cells[2]?.innerText,
+                cells[3]?.innerText,
+                cells[4]?.innerText
+            ]);
+        }
     });
-  });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'clients.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
 
+// Double-clic pour modifier
+document.addEventListener("DOMContentLoaded", function() {
+    const modalEl = document.getElementById("addclientmodal");
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById("clientForm");
+    const title = document.getElementById("modalTitle");
+    const submitBtn = document.getElementById("submitBtn");
+    const nomInput = document.getElementById("nom_client");
+
+    // Double-clic sur les lignes
+    document.querySelectorAll(".client-row").forEach(row => {
+        row.addEventListener("dblclick", function() {
+            title.innerHTML = '<i class="fas fa-edit me-2"></i>Modifier le client';
+            form.action = `/gestion_materiel/client/edit/${this.dataset.id}`;
+            
+            if (form.nom_client) form.nom_client.value = this.dataset.nom || "";
+            if (form.attn) form.attn.value = this.dataset.attn || "";
+            if (form.telephone) form.telephone.value = this.dataset.telephone || "";
+            if (form.adresse) form.adresse.value = this.dataset.adresse || "";
+            
+            if (submitBtn) {
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-warning');
+                submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Modifier';
+            }
+            
+            modal.show();
+        });
+    });
+
+    // Reset modal
+    modalEl.addEventListener("hidden.bs.modal", function() {
+        title.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Ajouter un client';
+        form.action = "{{ url_for('client') }}";
+        form.reset();
+        
+        if (submitBtn) {
+            submitBtn.classList.remove('btn-warning');
+            submitBtn.classList.add('btn-success');
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Ajouter';
+        }
+        
+        const alertDiv = document.getElementById('duplicateAlert');
+        if (alertDiv) alertDiv.classList.remove('show');
+    });
+
+    // Vérifier les doublons
+    if (nomInput) {
+        nomInput.addEventListener('input', checkClientExists);
+    }
+
+    // Écouter les changements de checkbox
+    document.querySelectorAll('.client-checkbox').forEach(cb => {
+        cb.addEventListener('change', toggleDeleteButton);
+    });
+    
+    toggleDeleteButton();
 });
 </script>
 {% endblock %}

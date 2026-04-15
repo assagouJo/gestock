@@ -1,28 +1,301 @@
 {% extends "base.html" %}
 
-{% block title %}Modifier Proforma{% endblock %}
+{% block title %}Modifier Proforma | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modifier-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .modifier-header {
+        background: linear-gradient(135deg, var(--warning-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .modifier-header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* Cartes */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 12px 20px;
+        border: none;
+    }
+
+    .card-header h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-header.bg-info {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Formulaires */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--warning-color);
+        box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
+    /* Tableau des produits */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 10px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* Drag & drop */
+    .drag-handle {
+        cursor: grab;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .sortable-ghost {
+        opacity: 0.3;
+        background-color: #e9ecef;
+    }
+
+    /* Sous-total */
+    .sous-total {
+        font-weight: bold;
+        color: var(--primary-color);
+        text-align: right;
+        display: inline-block;
+        width: 100%;
+    }
+
+    /* Total global */
+    .total-global {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    /* Boutons */
+    .btn-add {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+    }
+
+    .btn-cancel {
+        background: #95a5a6;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cancel:hover {
+        background: #7f8c8d;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .modifier-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 6px;
+        }
+        
+        .btn-submit, .btn-cancel {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Modifier Proforma</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn btn-sm btn-secondary">
-                <i class="fas fa-arrow-left"></i> Retour
-            </a>
+<div class="modifier-container">
+    <!-- En-tête -->
+    <div class="modifier-header">
+        <div>
+            <h1>
+                <i class="fas fa-edit"></i> Modifier Proforma
+            </h1>
+            <small class="opacity-75">N° {{ proforma.numero }}</small>
         </div>
+        <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Retour aux détails
+        </a>
     </div>
-    
+
     <form method="POST" id="proformaForm">
         <!-- Section Client -->
-        <div class="card mb-3">
+        <div class="card">
             <div class="card-header">
-                <h5>Informations Client</h5>
+                <h5>
+                    <i class="fas fa-user"></i> Informations Client
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="client_id" class="form-label">Client *</label>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="client_id" class="form-label">
+                            <i class="fas fa-user-circle"></i> Client *
+                        </label>
                         <select name="client_id" id="client_id" class="form-select" required>
                             <option value="">Sélectionnez un client</option>
                             {% for client in clients %}
@@ -32,87 +305,99 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="attn" class="form-label">ATTN (À l'attention de)</label>
-                        <input type="text" name="attn" id="attn" class="form-control" value="{{ proforma.attn or '' }}">
+                    <div class="col-md-6">
+                        <label for="attn" class="form-label">
+                            <i class="fas fa-at"></i> ATTN (À l'attention de)
+                        </label>
+                        <input type="text" name="attn" id="attn" class="form-control" value="{{ proforma.attn or '' }}" placeholder="Personne à contacter">
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Section Conditions -->
-        <div class="card mb-3">
+
+        <!-- Section Conditions Commerciales -->
+        <div class="card">
             <div class="card-header">
-                <h5>Conditions Commerciales</h5>
+                <h5>
+                    <i class="fas fa-handshake"></i> Conditions Commerciales
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="condition_paiement" class="form-label">Conditions de paiement</label>
-                        <input type="text" name="condition_paiement" id="condition_paiement" class="form-control" value="{{ proforma.condition_paiement or '' }}" placeholder="Ex: conditions de paiement">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="condition_paiement" class="form-label">
+                            <i class="fas fa-credit-card"></i> Conditions de paiement
+                        </label>
+                        <input type="text" name="condition_paiement" id="condition_paiement" class="form-control" value="{{ proforma.condition_paiement or '' }}" placeholder="Ex: 50% à la commande, 50% à la livraison">
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="delai_livraison" class="form-label">Délai de livraison</label>
+                    <div class="col-md-4">
+                        <label for="delai_livraison" class="form-label">
+                            <i class="fas fa-truck"></i> Délai de livraison
+                        </label>
                         <input type="text" name="delai_livraison" id="delai_livraison" class="form-control" value="{{ proforma.delai_livraison or '' }}" placeholder="Ex: 15 jours">
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="garantie" class="form-label">Garantie</label>
+                    <div class="col-md-4">
+                        <label for="garantie" class="form-label">
+                            <i class="fas fa-shield-alt"></i> Garantie
+                        </label>
                         <input type="text" name="garantie" id="garantie" class="form-control" value="{{ proforma.garantie or '' }}" placeholder="Ex: 12 mois">
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- NOUVEAU: Section Titre et Commentaire -->
-        <div class="card mb-3">
-            <div class="card-header bg-info text-white">
-                <h5>Informations complémentaires</h5>
+
+        <!-- Section Informations complémentaires -->
+        <div class="card">
+            <div class="card-header bg-info">
+                <h5>
+                    <i class="fas fa-info-circle"></i> Informations complémentaires
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <label for="proforma_title" class="form-label">Titre de la proforma (optionnel)</label>
-                        <input type="text" 
-                               name="proforma_title" 
-                               id="proforma_title" 
-                               class="form-control" 
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="proforma_title" class="form-label">
+                            <i class="fas fa-heading"></i> Titre de la proforma (optionnel)
+                        </label>
+                        <input type="text" name="proforma_title" id="proforma_title" class="form-control" 
                                placeholder="Ex: DEVIS MATERIEL MEDICAL - CAMPAGNE 2025"
                                value="{{ proforma.proforma_title or '' }}">
                         <small class="text-muted">Ce titre apparaîtra sur une ligne complète dans le tableau des produits</small>
                     </div>
-                    <div class="col-12 mb-3">
-                        <label for="proforma_comment" class="form-label">Commentaire (optionnel)</label>
-                        <textarea name="proforma_comment" 
-                                  id="proforma_comment" 
-                                  class="form-control" 
-                                  rows="3" 
+                    <div class="col-12">
+                        <label for="proforma_comment" class="form-label">
+                            <i class="fas fa-comment"></i> Commentaire (optionnel)
+                        </label>
+                        <textarea name="proforma_comment" id="proforma_comment" class="form-control" rows="3" 
                                   placeholder="Ex: Livraison à prévoir avant le 30/03/2025. Installation incluse.">{{ proforma.proforma_comment or '' }}</textarea>
                         <small class="text-muted">Ce commentaire apparaîtra avant les signatures</small>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Section Produits -->
-        <div class="card mb-3">
+        <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Produits</h5>
-                <button type="button" class="btn btn-sm btn-primary" onclick="ajouterLigne()">
-                    <i class="fas fa-plus"></i> Ajouter un produit
+                <h5>
+                    <i class="fas fa-boxes"></i> Produits
+                </h5>
+                <button type="button" class="btn-add" onclick="ajouterLigne()">
+                    <i class="fas fa-plus-circle"></i> Ajouter un produit
                 </button>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="produitsTable">
+                <div class="table-container">
+                    <table class="table-custom" id="produitsTable">
                         <thead>
                             <tr>
-                                <th style="width: 30px; cursor: pointer;"></th>
-                                <th>Produit</th>
-                                <th>Conditionnement</th>
-                                <th>Quantité</th>
-                                <th>Prix Unitaire (F CFA)</th>
-                                <th>Sous-Total</th>
-                                <th>Action</th>
+                                <th style="width: 40px;"></th>
+                                <th style="width: 30%">Produit</th>
+                                <th style="width: 15%">Conditionnement</th>
+                                <th style="width: 10%">Quantité</th>
+                                <th style="width: 15%">Prix Unitaire (FCFA)</th>
+                                <th style="width: 15%">Sous-Total</th>
+                                <th style="width: 50px">Action</th>
                             </tr>
                         </thead>
                         <tbody id="lignesContainer">
@@ -135,7 +420,7 @@
                                     <select name="conditionnement[]" class="form-select">
                                         <option value="">Standard</option>
                                         {% for cond in conditionnements %}
-                                        <option value="{{ cond.value }}" {% if ligne.conditionnement == cond.value %}selected{% endif %}>{{ cond.value }}</option>
+                                        <option value="{{ cond.value }}" {% if ligne.conditionnement == cond.value %}selected{% endif %}>{{ cond.value|capitalize }}</option>
                                         {% endfor %}
                                     </select>
                                 </td>
@@ -146,30 +431,37 @@
                                     <input type="number" name="prix[]" class="form-control prix-unitaire" value="{{ ligne.prix_unitaire }}" min="0" step="1000" required>
                                 </td>
                                 <td>
-                                    <span class="sous-total">{{ "{:,.0f}".format(ligne.sous_total) }} F</span>
+                                    <span class="sous-total">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }} FCFA</span>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">
-                                        <i class="fas fa-trash"></i> Supprimer
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)" title="Supprimer">
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
-                                 </td>
-                             </tr>
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr class="table-active">
-                                <td colspan="5" class="text-end"><strong>TOTAL</strong></td>
-                                <td colspan="2"><strong id="totalGlobal">{{ "{:,.0f}".format(proforma.total) }} F CFA</strong></td>
-                             </tr>
+                                <td colspan="5" class="text-end fw-bold">TOTAL GÉNÉRAL :</td>
+                                <td colspan="2">
+                                    <strong id="totalGlobal" class="total-global">{{ "{:,.0f}".format(proforma.total).replace(',', ' ') }} FCFA</strong>
+                                </td>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
         </div>
-        
-        <div class="d-flex justify-content-end gap-2 mb-5">
-            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn btn-secondary">Annuler</a>
-            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+
+        <!-- Boutons d'action -->
+        <div class="d-flex justify-content-end gap-3 mb-5">
+            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-cancel">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Enregistrer les modifications
+            </button>
         </div>
     </form>
 </div>
@@ -195,7 +487,6 @@
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 onEnd: function() {
-                    // Juste recalculer les totaux après le déplacement
                     recalculerTousLesTotaux();
                 }
             });
@@ -209,7 +500,7 @@
             const prixUnitaire = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
             const sousTotal = quantite * prixUnitaire;
             const sousTotalSpan = row.querySelector('.sous-total');
-            sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' F';
+            sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' FCFA';
         });
         calculerTotalGlobal();
     }
@@ -223,7 +514,7 @@
                 <i class="fas fa-grip-vertical" style="color: #ccc;"></i>
             </td>
             <td>
-                <select name="produit_id[]" class="form-select produit-select" required onchange="mettreAJourPrix(this)">
+                <select name="produit_id[]" class="form-select produit-select" required>
                     <option value="">Choisir</option>
                     {% for produit in produits %}
                     <option value="{{ produit.id }}" data-prix="{{ produit.prix_vente or 0 }}">
@@ -236,26 +527,34 @@
                 <select name="conditionnement[]" class="form-select">
                     <option value="">Standard</option>
                     {% for cond in conditionnements %}
-                    <option value="{{ cond.value }}">{{ cond.value }}</option>
+                    <option value="{{ cond.value }}">{{ cond.value|capitalize }}</option>
                     {% endfor %}
                 </select>
               </td>
             <td>
-                <input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required onchange="calculerTotalLigne(this)">
+                <input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required>
               </td>
             <td>
-                <input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1000" required onchange="calculerTotalLigne(this)">
+                <input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1000" required>
               </td>
             <td>
-                <span class="sous-total">0 F</span>
+                <span class="sous-total">0 FCFA</span>
               </td>
             <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">
-                    <i class="fas fa-trash"></i> Supprimer
+                <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)" title="Supprimer">
+                    <i class="fas fa-trash-alt"></i>
                 </button>
               </td>
         `;
         tbody.appendChild(newRow);
+        
+        // Attacher les écouteurs
+        const newSelect = newRow.querySelector('.produit-select');
+        newSelect.addEventListener('change', function() { mettreAJourPrix(this); });
+        const newQuantite = newRow.querySelector('.quantite');
+        newQuantite.addEventListener('change', function() { calculerTotalLigne(this); });
+        const newPrix = newRow.querySelector('.prix-unitaire');
+        newPrix.addEventListener('change', function() { calculerTotalLigne(this); });
     }
     
     function mettreAJourPrix(select) {
@@ -274,7 +573,7 @@
         const sousTotal = quantite * prixUnitaire;
         
         const sousTotalSpan = row.querySelector('.sous-total');
-        sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' F';
+        sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' FCFA';
         
         calculerTotalGlobal();
     }
@@ -282,10 +581,10 @@
     function calculerTotalGlobal() {
         let total = 0;
         document.querySelectorAll('.sous-total').forEach(span => {
-            const valeur = parseFloat(span.textContent.replace(' F', '').replace(/\s/g, '')) || 0;
+            const valeur = parseFloat(span.textContent.replace('FCFA', '').replace(/\s/g, '')) || 0;
             total += valeur;
         });
-        document.getElementById('totalGlobal').textContent = total.toLocaleString('fr-FR') + ' F CFA';
+        document.getElementById('totalGlobal').textContent = total.toLocaleString('fr-FR') + ' FCFA';
     }
     
     function supprimerLigne(btn) {
@@ -304,30 +603,19 @@
         initSortable();
         
         // Ajouter les écouteurs d'événements
-        document.querySelectorAll('.quantite, .prix-unitaire').forEach(input => {
+        document.querySelectorAll('.produit-select').forEach(select => {
+            select.addEventListener('change', function() { mettreAJourPrix(this); });
+        });
+        document.querySelectorAll('.quantite').forEach(input => {
+            input.addEventListener('change', () => calculerTotalLigne(input));
+        });
+        document.querySelectorAll('.prix-unitaire').forEach(input => {
             input.addEventListener('change', () => calculerTotalLigne(input));
         });
         calculerTotalGlobal();
     });
 </script>
 
-<style>
-    /* Style pour le drag & drop - discret */
-    .sortable-ghost {
-        opacity: 0.3;
-        background-color: #e9ecef;
-    }
-    
-    .drag-handle:hover {
-        cursor: grab;
-    }
-    
-    .drag-handle:active {
-        cursor: grabbing;
-    }
-    
-    .drag-handle:hover i {
-        color: #666 !important;
-    }
-</style>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

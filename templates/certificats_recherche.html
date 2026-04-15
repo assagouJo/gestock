@@ -1,182 +1,509 @@
 <!-- templates/certificats/recherche.html -->
 {% extends "base.html" %}
 
-{% block title %}Recherche certificats de réparation{% endblock %}
+{% block title %}Recherche certificats de réparation | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .recherche-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .recherche-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .recherche-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add, .btn-list {
+        background: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add {
+        color: var(--success-color);
+    }
+
+    .btn-list {
+        color: var(--info-color);
+    }
+
+    .btn-add:hover, .btn-list:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes */
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .card-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-header.bg-light {
+        background: var(--light-color) !important;
+        color: var(--dark-color);
+    }
+
+    /* Formulaire de recherche */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Résultats */
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .results-count {
+        background: var(--light-color);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+
+    .results-count strong {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    /* Tableau */
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 15px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: left;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge-numero {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-produits {
+        background: var(--info-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-montant {
+        background: var(--success-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Boutons action */
+    .action-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .action-group .btn {
+        padding: 5px 10px;
+        font-size: 0.7rem;
+        border-radius: 6px;
+    }
+
+    /* Message vide */
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--light-color);
+        margin-bottom: 15px;
+    }
+
+    .empty-state h4 {
+        color: var(--dark-color);
+        margin-bottom: 10px;
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--danger-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .recherche-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .results-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .action-group {
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px 10px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3>Recherche certificats de réparation</h3>
-                    <div>
-                        <a href="{{ url_for('creer_certificat') }}" class="btn btn-success">
-                            <i class="bi bi-plus-circle"></i> Nouveau certificat
-                        </a>
-                        <a href="{{ url_for('liste_certificats') }}" class="btn btn-secondary">
-                            <i class="bi bi-list"></i> Tous les certificats
+<div class="recherche-container">
+    <!-- En-tête -->
+    <div class="recherche-header">
+        <h3>
+            <i class="fas fa-search"></i> Recherche certificats de réparation
+        </h3>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('creer_certificat') }}" class="btn-add">
+                <i class="fas fa-plus-circle"></i> Nouveau certificat
+            </a>
+            <a href="{{ url_for('liste_certificats') }}" class="btn-list">
+                <i class="fas fa-list"></i> Tous les certificats
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulaire de recherche avancée -->
+    <div class="card">
+        <div class="card-header">
+            <h5>
+                <i class="fas fa-filter"></i> Recherche avancée
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('recherche_certificats') }}" id="searchForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-keyboard"></i> Recherche textuelle
+                        </label>
+                        <input type="text" class="form-control" id="q" name="q" 
+                               placeholder="Numéro certificat, client, technicien..." 
+                               value="{{ search_term if search_term else '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Date de début
+                        </label>
+                        <input type="date" class="form-control" id="date_debut" name="date_debut" 
+                               value="{{ date_debut if date_debut else '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-check"></i> Date de fin
+                        </label>
+                        <input type="date" class="form-control" id="date_fin" name="date_fin" 
+                               value="{{ date_fin if date_fin else '' }}">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Client
+                        </label>
+                        <select class="form-select" id="client_id" name="client_id">
+                            <option value="">Tous les clients</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if client_id|int == client.id %}selected{% endif %}>
+                                {{ client.nom_client }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-user-cog"></i> Technicien
+                        </label>
+                        <input type="text" class="form-control" id="technicien" name="technicien" 
+                               placeholder="Nom du technicien" value="{{ technicien_filter if technicien_filter else '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-euro-sign"></i> Montant minimum (€)
+                        </label>
+                        <input type="number" step="0.01" class="form-control" id="montant_min" name="montant_min" 
+                               placeholder="Montant minimum" value="{{ montant_min if montant_min else '' }}">
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                        <a href="{{ url_for('recherche_certificats') }}" class="btn btn-secondary">
+                            <i class="fas fa-undo-alt"></i> Réinitialiser
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
-                    <!-- Formulaire de recherche avancée -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5>Recherche avancée</h5>
-                        </div>
-                        <div class="card-body">
-                            <form method="GET" action="{{ url_for('recherche_certificats') }}" id="searchForm">
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="q" class="form-label">Recherche textuelle</label>
-                                        <input type="text" class="form-control" id="q" name="q" 
-                                               placeholder="Numéro certificat, client, technicien..." 
-                                               value="{{ search_term if search_term else '' }}">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="date_debut" class="form-label">Date de début</label>
-                                        <input type="date" class="form-control" id="date_debut" name="date_debut" 
-                                               value="{{ date_debut if date_debut else '' }}">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="date_fin" class="form-label">Date de fin</label>
-                                        <input type="date" class="form-control" id="date_fin" name="date_fin" 
-                                               value="{{ date_fin if date_fin else '' }}">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="client_id" class="form-label">Client</label>
-                                        <select class="form-control" id="client_id" name="client_id">
-                                            <option value="">Tous les clients</option>
-                                            {% for client in clients %}
-                                            <option value="{{ client.id }}" {% if client_id|int == client.id %}selected{% endif %}>
-                                                {{ client.nom_client }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="technicien" class="form-label">Technicien</label>
-                                        <input type="text" class="form-control" id="technicien" name="technicien" 
-                                               placeholder="Nom du technicien" value="{{ technicien_filter if technicien_filter else '' }}">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="montant_min" class="form-label">Montant minimum (€)</label>
-                                        <input type="number" step="0.01" class="form-control" id="montant_min" name="montant_min" 
-                                               placeholder="Montant minimum" value="{{ montant_min if montant_min else '' }}">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12 text-end">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-search"></i> Rechercher
-                                        </button>
-                                        <a href="{{ url_for('recherche_certificats') }}" class="btn btn-secondary">
-                                            <i class="bi bi-arrow-repeat"></i> Réinitialiser
-                                        </a>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <!-- Résultats de recherche -->
-                    <div class="card">
-                        <div class="card-header bg-light">
-                            <h5>Résultats de recherche</h5>
-                            <small class="text-muted">{{ certificats|length }} certificat(s) trouvé(s)</small>
-                        </div>
-                        <div class="card-body">
-                            {% if certificats %}
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>N° Certificat</th>
-                                            <th>Date réparation</th>
-                                            <th>Client</th>
-                                            <th>Technicien</th>
-                                            <th>Produits</th>
-                                            <th>Montant total</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for certificat in certificats %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ certificat.numero_certificat }}</strong>
-                                            </td>
-                                            <td>{{ certificat.date_reparation.strftime('%d/%m/%Y') }}</td>
-                                            <td>
-                                                {{ certificat.client.nom_client }}
-                                                {% if certificat.client.telephone %}
-                                                <br><small class="text-muted">{{ certificat.client.telephone }}</small>
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ certificat.technicien or '-' }}</td>
-                                            <td>
-                                                <span class="badge bg-info">{{ certificat.reparations|length }}</span>
-                                            </td>
-                                            <td>
-                                                {% set total = certificat.reparations|sum(attribute='cout_reparation') %}
-                                                <strong>{{ "{:,.2f}".format(total) }} €</strong>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="{{ url_for('voir_certificat', id=certificat.id) }}" 
-                                                       class="btn btn-info" title="Voir">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                    <a href="{{ url_for('modifier_certificat', id=certificat.id) }}" 
-                                                       class="btn btn-warning" title="Modifier">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    <a href="{{ url_for('generer_pdf_certificat', id=certificat.id) }}" 
-                                                       class="btn btn-primary" title="PDF" target="_blank">
-                                                        <i class="bi bi-file-pdf"></i>
-                                                    </a>
-                                                    <button type="button" 
-                                                            class="btn btn-danger" 
-                                                            title="Supprimer"
-                                                            onclick="confirmDelete('{{ certificat.id }}', '{{ certificat.numero_certificat }}')">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-muted py-5">
-                                <i class="bi bi-search fs-1"></i>
-                                <p class="mt-3">Aucun certificat trouvé avec les critères de recherche</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Résultats de recherche -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <div class="results-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Résultats de recherche
+                </h5>
+                <div class="results-count">
+                    <i class="fas fa-file-alt"></i> 
+                    <strong>{{ certificats|length }}</strong> certificat(s) trouvé(s)
                 </div>
             </div>
+        </div>
+        <div class="card-body p-0">
+            {% if certificats %}
+            <div class="table-wrapper">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>N° Certificat</th>
+                            <th>Date réparation</th>
+                            <th>Client</th>
+                            <th>Technicien</th>
+                            <th>Produits</th>
+                            <th>Montant total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for certificat in certificats %}
+                        <tr>
+                            <td>
+                                <span class="badge-numero" title="Certificat n°{{ certificat.numero_certificat }}">
+                                    {{ certificat.numero_certificat }}
+                                </span>
+                            </div>
+                            <td>{{ certificat.date_reparation.strftime('%d/%m/%Y') }}</div>
+                            <td>
+                                <strong>{{ certificat.client.nom_client }}</strong>
+                                {% if certificat.client.telephone %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-phone-alt"></i> {{ certificat.client.telephone }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            <td>
+                                {% if certificat.technicien %}
+                                    <i class="fas fa-user-cog text-info"></i> {{ certificat.technicien }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </div>
+                            <td>
+                                <span class="badge-produits">
+                                    <i class="fas fa-tools"></i> {{ certificat.reparations|length }}
+                                </span>
+                            </div>
+                            <td>
+                                {% set total = certificat.reparations|sum(attribute='cout_reparation') %}
+                                <span class="badge-montant">
+                                    <i class="fas fa-euro-sign"></i> {{ "{:,.2f}".format(total) }}
+                                </span>
+                            </div>
+                            <td>
+                                <div class="action-group">
+                                    <a href="{{ url_for('voir_certificat', id=certificat.id) }}" 
+                                       class="btn btn-info" title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('modifier_certificat', id=certificat.id) }}" 
+                                       class="btn btn-warning" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ url_for('generer_pdf_certificat', id=certificat.id) }}" 
+                                       class="btn btn-primary" title="PDF" target="_blank">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-danger" 
+                                            title="Supprimer"
+                                            onclick="confirmDelete('{{ certificat.id }}', '{{ certificat.numero_certificat }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h4>Aucun certificat trouvé</h4>
+                <p class="text-muted">Aucun certificat ne correspond aux critères de recherche</p>
+                <a href="{{ url_for('creer_certificat') }}" class="btn btn-success mt-3">
+                    <i class="fas fa-plus-circle"></i> Créer un certificat
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <!-- Modal de confirmation de suppression -->
 <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 5px; width: 400px; max-width: 90%;">
-        <div style="margin-bottom: 15px;">
-            <h5>Confirmer la suppression</h5>
-            <button type="button" onclick="hideDeleteModal()" style="float: right; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 25px; border-radius: 15px; width: 400px; max-width: 90%;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-danger mb-0">
+                <i class="fas fa-exclamation-triangle"></i> Confirmer la suppression
+            </h5>
+            <button type="button" onclick="hideDeleteModal()" class="btn-close"></button>
         </div>
-        <div style="margin-bottom: 20px;">
+        <div class="mb-4">
             <p>Êtes-vous sûr de vouloir supprimer le certificat <strong id="deleteCertificatNumero"></strong> ?</p>
-            <p class="text-danger">Cette action est irréversible !</p>
+            <p class="text-danger small">
+                <i class="fas fa-info-circle"></i> Cette action est irréversible !
+            </p>
         </div>
-        <div style="text-align: right;">
+        <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Annuler</button>
             <form id="deleteForm" method="POST" style="display: inline;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
@@ -185,6 +512,9 @@
         </div>
     </div>
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
 function confirmDelete(id, numero) {
@@ -203,5 +533,10 @@ window.onclick = function(event) {
         hideDeleteModal();
     }
 }
+
+// Auto-submit sur changement de filtre (optionnel)
+document.getElementById('client_id')?.addEventListener('change', function() {
+    document.getElementById('searchForm').submit();
+});
 </script>
 {% endblock %}

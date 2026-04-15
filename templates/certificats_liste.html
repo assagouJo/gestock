@@ -1,216 +1,569 @@
 <!-- templates/certificats/liste.html -->
 {% extends "base.html" %}
 
-{% block title %}Liste des certificats de réparation{% endblock %}
+{% block title %}Liste des certificats de réparation | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .certificats-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .certificats-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .certificats-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--info-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+
+    .stat-card.total::before { background: var(--primary-color); }
+    .stat-card.mois::before { background: var(--info-color); }
+    .stat-card.produits::before { background: var(--success-color); }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+
+    .stat-card.total .stat-value { color: var(--primary-color); }
+    .stat-card.mois .stat-value { color: var(--info-color); }
+    .stat-card.produits .stat-value { color: var(--success-color); }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Barre de recherche - FILTRAGE EN TEMPS RÉEL */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 15px 20px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .filter-badge {
+        background: var(--info-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 15px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        text-align: left;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* Ligne masquée par le filtre */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
+    /* Badges */
+    .badge-produits {
+        background: var(--info-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-numero {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    /* Boutons action */
+    .action-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .action-group .btn {
+        padding: 5px 10px;
+        font-size: 0.7rem;
+        border-radius: 6px;
+    }
+
+    /* Pagination */
+    .pagination-custom {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .page-link-custom {
+        padding: 8px 12px;
+        border: 1px solid var(--light-color);
+        border-radius: 8px;
+        color: var(--dark-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link-custom:hover {
+        background: var(--info-color);
+        color: white;
+        border-color: var(--info-color);
+    }
+
+    .page-link-custom.active {
+        background: var(--info-color);
+        color: white;
+        border-color: var(--info-color);
+    }
+
+    .page-link-custom.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .certificats-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .search-input-group {
+            flex-direction: column;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .action-group {
+            justify-content: center;
+        }
+        
+        .table-custom {
+            font-size: 0.75rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px 10px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3>Certificats de réparation</h3>
-                    <a href="{{ url_for('creer_certificat') }}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Nouveau certificat
-                    </a>
-                </div>
-                <div class="card-body">
-                    <!-- Barre de recherche -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <form method="GET" action="{{ url_for('recherche_certificats') }}" class="d-flex">
-                                <input type="text" name="q" class="form-control me-2" 
-                                       placeholder="Rechercher par numéro, client ou technicien..." 
-                                       value="{{ search_term if search_term else '' }}">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-search"></i> Rechercher
-                                </button>
-                                {% if search_term %}
-                                <a href="{{ url_for('liste_certificats') }}" class="btn btn-secondary ms-2">
-                                    <i class="bi bi-x-circle"></i> Réinitialiser
-                                </a>
-                                {% endif %}
-                            </form>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-                                    <i class="bi bi-printer"></i> Imprimer
-                                </button>
-                                <button type="button" class="btn btn-outline-success" id="exportExcel">
-                                    <i class="bi bi-file-excel"></i> Exporter Excel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Statistiques -->
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total certificats</h5>
-                                    <h2>{{ certificats.total }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-info text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">Ce mois</h5>
-                                    <h2>{{ certificats_mois }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">Produits réparés</h5>
-                                    <h2>{{ total_produits }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tableau des certificats -->
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="certificatsTable">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>N° Certificat</th>
-                                    <th>Date réparation</th>
-                                    <th>Client</th>
-                                    <th>Technicien</th>
-                                    <th>Produits</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for certificat in certificats.items %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ certificat.numero_certificat }}</strong>
-                                    </td>
-                                    <td>{{ certificat.date_reparation.strftime('%d/%m/%Y') }}</td>
-                                    <td>
-                                        {{ certificat.client.nom_client }}
-                                        {% if certificat.client.telephone %}
-                                        <br><small class="text-muted">{{ certificat.client.telephone }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ certificat.technicien or '-' }}</td>
-                                    <td>
-                                        <span class="badge bg-info">{{ certificat.reparations|length }}</span>
-                                        <button type="button" class="btn btn-sm btn-link" 
-                                                onclick="showProducts({{ certificat.id }})">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ url_for('voir_certificat', id=certificat.id) }}" 
-                                               class="btn btn-info" title="Voir">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a href="{{ url_for('modifier_certificat', id=certificat.id) }}" 
-                                               class="btn btn-warning" title="Modifier">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="{{ url_for('generer_pdf_certificat', id=certificat.id) }}" 
-                                               class="btn btn-primary" title="PDF" target="_blank">
-                                                <i class="bi bi-file-pdf"></i>
-                                            </a>
-                                            <button type="button" 
-                                                    class="btn btn-danger" 
-                                                    title="Supprimer"
-                                                    onclick="confirmDelete('{{ certificat.id }}', '{{ certificat.numero_certificat }}')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted py-4">
-                                        <i class="bi bi-inbox fs-1"></i>
-                                        <p class="mt-2">Aucun certificat de réparation trouvé</p>
-                                        <a href="{{ url_for('creer_certificat') }}" class="btn btn-success mt-2">
-                                            <i class="bi bi-plus-circle"></i> Créer le premier certificat
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Pagination -->
-                    {% if certificats.pages > 1 %}
-                    <nav aria-label="Page navigation" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            {% if certificats.has_prev %}
-                            <li class="page-item">
-                                <a class="page-link" href="{{ url_for('liste_certificats', page=certificats.prev_num) }}">
-                                    <i class="bi bi-chevron-left"></i> Précédent
-                                </a>
-                            </li>
-                            {% else %}
-                            <li class="page-item disabled">
-                                <span class="page-link"><i class="bi bi-chevron-left"></i> Précédent</span>
-                            </li>
-                            {% endif %}
-                            
-                            {% for page_num in certificats.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
-                                {% if page_num %}
-                                    {% if page_num == certificats.page %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ page_num }}</span>
-                                    </li>
-                                    {% else %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('liste_certificats', page=page_num) }}">{{ page_num }}</a>
-                                    </li>
-                                    {% endif %}
-                                {% else %}
-                                    <li class="page-item disabled">
-                                        <span class="page-link">...</span>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if certificats.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="{{ url_for('liste_certificats', page=certificats.next_num) }}">
-                                    Suivant <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                            {% else %}
-                            <li class="page-item disabled">
-                                <span class="page-link">Suivant <i class="bi bi-chevron-right"></i></span>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-                    
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <p class="text-muted">
-                                Affichage de {{ certificats.items|length }} sur {{ certificats.total }} certificats
-                                {% if search_term %} - Filtre: "{{ search_term }}"{% endif %}
-                            </p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <select class="form-select form-select-sm w-auto d-inline-block" id="perPage">
-                                <option value="10" {% if per_page == 10 %}selected{% endif %}>10 par page</option>
-                                <option value="20" {% if per_page == 20 %}selected{% endif %}>20 par page</option>
-                                <option value="50" {% if per_page == 50 %}selected{% endif %}>50 par page</option>
-                                <option value="100" {% if per_page == 100 %}selected{% endif %}>100 par page</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+<div class="certificats-container">
+    <!-- En-tête -->
+    <div class="certificats-header">
+        <h3>
+            <i class="fas fa-file-alt"></i> Certificats de réparation
+        </h3>
+        <a href="{{ url_for('creer_certificat') }}" class="btn-add">
+            <i class="fas fa-plus-circle"></i> Nouveau certificat
+        </a>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-icon">
+                <i class="fas fa-file-alt"></i>
             </div>
+            <div class="stat-value" id="totalCertificats">{{ certificats.total }}</div>
+            <div class="stat-label">Total certificats</div>
+        </div>
+        <div class="stat-card mois">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-value">{{ certificats_mois }}</div>
+            <div class="stat-label">Ce mois-ci</div>
+        </div>
+        <div class="stat-card produits">
+            <div class="stat-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="stat-value">{{ total_produits }}</div>
+            <div class="stat-label">Produits réparés</div>
+        </div>
+    </div>
+
+    <!-- Barre de recherche - FILTRAGE EN TEMPS RÉEL (sans redirection) -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-input" 
+                   placeholder="🔍 Rechercher par numéro, client ou technicien...">
+            <button type="button" id="clearSearch" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Effacer
+            </button>
+        </div>
+        <div class="mt-2" id="searchStats">
+            <small class="text-muted">
+                <i class="fas fa-info-circle"></i> 
+                <span id="visibleCount">{{ certificats.items|length }}</span> certificat(s) affiché(s) sur <span id="totalCount">{{ certificats.total }}</span>
+            </small>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-list-ul"></i> Liste des certificats
+                <span class="badge bg-secondary ms-2" id="badgeCount">{{ certificats.total }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-print"></i> Imprimer
+                </button>
+                <button type="button" id="exportExcel" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-custom" id="certificatsTable">
+                <thead>
+                    <tr>
+                        <th>N° Certificat</th>
+                        <th>Date réparation</th>
+                        <th>Client</th>
+                        <th>Technicien</th>
+                        <th>Produits</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for certificat in certificats.items %}
+                    <tr class="certificat-row" data-numero="{{ certificat.numero_certificat|lower }}" 
+                        data-client="{{ certificat.client.nom_client|lower }}"
+                        data-technicien="{{ (certificat.technicien or '')|lower }}">
+                        <td>
+                            <span class="badge-numero" title="Certificat n°{{ certificat.numero_certificat }}">
+                                {{ certificat.numero_certificat }}
+                            </span>
+                        </div>
+                        <td>{{ certificat.date_reparation.strftime('%d/%m/%Y') }}</div>
+                        <td>
+                            <strong>{{ certificat.client.nom_client }}</strong>
+                            {% if certificat.client.telephone %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-phone-alt"></i> {{ certificat.client.telephone }}
+                                </small>
+                            {% endif %}
+                        </div>
+                        <td>
+                            {% if certificat.technicien %}
+                                <i class="fas fa-user-cog text-info"></i> {{ certificat.technicien }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </div>
+                        <td>
+                            <span class="badge-produits">
+                                <i class="fas fa-tools"></i> {{ certificat.reparations|length }}
+                            </span>
+                            <button type="button" class="btn btn-sm btn-link" 
+                                    onclick="showProducts({{ certificat.id }})" title="Voir les produits">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <td>
+                            <div class="action-group">
+                                <a href="{{ url_for('voir_certificat', id=certificat.id) }}" 
+                                   class="btn btn-info" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('modifier_certificat', id=certificat.id) }}" 
+                                   class="btn btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('generer_pdf_certificat', id=certificat.id) }}" 
+                                   class="btn btn-primary" title="PDF" target="_blank">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-danger" 
+                                        title="Supprimer"
+                                        onclick="confirmDelete('{{ certificat.id }}', '{{ certificat.numero_certificat }}')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </tr>
+                    {% else %}
+                    <tr id="emptyRow">
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>Aucun certificat de réparation trouvé</p>
+                            <a href="{{ url_for('creer_certificat') }}" class="btn btn-success">
+                                <i class="fas fa-plus-circle"></i> Créer le premier certificat
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination (conservée pour la navigation) -->
+    {% if certificats.pages > 1 %}
+    <div class="pagination-custom">
+        {% if certificats.has_prev %}
+        <a href="{{ url_for('liste_certificats', page=certificats.prev_num, per_page=per_page) }}" 
+           class="page-link-custom">
+            <i class="fas fa-chevron-left"></i> Précédent
+        </a>
+        {% else %}
+        <span class="page-link-custom disabled">
+            <i class="fas fa-chevron-left"></i> Précédent
+        </span>
+        {% endif %}
+        
+        {% for page_num in certificats.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+            {% if page_num %}
+                {% if page_num == certificats.page %}
+                <span class="page-link-custom active">{{ page_num }}</span>
+                {% else %}
+                <a href="{{ url_for('liste_certificats', page=page_num, per_page=per_page) }}" 
+                   class="page-link-custom">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span class="page-link-custom disabled">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if certificats.has_next %}
+        <a href="{{ url_for('liste_certificats', page=certificats.next_num, per_page=per_page) }}" 
+           class="page-link-custom">
+            Suivant <i class="fas fa-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="page-link-custom disabled">
+            Suivant <i class="fas fa-chevron-right"></i>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Info pagination -->
+    <div class="row mt-3 align-items-center">
+        <div class="col-md-6">
+            <p class="text-muted small mb-0">
+                <i class="fas fa-info-circle"></i> 
+                Affichage de <span id="pageInfoCount">{{ certificats.items|length }}</span> sur {{ certificats.total }} certificats
+            </p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <select class="form-select form-select-sm w-auto d-inline-block" id="perPage">
+                <option value="10" {% if per_page == 10 %}selected{% endif %}>10 par page</option>
+                <option value="20" {% if per_page == 20 %}selected{% endif %}>20 par page</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50 par page</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100 par page</option>
+            </select>
         </div>
     </div>
 </div>
@@ -220,11 +573,18 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Détails des produits réparés</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-tools"></i> Détails des produits réparés
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="productsModalBody">
-                <!-- Contenu chargé dynamiquement -->
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2">Chargement des produits...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -232,16 +592,20 @@
 
 <!-- Modal de confirmation de suppression -->
 <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 5px; width: 400px; max-width: 90%;">
-        <div style="margin-bottom: 15px;">
-            <h5>Confirmer la suppression</h5>
-            <button type="button" onclick="hideDeleteModal()" style="float: right; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 25px; border-radius: 15px; width: 400px; max-width: 90%;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-danger mb-0">
+                <i class="fas fa-exclamation-triangle"></i> Confirmer la suppression
+            </h5>
+            <button type="button" onclick="hideDeleteModal()" class="btn-close"></button>
         </div>
-        <div style="margin-bottom: 20px;">
+        <div class="mb-4">
             <p>Êtes-vous sûr de vouloir supprimer le certificat <strong id="deleteCertificatNumero"></strong> ?</p>
-            <p class="text-danger">Cette action est irréversible !</p>
+            <p class="text-danger small">
+                <i class="fas fa-info-circle"></i> Cette action est irréversible !
+            </p>
         </div>
-        <div style="text-align: right;">
+        <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Annuler</button>
             <form id="deleteForm" method="POST" style="display: inline;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
@@ -251,47 +615,143 @@
     </div>
 </div>
 
-<style>
-.btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-}
-.table td {
-    vertical-align: middle;
-}
-.badge {
-    font-size: 0.9em;
-}
-</style>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
+// Filtrage en temps réel (côté client)
+function filterCertificats() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#tableBody .certificat-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const numero = row.dataset.numero || '';
+        const client = row.dataset.client || '';
+        const technicien = row.dataset.technicien || '';
+        
+        const match = searchTerm === '' || 
+                     numero.includes(searchTerm) || 
+                     client.includes(searchTerm) || 
+                     technicien.includes(searchTerm);
+        
+        if (match) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            // Mettre en évidence le texte recherché
+            if (searchTerm !== '') {
+                highlightRow(row, searchTerm);
+            } else {
+                removeHighlight(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    // Mettre à jour les compteurs
+    document.getElementById('visibleCount').innerText = visibleCount;
+    document.getElementById('badgeCount').innerText = visibleCount;
+    document.getElementById('pageInfoCount').innerText = visibleCount;
+    
+    // Afficher/masquer le message "aucun résultat"
+    const emptyRow = document.getElementById('emptyRow');
+    if (emptyRow) {
+        if (visibleCount === 0 && rows.length > 0) {
+            emptyRow.style.display = '';
+        } else {
+            emptyRow.style.display = 'none';
+        }
+    }
+}
+
+// Mettre en évidence le texte recherché
+function highlightRow(row, searchTerm) {
+    const cells = row.querySelectorAll('td');
+    cells.forEach(cell => {
+        const originalText = cell.innerText;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        if (newText !== originalText) {
+            cell.innerHTML = newText;
+        }
+    });
+}
+
+// Supprimer la mise en évidence
+function removeHighlight(row) {
+    const cells = row.querySelectorAll('td');
+    cells.forEach(cell => {
+        const originalText = cell.innerText;
+        if (cell.innerHTML !== originalText) {
+            cell.innerHTML = originalText;
+        }
+    });
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    filterCertificats();
+});
+
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    filterCertificats();
+});
+
 // Fonction pour afficher les produits
 function showProducts(certificatId) {
+    const modalBody = document.getElementById('productsModalBody');
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2">Chargement des produits...</p>
+        </div>
+    `;
+    
     fetch(`/api/certificats/${certificatId}/produits`)
         .then(response => response.json())
         .then(data => {
             let html = '<div class="list-group">';
-            data.forEach(produit => {
+            data.forEach((produit, index) => {
                 html += `
                     <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">${produit.marque} ${produit.model}</h6>
-                            <small>${produit.cout_reparation} €</small>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="fas fa-box text-info"></i>
+                                    ${produit.marque || ''} ${produit.model || ''}
+                                </h6>
+                                <p class="mb-1"><strong>Code:</strong> ${produit.code_produit || '-'}</p>
+                                <p class="mb-1"><strong>Nom:</strong> ${produit.nom_produit || '-'}</p>
+                                <p class="mb-1"><strong>Numéro série:</strong> ${produit.numero_serie || '-'}</p>
+                                <p class="mb-1"><strong>Tâches effectuées:</strong> ${produit.taches_effectuees || '-'}</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">${produit.cout_reparation || 0} €</span>
+                                <br>
+                                <small class="text-muted">Garantie: ${produit.garantie_mois || 0} mois</small>
+                            </div>
                         </div>
-                        <p class="mb-1"><strong>Code:</strong> ${produit.code_produit}</p>
-                        <p class="mb-1"><strong>Nom:</strong> ${produit.nom_produit}</p>
-                        <p class="mb-1"><strong>Tâches:</strong> ${produit.taches_effectuees.substring(0, 100)}${produit.taches_effectuees.length > 100 ? '...' : ''}</p>
-                        <small class="text-muted">Garantie: ${produit.garantie_mois} mois</small>
                     </div>
                 `;
             });
             html += '</div>';
-            document.getElementById('productsModalBody').innerHTML = html;
+            modalBody.innerHTML = html;
             new bootstrap.Modal(document.getElementById('productsModal')).show();
         })
         .catch(error => {
             console.error('Erreur:', error);
-            alert('Erreur lors du chargement des produits');
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Erreur lors du chargement des produits
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('productsModal')).show();
         });
 }
 
@@ -316,17 +776,33 @@ window.onclick = function(event) {
 
 // Changer le nombre d'éléments par page
 document.getElementById('perPage')?.addEventListener('change', function() {
-    window.location.href = `{{ url_for('liste_certificats') }}?per_page=${this.value}`;
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', this.value);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
 });
 
-// Exporter en Excel
+// Exporter en Excel (uniquement les lignes visibles)
 document.getElementById('exportExcel')?.addEventListener('click', function() {
     const table = document.getElementById('certificatsTable');
-    const html = table.outerHTML;
+    const rows = table.querySelectorAll('tbody tr:not(.hidden-row)');
+    const cloneTable = table.cloneNode(true);
+    const cloneTbody = cloneTable.querySelector('tbody');
+    
+    // Supprimer les lignes masquées
+    const allRows = cloneTbody.querySelectorAll('tr');
+    allRows.forEach(row => {
+        const originalRow = Array.from(rows).find(r => r.isEqualNode(row));
+        if (!originalRow && row.id !== 'emptyRow') {
+            row.remove();
+        }
+    });
+    
+    const html = cloneTable.outerHTML;
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'certificats_reparation.xls';
+    link.download = 'certificats_reparation_filtres.xls';
     link.click();
     URL.revokeObjectURL(link.href);
 });

@@ -56,6 +56,42 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
+    /* Barre de recherche */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .search-results {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
@@ -207,8 +243,21 @@
         text-overflow: ellipsis;
     }
 
+    /* Ligne masquée par le filtre */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+
     /* Badges compacts avec tooltip */
-    .badge-client, .badge-vendeur, .badge-compagnie {
+    .badge-client, .badge-vendeur, .badge-compagnie, .badge-numero {
         display: inline-block;
         padding: 3px 8px;
         border-radius: 12px;
@@ -219,6 +268,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
         cursor: help;
+    }
+
+    .badge-numero {
+        background: var(--dark-color);
+        color: white;
     }
 
     .badge-client { background: var(--primary-color); color: white; }
@@ -327,13 +381,28 @@
         </div>
     </div>
 
+    <!-- Barre de recherche -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-input" 
+                   placeholder="Rechercher par numéro, client, vendeur, compagnie...">
+            <button type="button" id="clearSearch" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Effacer
+            </button>
+        </div>
+        <div class="search-results" id="searchResults">
+            <i class="bi bi-info-circle"></i> 
+            <span id="resultCount">{{ bons|length }}</span> bon(s) affiché(s)
+        </div>
+    </div>
+
     <!-- Formulaire de suppression -->
     <form method="POST" id="delete-form" action="{{ url_for('delete_bons_commande') }}">
         <div class="table-container">
             <div class="table-header">
                 <div class="table-title">
                     <i class="bi bi-list-ul"></i> Liste des bons de commande
-                    <span class="badge bg-secondary ms-2">{{ bons|length }}</span>
+                    <span class="badge bg-secondary ms-2" id="badgeCount">{{ bons|length }}</span>
                 </div>
                 <div class="export-buttons">
                     <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
@@ -363,14 +432,28 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                         {% for bon in bons %}
-                        <tr>
+                        <tr class="bon-row" 
+                            data-numero="{{ bon.numero|lower }}"
+                            data-client="{{ bon.client.nom_client|lower }}"
+                            data-vendeur="{{ bon.vendeur.nom|lower if bon.vendeur else '' }}"
+                            data-compagnie="{{ bon.compagnie.nom|lower if bon.compagnie else '' }}"
+                            data-status="{{ bon.status|lower }}">
                             <td class="text-center">
                                 <input type="checkbox" name="bon_ids[]" value="{{ bon.id }}" class="checkbox-custom bon-checkbox">
                             </td>
-                            <td class="fw-bold">{{ bon.numero }}</td>
-                            <td>{{ bon.date_creation.strftime('%d/%m/%y') }}</td>
+                            
+                            <!-- NUMERO AVEC TOOLTIP -->
+                            <td class="fw-bold">
+                                <span class="badge-numero" 
+                                      title="Bon de commande n°{{ bon.numero }}"
+                                      style="cursor: help;">
+                                    {{ bon.numero }}
+                                </span>
+                            </div>
+                            
+                            <td class="text-center">{{ bon.date_creation.strftime('%d/%m/%y') }}</div>
                             
                             <!-- CLIENT AVEC TOOLTIP -->
                             <td>
@@ -379,7 +462,7 @@
                                       style="cursor: help;">
                                     {{ bon.client.nom_client|truncate(18, true) }}
                                 </span>
-                            </td>
+                            </div>
                             
                             <!-- VENDEUR AVEC TOOLTIP -->
                             <td>
@@ -392,7 +475,7 @@
                                 {% else %}
                                     <span class="badge bg-secondary" title="Non assigné">N/A</span>
                                 {% endif %}
-                            </td>
+                            </div>
                             
                             <!-- COMPAGNIE AVEC TOOLTIP -->
                             <td>
@@ -405,10 +488,10 @@
                                 {% else %}
                                     <span class="badge bg-secondary" title="Non assigné">N/A</span>
                                 {% endif %}
-                            </td>
+                            </div>
                             
-                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</td>
-                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</td>
+                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</div>
+                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</div>
                             <td class="text-center">
                                 {% set reste = bon.lignes | sum(attribute='reste_a_livrer') %}
                                 {% if reste > 0 %}
@@ -416,8 +499,8 @@
                                 {% else %}
                                     <span class="badge bg-success" title="Totalement livré">0</span>
                                 {% endif %}
-                            </td>
-                            <td class="montant">{{ "{:,.0f}".format(bon.total|float).replace(',', ' ') }} F</td>
+                            </div>
+                            <td class="montant">{{ "{:,.0f}".format(bon.total|float).replace(',', ' ') }} F</div>
                             <td class="text-center">
                                 {% if bon.livraisons|length > 0 %}
                                     <span class="badge bg-info" title="{{ bon.livraisons|length }} bon(s) de livraison">{{ bon.livraisons|length }} BL</span>
@@ -427,7 +510,7 @@
                                 {% else %}
                                     <span class="badge bg-secondary" title="Aucun bon de livraison">Aucun</span>
                                 {% endif %}
-                            </td>
+                            </div>
                             <td class="text-center">
                                 <span class="badge-status
                                     {% if bon.status == 'livree' %}bg-success
@@ -448,7 +531,7 @@
                                     <br>
                                     <small class="text-muted" title="{{ bon.pourcentage_livre }}% livré">{{ "%.0f"|format(bon.pourcentage_livre) }}%</small>
                                 {% endif %}
-                            </td>
+                            </div>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
                                     <a href="{{ url_for('details_bon_commande', bon_id=bon.id) }}" 
@@ -480,15 +563,15 @@
                                         </button>
                                     {% endif %}
                                 </div>
-                            </td>
+                            </div>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot class="table-secondary">
                         <tr>
-                            <td colspan="9" class="text-end fw-bold">TOTAL GÉNÉRAL :</td>
-                            <td class="montant fw-bold">{{ "{:,.0f}".format(total_commandes).replace(',', ' ') }} F</td>
-                            <td colspan="3"></td>
+                            <td colspan="9" class="text-end fw-bold">TOTAL GÉNÉRAL :</div>
+                            <td class="montant fw-bold">{{ "{:,.0f}".format(total_commandes).replace(',', ' ') }} F</div>
+                            <td colspan="3"></div>
                         </tr>
                     </tfoot>
                 </table>
@@ -508,9 +591,94 @@
 </div>
 
 <script>
+// Filtrage en temps réel
+function filterBons() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#tableBody .bon-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const numero = row.dataset.numero || '';
+        const client = row.dataset.client || '';
+        const vendeur = row.dataset.vendeur || '';
+        const compagnie = row.dataset.compagnie || '';
+        const status = row.dataset.status || '';
+        
+        const match = searchTerm === '' || 
+                     numero.includes(searchTerm) || 
+                     client.includes(searchTerm) || 
+                     vendeur.includes(searchTerm) || 
+                     compagnie.includes(searchTerm) ||
+                     status.includes(searchTerm);
+        
+        if (match) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            // Mettre en évidence le texte recherché
+            if (searchTerm !== '') {
+                highlightRow(row, searchTerm);
+            } else {
+                removeHighlight(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    // Mettre à jour les compteurs
+    document.getElementById('resultCount').innerText = visibleCount;
+    document.getElementById('badgeCount').innerText = visibleCount;
+}
+
+// Mettre en évidence le texte recherché
+function highlightRow(row, searchTerm) {
+    const numeroSpan = row.querySelector('.badge-numero');
+    const clientSpan = row.querySelector('.badge-client');
+    const vendeurSpan = row.querySelector('.badge-vendeur');
+    const compagnieSpan = row.querySelector('.badge-compagnie');
+    
+    const elements = [numeroSpan, clientSpan, vendeurSpan, compagnieSpan];
+    elements.forEach(el => {
+        if (el && el.innerText) {
+            const originalText = el.innerText;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+            if (newText !== originalText) {
+                el.innerHTML = newText;
+            }
+        }
+    });
+}
+
+// Supprimer la mise en évidence
+function removeHighlight(row) {
+    const numeroSpan = row.querySelector('.badge-numero');
+    const clientSpan = row.querySelector('.badge-client');
+    const vendeurSpan = row.querySelector('.badge-vendeur');
+    const compagnieSpan = row.querySelector('.badge-compagnie');
+    
+    const elements = [numeroSpan, clientSpan, vendeurSpan, compagnieSpan];
+    elements.forEach(el => {
+        if (el && el.innerHTML !== el.innerText) {
+            el.innerHTML = el.innerText;
+        }
+    });
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    filterBons();
+});
+
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    filterBons();
+});
+
 // Sélectionner tous les checkboxes
 document.getElementById('select-all')?.addEventListener('change', function(e) {
-    const checkboxes = document.querySelectorAll('.bon-checkbox');
+    const checkboxes = document.querySelectorAll('.bon-checkbox:not(.hidden-row)');
     checkboxes.forEach(cb => cb.checked = e.target.checked);
     toggleDeleteButton();
 });
@@ -621,11 +789,11 @@ function showBLList(blList) {
     }
 }
 
-// Export Excel
+// Export Excel (uniquement les lignes visibles)
 function exportToExcel() {
     let csv = [["N°", "Date", "Client", "Vendeur", "Compagnie", "Qté", "Livré", "Reste", "Total", "Status"]];
     
-    document.querySelectorAll('#bonsTable tbody tr').forEach(row => {
+    document.querySelectorAll('#tableBody .bon-row:not(.hidden-row)').forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 12) {
             csv.push([
@@ -650,5 +818,10 @@ function exportToExcel() {
     link.click();
     URL.revokeObjectURL(link.href);
 }
+
+// Initialiser le filtre
+document.addEventListener('DOMContentLoaded', function() {
+    filterBons();
+});
 </script>
 {% endblock %}
