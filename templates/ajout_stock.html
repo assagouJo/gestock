@@ -411,8 +411,18 @@
                             <td class="text-center">
                                 <input type="checkbox" name="stock_ids[]" value="{{ s.id }}" class="checkbox-custom stock-checkbox">
                             </td>
+                            
+                            <!-- N° LOT - CORRECTION ICI !!! -->
                             <td class="text-center">
-                                <span class="badge-lot" title="Lot n°{{ s.numero_lot }}">{{ s.numero_lot|truncate(10, true) }}</span>
+                                {% if s.numero_lot %}
+                                    <span class="badge-lot" title="Lot n°{{ s.numero_lot }}">
+                                        {{ s.numero_lot|truncate(10, true) }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge-lot" title="Lot non défini">
+                                        N/A
+                                    </span>
+                                {% endif %}
                             </td>
                             
                             <!-- MAGASIN AVEC TOOLTIP -->
@@ -469,7 +479,8 @@
                                         </div>
                                     </div>
                                 </div>
-                            </td>
+                            </div>
+                            </div>
                             
                             <!-- STATUT -->
                             <td class="text-center">
@@ -480,16 +491,16 @@
                                 {% else %}
                                     <span class="badge-disponible" title="Stock disponible">Disponible</span>
                                 {% endif %}
-                             </td>
-                         </tr>
+                              </div>
+                          </div>
                         {% endfor %}
                     </tbody>
                     <tfoot class="table-secondary">
                         <tr>
-                            <td colspan="6" class="text-end fw-bold">TOTAL UNITÉS :</td>
-                            <td class="text-center fw-bold">{{ quantite_totale }}</td>
-                            <td></td>
-                         </tr>
+                            <td colspan="6" class="text-end fw-bold">TOTAL UNITÉS :</div>
+                            <td class="text-center fw-bold">{{ quantite_totale }}</div>
+                            <td></div>
+                          </tr>
                     </tfoot>
                 </table>
             </div>
@@ -541,7 +552,7 @@
                                 <tr class="ligne-stock">
                                     <td>
                                         <input type="text" name="numero_lot[]" class="form-control form-control-sm numero-lot" placeholder="Auto" readonly>
-                                    </td>
+                                    </div>
                                     <td>
                                         <select name="magasin_id[]" class="form-select form-select-sm" required>
                                             <option value="">-- Magasin --</option>
@@ -550,7 +561,7 @@
                                             {% endfor %}
                                         </select>
                                         <input type="text" name="nouveau_magasin[]" class="form-control form-control-sm mt-1" placeholder="Nouveau magasin">
-                                    </td>
+                                    </div>
                                     <td>
                                         <select name="produit_id[]" class="form-select form-select-sm produit-select" required>
                                             <option value="">-- Produit --</option>
@@ -559,7 +570,7 @@
                                             {% endfor %}
                                         </select>
                                         <input type="hidden" name="model_nom[]" class="model-nom-input" value="">
-                                    </td>
+                                    </div>
                                     <td>
                                         <select name="type_conditionnement[]" class="form-select form-select-sm" required>
                                             <option value="">-- Cond. --</option>
@@ -567,15 +578,15 @@
                                             <option value="paquet">Paquet</option>
                                             <option value="unite">Unité</option>
                                         </select>
-                                    </td>
+                                    </div>
                                     <td>
                                         <input type="number" name="quantite[]" class="form-control form-control-sm text-center" min="1" required>
-                                    </td>
+                                    </div>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-outline-danger btn-sm supprimer">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                    </td>
+                                    </div>
                                 </tr>
                             </tbody>
                         </table>
