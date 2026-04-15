@@ -4578,34 +4578,32 @@ def delete_magasins():
     return redirect(url_for('magasin'))
 
 
-@app.route('/logs', methods=['GET', 'POST'])
+@app.route('/logs', methods=['GET'])
 def logs():
-
-    form = LogFilterForm()
-    logs = None
-
-    # Remplir dynamiquement les utilisateurs
+    # Récupérer les paramètres de filtrage
+    date_debut = request.args.get('date_debut', '')
+    date_fin = request.args.get('date_fin', '')
+    utilisateur_id = request.args.get('utilisateur', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    
+    # Construction de la requête
+    query = Log.query
+    
+    if date_debut:
+        query = query.filter(Log.created_at >= datetime.strptime(date_debut, '%Y-%m-%d'))
+    if date_fin:
+        query = query.filter(Log.created_at <= datetime.strptime(date_fin, '%Y-%m-%d') + timedelta(days=1))
+    if utilisateur_id:
+        query = query.filter(Log.user_id == int(utilisateur_id))
+    
+    # Pagination
+    logs = query.order_by(Log.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Liste des utilisateurs pour le filtre
     utilisateurs = User.query.all()
-    form.utilisateur.choices = [("", "Tous les utilisateurs")] + [
-        (str(u.id), u.username) for u in utilisateurs
-    ]
-
-    if form.validate_on_submit():
-
-        date_debut = datetime.combine(form.date_debut.data, datetime.min.time())
-        date_fin = datetime.combine(form.date_fin.data, datetime.max.time())
-
-        query = Log.query.filter(
-            Log.created_at.between(date_debut, date_fin)
-        )
-
-        # Si utilisateur sélectionné
-        if form.utilisateur.data:
-            query = query.filter(Log.user_id == int(form.utilisateur.data))
-
-        logs = query.order_by(Log.created_at.desc()).all()
-
-    return render_template("logs.html", form=form, logs=logs)
+    
+    return render_template('logs.html', logs=logs, utilisateurs=utilisateurs)
 
 
 @app.route('/certificats')

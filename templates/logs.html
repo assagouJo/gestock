@@ -215,9 +215,9 @@
 
     /* Largeurs fixes des colonnes */
     .table-custom th:nth-child(1) { width: 15%; }
-    .table-custom th:nth-child(2) { width: 15%; }
+    .table-custom th:nth-child(2) { width: 12%; }
     .table-custom th:nth-child(3) { width: 20%; }
-    .table-custom th:nth-child(4) { width: 10%; }
+    .table-custom th:nth-child(4) { width: 8%; }
     .table-custom th:nth-child(5) { width: 20%; }
 
     .table-custom thead th {
@@ -297,6 +297,41 @@
         cursor: help;
     }
 
+    /* Pagination */
+    .pagination-custom {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .page-link-custom {
+        padding: 8px 12px;
+        border: 1px solid var(--light-color);
+        border-radius: 8px;
+        color: var(--dark-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link-custom:hover {
+        background: var(--info-color);
+        color: white;
+        border-color: var(--info-color);
+    }
+
+    .page-link-custom.active {
+        background: var(--info-color);
+        color: white;
+        border-color: var(--info-color);
+    }
+
+    .page-link-custom.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     /* Responsive */
     @media (max-width: 992px) {
         .stats-grid {
@@ -343,12 +378,18 @@
         </div>
     </div>
 
-    {% if logs is not none %}
     <!-- Statistiques -->
-    {% set total_logs = logs|length %}
-    {% set insert_count = logs|selectattr('action', 'equalto', 'INSERT')|list|length %}
-    {% set update_count = logs|selectattr('action', 'equalto', 'UPDATE')|list|length %}
-    {% set delete_count = logs|selectattr('action', 'equalto', 'DELETE')|list|length %}
+    {% if logs and logs.items %}
+    {% set total_logs = logs.total %}
+    {% set insert_count = logs.items|selectattr('action', 'equalto', 'INSERT')|list|length %}
+    {% set update_count = logs.items|selectattr('action', 'equalto', 'UPDATE')|list|length %}
+    {% set delete_count = logs.items|selectattr('action', 'equalto', 'DELETE')|list|length %}
+    {% else %}
+    {% set total_logs = 0 %}
+    {% set insert_count = 0 %}
+    {% set update_count = 0 %}
+    {% set delete_count = 0 %}
+    {% endif %}
     
     <div class="stats-grid">
         <div class="stat-card">
@@ -375,29 +416,38 @@
 
     <!-- Filtres -->
     <div class="filters-card">
-        <form method="post" id="filterForm">
-            {{ form.hidden_tag() }}
+        <form method="get" id="filterForm">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">
                         <i class="fas fa-calendar-alt"></i> Date début
                     </label>
-                    {{ form.date_debut(class="form-control", type="date") }}
+                    <input type="date" name="date_debut" class="form-control" value="{{ request.args.get('date_debut', '') }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">
                         <i class="fas fa-calendar-check"></i> Date fin
                     </label>
-                    {{ form.date_fin(class="form-control", type="date") }}
+                    <input type="date" name="date_fin" class="form-control" value="{{ request.args.get('date_fin', '') }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">
                         <i class="fas fa-user"></i> Utilisateur
                     </label>
-                    {{ form.utilisateur(class="form-select") }}
+                    <select name="utilisateur" class="form-select">
+                        <option value="">Tous les utilisateurs</option>
+                        {% for u in utilisateurs %}
+                        <option value="{{ u.id }}" {% if request.args.get('utilisateur')|int == u.id %}selected{% endif %}>
+                            {{ u.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-md-3">
-                    {{ form.submit(class="btn btn-info w-100") }}
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
                 </div>
             </div>
         </form>
@@ -414,7 +464,7 @@
         </div>
         <div class="search-results" id="searchResults">
             <i class="fas fa-info-circle"></i> 
-            <span id="resultCount">{{ total_logs }}</span> action(s) affichée(s)
+            <span id="resultCount">{{ logs.total if logs else 0 }}</span> action(s) affichée(s) sur <span id="totalCount">{{ logs.total if logs else 0 }}</span>
         </div>
     </div>
 
@@ -423,7 +473,7 @@
         <div class="table-header">
             <div class="table-title">
                 <i class="fas fa-list-ul"></i> Journal des actions
-                <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_logs }}</span>
+                <span class="badge bg-secondary ms-2">{{ logs.total if logs else 0 }}</span>
             </div>
             <div class="export-buttons">
                 <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
@@ -446,78 +496,132 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    {% for log in logs %}
-                    <tr class="log-row" 
-                        data-username="{{ log.username|lower }}"
-                        data-action="{{ log.action|lower }}"
-                        data-table="{{ log.table_name|lower }}"
-                        data-record-id="{{ log.record_id|lower }}">
-                        
-                        <!-- UTILISATEUR AVEC TOOLTIP -->
-                        <td>
-                            <span class="badge-user" 
-                                  title="Utilisateur: {{ log.username }}"
-                                  style="cursor: help;">
-                                <i class="fas fa-user"></i> {{ log.username|truncate(20, true) }}
-                            </span>
-                        </td>
-                        
-                        <!-- ACTION AVEC TOOLTIP -->
-                        <td>
-                            {% if log.action == "INSERT" %}
-                                <span class="badge-action badge-insert" title="Création d'un nouvel enregistrement">
-                                    <i class="fas fa-plus-circle"></i> Ajout
+                    {% if logs and logs.items %}
+                        {% for log in logs.items %}
+                        <tr class="log-row" 
+                            data-username="{{ log.username|lower }}"
+                            data-action="{{ log.action|lower }}"
+                            data-table="{{ log.table_name|lower }}"
+                            data-record-id="{{ log.record_id|lower }}">
+                            
+                            <!-- UTILISATEUR AVEC TOOLTIP -->
+                            <td>
+                                <span class="badge-user" 
+                                      title="Utilisateur: {{ log.username }}"
+                                      style="cursor: help;">
+                                    <i class="fas fa-user"></i> {{ log.username|truncate(20, true) }}
                                 </span>
-                            {% elif log.action == "UPDATE" %}
-                                <span class="badge-action badge-update" title="Modification d'un enregistrement existant">
-                                    <i class="fas fa-edit"></i> Modification
+                            </td>
+                            
+                            <!-- ACTION AVEC TOOLTIP -->
+                            <td>
+                                {% if log.action == "INSERT" %}
+                                    <span class="badge-action badge-insert" title="Création d'un nouvel enregistrement">
+                                        <i class="fas fa-plus-circle"></i> Ajout
+                                    </span>
+                                {% elif log.action == "UPDATE" %}
+                                    <span class="badge-action badge-update" title="Modification d'un enregistrement existant">
+                                        <i class="fas fa-edit"></i> Modification
+                                    </span>
+                                {% elif log.action == "DELETE" %}
+                                    <span class="badge-action badge-delete" title="Suppression d'un enregistrement">
+                                        <i class="fas fa-trash-alt"></i> Suppression
+                                    </span>
+                                {% else %}
+                                    <span class="badge-action bg-secondary" title="Action inconnue">
+                                        {{ log.action }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- TABLE AVEC TOOLTIP -->
+                            <td>
+                                <span title="Table: {{ log.table_name }}">
+                                    <i class="fas fa-database"></i> {{ log.table_name|truncate(25, true) }}
                                 </span>
-                            {% elif log.action == "DELETE" %}
-                                <span class="badge-action badge-delete" title="Suppression d'un enregistrement">
-                                    <i class="fas fa-trash-alt"></i> Suppression
+                            </td>
+                            
+                            <!-- RECORD ID -->
+                            <td class="text-center">
+                                <span class="badge bg-secondary" title="ID de l'enregistrement: {{ log.record_id }}">
+                                    #{{ log.record_id }}
                                 </span>
-                            {% else %}
-                                <span class="badge-action bg-secondary" title="Action inconnue">
-                                    {{ log.action }}
+                            </td>
+                            
+                            <!-- DATE -->
+                            <td>
+                                <span title="{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') if log.created_at else '-' }}">
+                                    <i class="fas fa-clock"></i> {{ log.created_at.strftime("%d/%m/%Y %H:%M") if log.created_at else '-' }}
                                 </span>
-                            {% endif %}
-                        </td>
-                        
-                        <!-- TABLE AVEC TOOLTIP -->
-                        <td>
-                            <span title="Table: {{ log.table_name }}">
-                                <i class="fas fa-database"></i> {{ log.table_name|truncate(25, true) }}
-                            </span>
-                        </td>
-                        
-                        <!-- RECORD ID -->
-                        <td class="text-center">
-                            <span class="badge bg-secondary" title="ID de l'enregistrement: {{ log.record_id }}">
-                                #{{ log.record_id }}
-                            </span>
-                        </td>
-                        
-                        <!-- DATE -->
-                        <td>
-                            <span title="{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}">
-                                <i class="fas fa-clock"></i> {{ log.created_at.strftime("%d/%m/%Y %H:%M") }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>Aucun log trouvé</p>
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
                 <tfoot class="table-secondary">
                     <tr>
-                        <td colspan="5" class="text-end fw-bold">TOTAL ACTIONS : {{ total_logs }}</div>
+                        <td colspan="5" class="text-end fw-bold">TOTAL ACTIONS : {{ logs.total if logs else 0 }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
-    {% else %}
-    <div class="alert alert-warning text-center">
-        <i class="fas fa-exclamation-triangle"></i>
-        Aucun log disponible pour le moment.
+
+    <!-- Pagination -->
+    {% if logs and logs.pages > 1 %}
+    <div class="pagination-custom">
+        {% if logs.has_prev %}
+        <a href="{{ url_for('logs', page=logs.prev_num, date_debut=request.args.get('date_debut', ''), date_fin=request.args.get('date_fin', ''), utilisateur=request.args.get('utilisateur', '')) }}" 
+           class="page-link-custom">
+            <i class="fas fa-chevron-left"></i> Précédent
+        </a>
+        {% else %}
+        <span class="page-link-custom disabled">
+            <i class="fas fa-chevron-left"></i> Précédent
+        </span>
+        {% endif %}
+        
+        {% for page_num in logs.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+            {% if page_num %}
+                {% if page_num == logs.page %}
+                <span class="page-link-custom active">{{ page_num }}</span>
+                {% else %}
+                <a href="{{ url_for('logs', page=page_num, date_debut=request.args.get('date_debut', ''), date_fin=request.args.get('date_fin', ''), utilisateur=request.args.get('utilisateur', '')) }}" 
+                   class="page-link-custom">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span class="page-link-custom disabled">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if logs.has_next %}
+        <a href="{{ url_for('logs', page=logs.next_num, date_debut=request.args.get('date_debut', ''), date_fin=request.args.get('date_fin', ''), utilisateur=request.args.get('utilisateur', '')) }}" 
+           class="page-link-custom">
+            Suivant <i class="fas fa-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="page-link-custom disabled">
+            Suivant <i class="fas fa-chevron-right"></i>
+        </span>
+        {% endif %}
+    </div>
+    
+    <!-- Info pagination -->
+    <div class="row mt-3">
+        <div class="col-12 text-center">
+            <p class="text-muted small">
+                <i class="fas fa-info-circle"></i> 
+                Affichage de {{ logs.items|length }} sur {{ logs.total }} logs
+                (Page {{ logs.page }} sur {{ logs.pages }})
+            </p>
+        </div>
     </div>
     {% endif %}
 </div>
@@ -526,7 +630,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-// Filtrage en temps réel
+// Filtrage en temps réel (côté client sur la page courante)
 function filterLogs() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     const rows = document.querySelectorAll('#tableBody .log-row');
@@ -558,7 +662,6 @@ function filterLogs() {
     });
     
     document.getElementById('resultCount').innerText = visibleCount;
-    document.getElementById('badgeCount').innerText = visibleCount;
 }
 
 // Mettre en évidence le texte recherché
