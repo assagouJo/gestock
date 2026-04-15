@@ -42,6 +42,81 @@
         font-weight: 600;
     }
 
+    /* Barre de recherche */
+    .search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+    }
+
+    .search-results {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    /* Filtres supplémentaires */
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-select {
+        padding: 10px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--success-color);
+    }
+
+    .filter-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 5px;
+        display: block;
+    }
+
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
@@ -57,6 +132,7 @@
         text-align: center;
         box-shadow: 0 3px 10px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
     .stat-card:hover {
@@ -174,7 +250,6 @@
 
     .table-custom tbody tr:hover {
         background: #f8f9fa;
-        transform: scale(1.01);
     }
 
     .table-custom td {
@@ -184,6 +259,19 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    /* Ligne masquée par le filtre */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
+    /* Highlight pour la recherche */
+    .highlight {
+        background-color: #ffeb3b;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
     }
 
     /* Badges */
@@ -212,7 +300,7 @@
     .badge-livree { background: var(--success-color); color: white; }
     .badge-partielle { background: var(--warning-color); color: #856404; }
     .badge-annule { background: var(--danger-color); color: white; }
-    .badge-brouillon { background: var(--secondary-color); color: white; }
+    .badge-brouillon { background: #95a5a6; color: white; }
 
     .checkbox-custom {
         width: 16px;
@@ -255,6 +343,11 @@
             justify-content: center;
         }
         
+        .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
         .table-custom th:nth-child(6) { width: 180px; }
     }
 </style>
@@ -277,25 +370,64 @@
     {% set bl_annule = bons|selectattr('status', 'equalto', 'annule')|list|length %}
     
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByStatus('all')">
             <div class="stat-icon">📋</div>
-            <div class="stat-value">{{ total_bl }}</div>
+            <div class="stat-value" id="totalCount">{{ total_bl }}</div>
             <div class="stat-label">Total BL</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByStatus('livree')">
             <div class="stat-icon">✅</div>
             <div class="stat-value">{{ bl_livrees }}</div>
             <div class="stat-label">Livrées</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByStatus('partielle')">
             <div class="stat-icon">⚠️</div>
             <div class="stat-value">{{ bl_partielle }}</div>
             <div class="stat-label">Partielles</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByStatus('annule')">
             <div class="stat-icon">❌</div>
             <div class="stat-value">{{ bl_annule }}</div>
             <div class="stat-label">Annulées</div>
+        </div>
+    </div>
+
+    <!-- Barre de recherche rapide -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-input" 
+                   placeholder="Rechercher par numéro, client...">
+            <button type="button" id="clearSearch" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Effacer
+            </button>
+        </div>
+        <div class="search-results" id="searchResults">
+            <i class="bi bi-info-circle"></i> 
+            <span id="resultCount">{{ total_bl }}</span> BL(s) affiché(s)
+        </div>
+    </div>
+
+    <!-- Filtre par statut -->
+    <div class="filter-card">
+        <div class="filter-group">
+            <div style="flex: 1;">
+                <label class="filter-label">
+                    <i class="bi bi-funnel"></i> Filtrer par statut
+                </label>
+                <select id="statusFilter" class="filter-select" style="width: 100%;">
+                    <option value="all">📋 Tous les statuts</option>
+                    <option value="livree">✅ Livrées</option>
+                    <option value="partielle">⚠️ Livraisons partielles</option>
+                    <option value="annule">❌ Annulées</option>
+                    <option value="brouillon">📝 Brouillons</option>
+                </select>
+            </div>
+            <div>
+                <label class="filter-label">&nbsp;</label>
+                <button type="button" id="resetFilters" class="btn btn-outline-secondary" style="padding: 10px 20px;">
+                    <i class="bi bi-arrow-repeat"></i> Réinitialiser
+                </button>
+            </div>
         </div>
     </div>
 
@@ -305,7 +437,7 @@
             <div class="table-header">
                 <div class="table-title">
                     <i class="bi bi-list-ul"></i> Liste des bons de livraison
-                    <span class="badge bg-secondary ms-2">{{ total_bl }} BL</span>
+                    <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_bl }}</span>
                 </div>
                 <div class="export-buttons">
                     <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
@@ -328,9 +460,12 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                         {% for bon in bons %}
-                        <tr>
+                        <tr class="bl-row" 
+                            data-numero="{{ bon.numero|lower }}"
+                            data-client="{{ bon.client.nom_client|lower }}"
+                            data-status="{{ bon.status|lower }}">
                             <td class="text-center">
                                 <input type="checkbox" name="bons_ids[]" value="{{ bon.id }}" class="checkbox-custom bl-checkbox">
                             </td>
@@ -396,13 +531,13 @@
                                     {% endif %}
                                 </div>
                             </td>
-                        <tr>
+                        </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot class="table-secondary">
                         <tr>
-                            <td colspan="5" class="text-end fw-bold">TOTAL BONS :</td>
-                            <td class="text-center fw-bold">{{ total_bl }}</td>
+                            <td colspan="5" class="text-end fw-bold">TOTAL BONS :</div>
+                            <td class="text-center fw-bold" id="footerTotal">{{ total_bl }}</div>
                         </tr>
                     </tfoot>
                 </table>
@@ -432,23 +567,139 @@
 </div>
 
 <script>
-// Sélectionner tous les checkboxes
-document.getElementById('check_all')?.addEventListener('change', function(e) {
-    document.querySelectorAll('.bl-checkbox').forEach(cb => cb.checked = e.target.checked);
-});
-
-// Fonction pour sélectionner tous
-function selectAll() {
-    document.querySelectorAll('.bl-checkbox').forEach(cb => cb.checked = true);
-    const checkAll = document.getElementById('check_all');
-    if (checkAll) checkAll.checked = true;
+// Filtrage en temps réel
+function filterBLs() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('#tableBody .bl-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const numero = row.dataset.numero || '';
+        const client = row.dataset.client || '';
+        const status = row.dataset.status || '';
+        
+        // Filtre par statut
+        let statusMatch = true;
+        if (statusFilter !== 'all') {
+            statusMatch = status === statusFilter;
+        }
+        
+        // Filtre par recherche
+        let searchMatch = true;
+        if (searchTerm !== '') {
+            searchMatch = numero.includes(searchTerm) || client.includes(searchTerm);
+        }
+        
+        const match = statusMatch && searchMatch;
+        
+        if (match) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            if (searchTerm !== '') {
+                highlightRow(row, searchTerm);
+            } else {
+                removeHighlight(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    // Mettre à jour les compteurs
+    document.getElementById('resultCount').innerText = visibleCount;
+    document.getElementById('badgeCount').innerText = visibleCount;
+    document.getElementById('footerTotal').innerText = visibleCount;
+    document.getElementById('totalCount').innerText = visibleCount;
 }
 
-// Fonction pour désélectionner tous
+// Mettre en évidence le texte recherché
+function highlightRow(row, searchTerm) {
+    const numeroSpan = row.querySelector('td:nth-child(3)');
+    const clientSpan = row.querySelector('.badge-client');
+    
+    if (numeroSpan && numeroSpan.innerText) {
+        const originalText = numeroSpan.innerText;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        if (newText !== originalText) {
+            numeroSpan.innerHTML = newText;
+        }
+    }
+    
+    if (clientSpan && clientSpan.innerText) {
+        const originalText = clientSpan.innerText;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        if (newText !== originalText) {
+            clientSpan.innerHTML = newText;
+        }
+    }
+}
+
+function removeHighlight(row) {
+    const numeroSpan = row.querySelector('td:nth-child(3)');
+    const clientSpan = row.querySelector('.badge-client');
+    
+    if (numeroSpan && numeroSpan.innerHTML !== numeroSpan.innerText) {
+        numeroSpan.innerHTML = numeroSpan.innerText;
+    }
+    
+    if (clientSpan && clientSpan.innerHTML !== clientSpan.innerText) {
+        clientSpan.innerHTML = clientSpan.innerText;
+    }
+}
+
+// Filtrer par statut via les cartes
+function filterByStatus(status) {
+    const statusSelect = document.getElementById('statusFilter');
+    if (statusSelect) {
+        statusSelect.value = status;
+        filterBLs();
+    }
+}
+
+// Effacer la recherche
+document.getElementById('clearSearch')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    filterBLs();
+});
+
+// Réinitialiser tous les filtres
+document.getElementById('resetFilters')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    filterBLs();
+});
+
+// Écouter les changements dans la recherche
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    filterBLs();
+});
+
+// Écouter les changements de filtre statut
+document.getElementById('statusFilter')?.addEventListener('change', function() {
+    filterBLs();
+});
+
+// Sélectionner tous les checkboxes
+document.getElementById('check_all')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.bl-checkbox:not(.hidden-row)').forEach(cb => cb.checked = e.target.checked);
+    updateSelectionCount();
+});
+
+function selectAll() {
+    document.querySelectorAll('.bl-checkbox:not(.hidden-row)').forEach(cb => cb.checked = true);
+    const checkAll = document.getElementById('check_all');
+    if (checkAll) checkAll.checked = true;
+    updateSelectionCount();
+}
+
 function deselectAll() {
     document.querySelectorAll('.bl-checkbox').forEach(cb => cb.checked = false);
     const checkAll = document.getElementById('check_all');
     if (checkAll) checkAll.checked = false;
+    updateSelectionCount();
 }
 
 // Confirmation avant suppression
@@ -468,11 +719,11 @@ function confirmDelete() {
     return confirm(message);
 }
 
-// Export Excel
+// Export Excel (uniquement les lignes visibles)
 function exportToExcel() {
     let csv = [["Date", "N° Bon", "Client", "Statut"]];
     
-    document.querySelectorAll('#blTable tbody tr').forEach(row => {
+    document.querySelectorAll('#tableBody .bl-row:not(.hidden-row)').forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 5) {
             csv.push([
@@ -506,12 +757,13 @@ function updateSelectionCount() {
     }
 }
 
-// Écouter les changements de sélection
+// Initialisation
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.bl-checkbox').forEach(cb => {
         cb.addEventListener('change', updateSelectionCount);
     });
     updateSelectionCount();
+    filterBLs();
 });
 </script>
 {% endblock %}
