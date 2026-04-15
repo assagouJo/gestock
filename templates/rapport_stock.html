@@ -1,67 +1,585 @@
 {% extends "base.html" %}
-{% block title %}Rapport | gestock{% endblock %}
+{% block title %}Rapport Stock | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .rapport-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .rapport-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .rapport-header h3 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .rapport-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+    }
+
+    /* Filtres */
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-select-custom {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .form-select-custom:focus {
+        outline: none;
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn-custom {
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .btn-info-custom {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .btn-info-custom:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--info-color);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--info-color);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 15px 20px;
+        background: var(--light-color);
+        border-bottom: 2px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 1.1rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-sm-custom {
+        padding: 6px 15px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-excel:hover {
+        background: #229954;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-print:hover {
+        background: #2980b9;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 15px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table-custom td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* Badges de quantité */
+    .quantity-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+
+    .quantity-high {
+        background: rgba(46, 204, 113, 0.15);
+        color: var(--success-color);
+    }
+
+    .quantity-medium {
+        background: rgba(52, 152, 219, 0.15);
+        color: var(--info-color);
+    }
+
+    .quantity-low {
+        background: rgba(243, 156, 18, 0.15);
+        color: var(--warning-color);
+    }
+
+    .quantity-critical {
+        background: rgba(231, 76, 60, 0.15);
+        color: var(--danger-color);
+    }
+
+    /* Barre de progression stock */
+    .stock-bar {
+        width: 100px;
+        height: 6px;
+        background: var(--light-color);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+
+    .stock-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .fill-high { background: var(--success-color); }
+    .fill-medium { background: var(--info-color); }
+    .fill-low { background: var(--warning-color); }
+    .fill-critical { background: var(--danger-color); }
+
+    /* Alertes */
+    .alert-custom {
+        padding: 15px 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .alert-warning-custom {
+        background: rgba(243, 156, 18, 0.1);
+        border-left: 4px solid var(--warning-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+        }
+        
+        .export-buttons button {
+            flex: 1;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px 10px;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-    <form method="GET" action="{{ url_for('rapport_stock') }}" class="row g-3 mb-4" style="height: 100px;">
-        <div class="col-md-4">
-            <select name="produit_id" class="form-select">
-                <option value="">-- Choisir Produit --</option>
-                {% for p in produits %}
-                <option value="{{ p.id }}" {% if selected_produit_id == p.id %}selected{% endif %}>
-                    {{ p.nom_produit }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+<div class="rapport-container">
+    <!-- En-tête -->
+    <div class="rapport-header">
+        <h3>
+            <i class="bi bi-box-seam"></i> Rapport des Stocks
+        </h3>
+        <p>État détaillé des produits en stock par magasin</p>
+    </div>
 
-        <div class="col-md-4">
-            <select name="magasin_id" class="form-select">
-                <option value="">-- Choisir Magasin --</option>
-                {% for m in magasins %}
-                <option value="{{ m.id }}" {% if selected_magasin_id == m.id %}selected{% endif %}>
-                    {{ m.nom }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+    <!-- Filtres -->
+    <div class="filters-card">
+        <form method="GET" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <div class="filter-group">
+                        <label>
+                            <i class="bi bi-box"></i> Produit
+                        </label>
+                        <select name="produit_id" class="form-select-custom" id="produitSelect">
+                            <option value="">-- Tous les produits --</option>
+                            {% for p in produits %}
+                            <option value="{{ p.id }}" {% if selected_produit_id == p.id %}selected{% endif %}>
+                                {{ p.nom_produit }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
 
-        <div class="col-md-4">
-            <button type="submit" class="btn btn-primary w-100">
-                🔎 Filtrer
-            </button>
-        </div>
-    </form>
+                <div class="col-md-5">
+                    <div class="filter-group">
+                        <label>
+                            <i class="bi bi-shop"></i> Magasin
+                        </label>
+                        <select name="magasin_id" class="form-select-custom" id="magasinSelect">
+                            <option value="">-- Tous les magasins --</option>
+                            {% for m in magasins %}
+                            <option value="{{ m.id }}" {% if selected_magasin_id == m.id %}selected{% endif %}>
+                                {{ m.nom }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
 
-    <hr>
+                <div class="col-md-2">
+                    <button type="submit" class="btn-custom btn-info-custom">
+                        <i class="bi bi-search"></i> Filtrer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 
-    <h3>Produits en stock ({{ stocks|length }})</h3>
-    
     {% if stocks %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
+    <!-- Statistiques -->
+    {% set total_produits = stocks|length %}
+    {% set quantite_totale = stocks|sum(attribute='quantite') %}
+    {% set produits_alert = stocks|selectattr('quantite', '<=', 10)|list|length %}
+    {% set valeur_stock = stocks|sum(attribute='quantite') * 1000 %} {# À ajuster selon votre prix moyen #}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value">{{ total_produits }}</div>
+            <div class="stat-label">Lignes de stock</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔢</div>
+            <div class="stat-value">{{ quantite_totale }}</div>
+            <div class="stat-label">Unités totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value">{{ produits_alert }}</div>
+            <div class="stat-label">Produits en alerte</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ valeur_stock|money }}</div>
+            <div class="stat-label">Valeur du stock</div>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="bi bi-list-ul"></i> Détail des stocks
+                <span class="badge bg-secondary ms-2">{{ total_produits }} ligne(s)</span>
+            </div>
+            <div class="export-buttons">
+                <button onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </button>
+                <button onclick="window.print()" class="btn-sm-custom btn-print">
+                    <i class="bi bi-printer"></i> Imprimer
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-custom" id="stockTable">
+                <thead>
                     <tr>
                         <th>Produit</th>
                         <th>Magasin</th>
                         <th>Conditionnement</th>
                         <th>Quantité</th>
+                        <th>Statut</th>
+                        <th>Tendance</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in stocks %}
-                    <tr>
-                        <td>{{ s.produit.nom_produit }}</td>
+                    {% set pourcentage = (s.quantite / 100 * 100) if s.quantite <= 100 else 100 %}
+                    <tr onclick="showProductDetail({{ s.produit.id }})">
+                        <td>
+                            <strong>{{ s.produit.nom_produit }}</strong>
+                            <br>
+                            <small class="text-muted">Ref: {{ s.produit.reference or 'N/A' }}</small>
+                        </td>
                         <td>{{ s.magasin.nom }}</td>
-                        <td>{{ s.type_conditionnement.value }}</td>
-                        <td class="fw-bold">{{ s.quantite }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ s.type_conditionnement.value if s.type_conditionnement else 'Unité' }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold fs-5">{{ s.quantite }}</span>
+                                <div class="stock-bar">
+                                    <div class="stock-bar-fill 
+                                        {% if s.quantite >= 50 %}fill-high
+                                        {% elif s.quantite >= 20 %}fill-medium
+                                        {% elif s.quantite >= 5 %}fill-low
+                                        {% else %}fill-critical{% endif %}" 
+                                        style="width: {{ pourcentage }}%">
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if s.quantite >= 50 %}
+                                <span class="quantity-badge quantity-high">
+                                    <i class="bi bi-check-circle"></i> Stock élevé
+                                </span>
+                            {% elif s.quantite >= 20 %}
+                                <span class="quantity-badge quantity-medium">
+                                    <i class="bi bi-check"></i> Stock moyen
+                                </span>
+                            {% elif s.quantite >= 5 %}
+                                <span class="quantity-badge quantity-low">
+                                    <i class="bi bi-exclamation-triangle"></i> Stock faible
+                                </span>
+                            {% else %}
+                                <span class="quantity-badge quantity-critical">
+                                    <i class="bi bi-exclamation-circle"></i> Stock critique
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if s.quantite > 0 %}
+                                <i class="bi bi-graph-up text-success"></i> Stable
+                            {% else %}
+                                <i class="bi bi-graph-down text-danger"></i> Rupture
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
+                <tfoot>
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="3" class="text-end">TOTAL :</td>
+                        <td colspan="3">{{ quantite_totale }} unités</td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
+    </div>
+
     {% else %}
-        <div class="alert alert-warning">
-            Aucun produit en stock trouvé.
+    <div class="alert-custom alert-warning-custom">
+        <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem;"></i>
+        <div>
+            <strong>Aucun produit trouvé</strong><br>
+            Aucun produit en stock ne correspond aux critères sélectionnés.
         </div>
+    </div>
     {% endif %}
+
+    <!-- Section alertes si besoin -->
+    {% if stocks and produits_alert > 0 %}
+    <div class="alert alert-warning mt-3">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Attention :</strong> {{ produits_alert }} produit(s) ont un stock faible ou critique. 
+        Pensez à réapprovisionner !
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Auto-submit au changement de filtre
+    document.getElementById('produitSelect')?.addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+    
+    document.getElementById('magasinSelect')?.addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+    
+    // Exporter vers Excel
+    function exportToExcel() {
+        let csv = [["Produit", "Magasin", "Conditionnement", "Quantité", "Statut"]];
+        
+        document.querySelectorAll('#stockTable tbody tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {
+                csv.push([
+                    cells[0]?.innerText.split('\n')[0],
+                    cells[1]?.innerText,
+                    cells[2]?.innerText,
+                    cells[3]?.innerText.split(' ')[0],
+                    cells[4]?.innerText
+                ]);
+            }
+        });
+        
+        const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                              { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'rapport_stock.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+    
+    // Voir détails produit
+    function showProductDetail(productId) {
+        alert(`Détails du produit #${productId}\nFonctionnalité à venir`);
+    }
+</script>
 {% endblock %}

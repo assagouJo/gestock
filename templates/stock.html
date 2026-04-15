@@ -1,40 +1,889 @@
 {% extends "base.html" %}
-{% block title %}Stock | gestock{% endblock %}
+{% block title %}État du Stock | Gestock{% endblock %}
 
 {% block styles %}
-    
-{% endblock %}
-{% block content %}
-    <h2>État du stock</h2>
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
 
-<table class="table table-bordered table-hover mt-3">
-    <thead class="table-dark">
-        <tr>
-            <th>Produit</th>
-            <th>Stock disponible</th>
-            <th>Statut</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for p in produits %}
-        <tr>
-            <td>{{ p.nom_produit }}</td>
-            <td>{{ p.stock }}</td>
-            <td>
-                {% if p.stock < 5 %}
-                    <span class="badge bg-danger">Faible</span>
-                {% else %}
-                    <span class="badge bg-success">Disponible</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="4" class="text-center">
-                Aucun produit en stock
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    /* Animation d'entrée */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stock-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .stock-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .stock-header h2 {
+        margin: 0;
+        color: var(--dark-color);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .stock-header h2 i {
+        color: var(--primary-color);
+    }
+
+    /* Statistiques rapides */
+    .stats-mini {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .stat-mini-card {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-mini-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .stat-mini-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+    }
+
+    .stat-mini-icon.total { background: rgba(67, 97, 238, 0.1); color: var(--primary-color); }
+    .stat-mini-icon.disponible { background: rgba(46, 204, 113, 0.1); color: var(--success-color); }
+    .stat-mini-icon.faible { background: rgba(243, 156, 18, 0.1); color: var(--warning-color); }
+    .stat-mini-icon.rupture { background: rgba(231, 76, 60, 0.1); color: var(--danger-color); }
+
+    .stat-mini-info h4 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+
+    .stat-mini-info p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #7f8c8d;
+    }
+
+    /* Filtres et recherche */
+    .filters-section {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .search-bar {
+        position: relative;
+        margin-bottom: 15px;
+    }
+
+    .search-bar input {
+        width: 100%;
+        padding: 12px 45px 12px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-bar input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .search-bar i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 20px;
+        border: 2px solid var(--light-color);
+        background: white;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .filter-btn.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    /* Table améliorée */
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .table-custom {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table-custom thead {
+        background: linear-gradient(135deg, var(--dark-color) 0%, #34495e 100%);
+        color: white;
+    }
+
+    .table-custom thead th {
+        padding: 15px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .table-custom thead th:hover {
+        background: rgba(255,255,255,0.1);
+    }
+
+    .table-custom thead th i {
+        margin-left: 5px;
+        font-size: 0.7rem;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table-custom tbody td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--light-color);
+    }
+
+    /* Badges de statut */
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .badge-disponible {
+        background: rgba(46, 204, 113, 0.15);
+        color: var(--success-color);
+    }
+
+    .badge-faible {
+        background: rgba(243, 156, 18, 0.15);
+        color: var(--warning-color);
+    }
+
+    .badge-rupture {
+        background: rgba(231, 76, 60, 0.15);
+        color: var(--danger-color);
+    }
+
+    /* Barre de progression du stock */
+    .stock-bar {
+        width: 100px;
+        height: 6px;
+        background: var(--light-color);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .stock-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .fill-high { background: var(--success-color); }
+    .fill-medium { background: var(--warning-color); }
+    .fill-low { background: var(--danger-color); }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-top: 1px solid var(--light-color);
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 5px;
+        margin: 0;
+    }
+
+    .page-btn {
+        padding: 8px 12px;
+        border: 1px solid var(--light-color);
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .page-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .page-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .page-info {
+        color: #7f8c8d;
+        font-size: 0.85rem;
+    }
+
+    /* Modal détails produit */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.show {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 2px solid var(--light-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid var(--light-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #95a5a6;
+        transition: color 0.3s;
+    }
+
+    .close-modal:hover {
+        color: var(--danger-color);
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--light-color);
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .detail-value {
+        color: #7f8c8d;
+    }
+
+    /* Export button */
+    .export-btn {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .export-btn:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .stats-mini {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .stat-mini-card {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .stock-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table-custom {
+            min-width: 600px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stock-container">
+    <!-- En-tête -->
+    <div class="stock-header">
+        <h2>
+            <i class="bi bi-box-seam"></i>
+            État du Stock
+        </h2>
+        <div class="stats-mini">
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon total">
+                    <i class="bi bi-box"></i>
+                </div>
+                <div class="stat-mini-info">
+                    <h4 id="totalProducts">0</h4>
+                    <p>Total produits</p>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon disponible">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-mini-info">
+                    <h4 id="totalDisponible">0</h4>
+                    <p>Disponibles</p>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon faible">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-mini-info">
+                    <h4 id="totalFaible">0</h4>
+                    <p>Stock faible</p>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon rupture">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="stat-mini-info">
+                    <h4 id="totalRupture">0</h4>
+                    <p>En rupture</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-section">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Rechercher un produit...">
+            <i class="bi bi-search"></i>
+        </div>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="disponible">Disponible</button>
+            <button class="filter-btn" data-filter="faible">Stock faible</button>
+            <button class="filter-btn" data-filter="rupture">En rupture</button>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-container">
+        <table class="table-custom" id="stockTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">
+                        Produit <i class="bi bi-arrow-down-up"></i>
+                    </th>
+                    <th onclick="sortTable(1)">
+                        Stock <i class="bi bi-arrow-down-up"></i>
+                    </th>
+                    <th>Statut</th>
+                    <th>Tendance</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Les données seront chargées ici -->
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="page-info">
+                Affichage de <span id="startCount">0</span> à <span id="endCount">0</span> sur <span id="totalCount">0</span> produits
+            </div>
+            <div class="pagination" id="pagination">
+                <!-- La pagination sera générée ici -->
+            </div>
+            <button class="export-btn" onclick="exportToExcel()">
+                <i class="bi bi-file-earmark-excel"></i>
+                Exporter Excel
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal détails produit -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Détails du produit</h4>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Détails chargés dynamiquement -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Données des produits
+    let produits = {{ produits | tojson }};
+    let currentFilter = 'all';
+    let currentSort = { column: 0, ascending: true };
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    // Mettre à jour les statistiques
+    function updateStats() {
+        const total = produits.length;
+        const disponible = produits.filter(p => p.stock >= 5).length;
+        const faible = produits.filter(p => p.stock > 0 && p.stock < 5).length;
+        const rupture = produits.filter(p => p.stock === 0).length;
+        
+        document.getElementById('totalProducts').textContent = total;
+        document.getElementById('totalDisponible').textContent = disponible;
+        document.getElementById('totalFaible').textContent = faible;
+        document.getElementById('totalRupture').textContent = rupture;
+    }
+
+    // Obtenir le statut d'un produit
+    function getStatus(stock) {
+        if (stock === 0) return { text: 'En rupture', class: 'badge-rupture', icon: 'bi-x-circle' };
+        if (stock < 5) return { text: 'Stock faible', class: 'badge-faible', icon: 'bi-exclamation-triangle' };
+        return { text: 'Disponible', class: 'badge-disponible', icon: 'bi-check-circle' };
+    }
+
+    // Obtenir la classe de la barre de progression
+    function getBarClass(stock, maxStock = 100) {
+        const percentage = (stock / maxStock) * 100;
+        if (percentage >= 60) return 'fill-high';
+        if (percentage >= 20) return 'fill-medium';
+        return 'fill-low';
+    }
+
+    // Filtrer les produits
+    function filterProducts() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        let filtered = produits;
+        
+        // Filtre par statut
+        if (currentFilter === 'disponible') {
+            filtered = filtered.filter(p => p.stock >= 5);
+        } else if (currentFilter === 'faible') {
+            filtered = filtered.filter(p => p.stock > 0 && p.stock < 5);
+        } else if (currentFilter === 'rupture') {
+            filtered = filtered.filter(p => p.stock === 0);
+        }
+        
+        // Filtre par recherche
+        if (searchTerm) {
+            filtered = filtered.filter(p => 
+                p.nom_produit.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        return filtered;
+    }
+
+    // Trier les produits
+    function sortProducts(products) {
+        const sorted = [...products];
+        const column = currentSort.column;
+        
+        sorted.sort((a, b) => {
+            let aVal, bVal;
+            if (column === 0) {
+                aVal = a.nom_produit;
+                bVal = b.nom_produit;
+                return currentSort.ascending ? 
+                    aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            } else if (column === 1) {
+                aVal = a.stock;
+                bVal = b.stock;
+                return currentSort.ascending ? aVal - bVal : bVal - aVal;
+            }
+            return 0;
+        });
+        
+        return sorted;
+    }
+
+    // Pagination
+    function paginateProducts(products) {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        return products.slice(start, end);
+    }
+
+    // Rendre le tableau
+    function renderTable() {
+        let filtered = filterProducts();
+        const sorted = sortProducts(filtered);
+        const paginated = paginateProducts(sorted);
+        
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        if (paginated.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #95a5a6;"></i>
+                        <p class="mt-2">Aucun produit trouvé</p>
+                    </td>
+                </tr>
+            `;
+        } else {
+            paginated.forEach(produit => {
+                const status = getStatus(produit.stock);
+                const row = tbody.insertRow();
+                row.onclick = () => showProductDetail(produit);
+                row.style.cursor = 'pointer';
+                
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(produit.nom_produit)}</strong></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">${produit.stock}</span>
+                            <div class="stock-bar">
+                                <div class="stock-bar-fill ${getBarClass(produit.stock)}" 
+                                     style="width: ${Math.min((produit.stock / 100) * 100, 100)}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge-status ${status.class}">
+                            <i class="bi ${status.icon}"></i>
+                            ${status.text}
+                        </span>
+                    </td>
+                    <td>
+                        ${produit.stock > 0 ? 
+                            `<i class="bi bi-graph-up text-success"></i> Stable` : 
+                            `<i class="bi bi-graph-down text-danger"></i> Épuisé`}
+                    </td>
+                `;
+            });
+        }
+        
+        updatePaginationInfo(sorted.length);
+    }
+
+    // Mettre à jour les infos de pagination
+    function updatePaginationInfo(total) {
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, total);
+        
+        document.getElementById('startCount').textContent = total === 0 ? 0 : start;
+        document.getElementById('endCount').textContent = end;
+        document.getElementById('totalCount').textContent = total;
+        
+        renderPagination(total);
+    }
+
+    // Rendre la pagination
+    function renderPagination(total) {
+        const totalPages = Math.ceil(total / itemsPerPage);
+        const paginationDiv = document.getElementById('pagination');
+        paginationDiv.innerHTML = '';
+        
+        if (totalPages <= 1) return;
+        
+        // Bouton précédent
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        };
+        paginationDiv.appendChild(prevBtn);
+        
+        // Pages
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => {
+                currentPage = i;
+                renderTable();
+            };
+            paginationDiv.appendChild(pageBtn);
+        }
+        
+        // Bouton suivant
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        nextBtn.onclick = () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        };
+        paginationDiv.appendChild(nextBtn);
+    }
+
+    // Fonction de tri
+    function sortTable(column) {
+        if (currentSort.column === column) {
+            currentSort.ascending = !currentSort.ascending;
+        } else {
+            currentSort.column = column;
+            currentSort.ascending = true;
+        }
+        currentPage = 1;
+        renderTable();
+    }
+
+    // Afficher les détails du produit
+    function showProductDetail(produit) {
+        const status = getStatus(produit.stock);
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <div class="detail-item">
+                <span class="detail-label">Nom du produit</span>
+                <span class="detail-value">${escapeHtml(produit.nom_produit)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Quantité en stock</span>
+                <span class="detail-value">${produit.stock} unités</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Statut</span>
+                <span class="badge-status ${status.class}">
+                    <i class="bi ${status.icon}"></i>
+                    ${status.text}
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Niveau de stock</span>
+                <span class="detail-value">
+                    <div class="stock-bar" style="width: 150px;">
+                        <div class="stock-bar-fill ${getBarClass(produit.stock)}" 
+                             style="width: ${Math.min((produit.stock / 100) * 100, 100)}%"></div>
+                    </div>
+                </span>
+            </div>
+            ${produit.stock < 10 ? `
+            <div class="alert alert-warning mt-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                Attention: Stock faible, pensez à réapprovisionner!
+            </div>
+            ` : ''}
+        `;
+        
+        document.getElementById('productModal').classList.add('show');
+    }
+
+    // Fermer le modal
+    function closeModal() {
+        document.getElementById('productModal').classList.remove('show');
+    }
+
+    // Exporter vers Excel
+    function exportToExcel() {
+        let filtered = filterProducts();
+        const sorted = sortProducts(filtered);
+        
+        let csv = "Produit,Stock,Statut\n";
+        sorted.forEach(produit => {
+            const status = getStatus(produit.stock);
+            csv += `"${produit.nom_produit}",${produit.stock},"${status.text}"\n`;
+        });
+        
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", "etat_stock.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    // Échapper le HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+        updateStats();
+        renderTable();
+        
+        // Filtres
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                currentPage = 1;
+                renderTable();
+            });
+        });
+        
+        // Recherche
+        document.getElementById('searchInput').addEventListener('input', () => {
+            currentPage = 1;
+            renderTable();
+        });
+        
+        // Fermer modal en cliquant en dehors
+        window.onclick = (event) => {
+            const modal = document.getElementById('productModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+    });
+</script>
 {% endblock %}

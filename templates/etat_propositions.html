@@ -1,70 +1,624 @@
 {% extends "base.html" %}
-{% block title %}État des Restes à Payer{% endblock %}
+{% block title %}État des Restes à Payer | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .etat-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .etat-header {
+        background: linear-gradient(135deg, var(--danger-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .etat-header h4 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .etat-header p {
+        margin: 10px 0 0;
+        opacity: 0.9;
+    }
+
+    /* Cartes récapitulatives */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .summary-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .summary-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--danger-color);
+    }
+
+    .summary-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+    }
+
+    /* Filtres */
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .filter-group {
+        margin-bottom: 15px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-control-custom, .form-select-custom {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control-custom:focus, .form-select-custom:focus {
+        outline: none;
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    }
+
+    /* Section client */
+    .client-card {
+        background: white;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .client-card:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+
+    .client-header {
+        background: linear-gradient(135deg, var(--dark-color) 0%, #34495e 100%);
+        color: white;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .client-header:hover {
+        background: linear-gradient(135deg, #34495e 0%, var(--dark-color) 100%);
+    }
+
+    .client-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .client-name {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .client-avatar {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .client-stats {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .client-stat {
+        text-align: center;
+        padding: 5px 15px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+    }
+
+    .client-stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+
+    .client-stat-label {
+        font-size: 0.7rem;
+        opacity: 0.8;
+    }
+
+    .client-total {
+        font-size: 1.5rem;
+        font-weight: bold;
+        background: rgba(231, 76, 60, 0.2);
+        padding: 5px 15px;
+        border-radius: 10px;
+    }
+
+    /* Table */
+    .table-wrapper {
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom thead th {
+        background: var(--light-color);
+        padding: 12px;
+        font-weight: 600;
+        color: var(--dark-color);
+        border-bottom: 2px solid #ddd;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 12px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .badge-urgent {
+        background: rgba(231, 76, 60, 0.15);
+        color: var(--danger-color);
+    }
+
+    .badge-moyen {
+        background: rgba(243, 156, 18, 0.15);
+        color: var(--warning-color);
+    }
+
+    .badge-normal {
+        background: rgba(46, 204, 113, 0.15);
+        color: var(--success-color);
+    }
+
+    /* Barre de progression dette */
+    .debt-progress {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .fill-danger { background: var(--danger-color); }
+
+    /* Toolbar */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-danger-custom {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .btn-danger-custom:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn-success-custom {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .btn-success-custom:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+    }
+
+    .btn-info-custom {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .btn-info-custom:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+    }
+
+    /* Alertes */
+    .alert-warning-custom {
+        background: rgba(243, 156, 18, 0.1);
+        border-left: 4px solid var(--warning-color);
+        padding: 15px 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .client-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .client-stats {
+            justify-content: center;
+        }
+
+        .toolbar {
+            flex-direction: column;
+        }
+
+        .export-buttons {
+            width: 100%;
+        }
+
+        .export-buttons button, .export-buttons a {
+            flex: 1;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-
-<h4>📊 État des Restes à Payer</h4>
-<hr>
-{% if etat %}
-<div>
-    <a href="{{ url_for('etat_propositions_pdf') }}" target="_blank" 
-    class="btn btn-danger mb-3">
-    Télécharger PDF
-    </a>
-</div>
-{% endif %}
-
-{% for bloc in etat %}
-
-<div class="mt-5">
-
-    <!-- NOM DU CLIENT -->
-    <h5 class="fw-bold border-bottom pb-2">
-        👤 {{ bloc.client.nom_client }}
-    </h5>
-
-    <div class="table-responsive">
-    <table class="table table-bordered align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Date</th>
-                <th>N° Facture</th>
-                <th>Reste</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            {% for v in bloc.factures %}
-            <tr>
-                <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
-
-                <td>{{ v.facture.numero }}</td>
-
-                <td>
-                    <span class="{% if v.reste_a_payer > 0 %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
-                        {{ v.reste_a_payer | money }}
-                    </span>
-                </td>
-            </tr>
-            {% endfor %}
-
-            <!-- TOTAL CLIENT -->
-            <tr class="table-secondary fw-bold">
-                <td colspan="2" class="text-start">
-                    Total Reste Client
-                </td>
-                <td class="{% if bloc.total_reste > 0 %}text-danger{% else %}text-success{% endif %}">
-                    {{ bloc.total_reste | money }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class="etat-container">
+    <!-- En-tête -->
+    <div class="etat-header">
+        <h4>
+            <i class="bi bi-exclamation-triangle-fill"></i> État des Restes à Payer
+        </h4>
+        <p>Suivi des créances clients</p>
     </div>
 
+    {% if etat %}
+    <!-- Cartes récapitulatives -->
+    {% set total_clients = etat|length %}
+    {% set total_factures = 0 %}
+    {% set total_creances = 0 %}
+    {% for bloc in etat %}
+        {% set total_factures = total_factures + bloc.factures|length %}
+        {% set total_creances = total_creances + bloc.total_reste %}
+    {% endfor %}
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-icon">👥</div>
+            <div class="summary-value">{{ total_clients }}</div>
+            <div class="summary-label">Clients concernés</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">📄</div>
+            <div class="summary-value">{{ total_factures }}</div>
+            <div class="summary-label">Factures impayées</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">💰</div>
+            <div class="summary-value">{{ total_creances|money }}</div>
+            <div class="summary-label">Total des créances</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">📊</div>
+            <div class="summary-value">{{ (total_creances / total_clients if total_clients > 0 else 0)|money }}</div>
+            <div class="summary-label">Moyenne par client</div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-card">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="filter-group">
+                    <label>
+                        <i class="bi bi-search"></i> Rechercher un client
+                    </label>
+                    <input type="text" id="searchClient" class="form-control-custom" 
+                           placeholder="Nom du client...">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button id="resetFilters" class="btn-custom btn-info-custom w-100">
+                        <i class="bi bi-arrow-repeat"></i> Réinitialiser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div>
+            <strong>Total général:</strong> 
+            <span class="text-danger fw-bold fs-5">{{ total_creances|money }}</span>
+        </div>
+        <div class="export-buttons">
+            <button onclick="exportToExcel()" class="btn-custom btn-success-custom">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </button>
+            <a href="{{ url_for('etat_propositions_pdf') }}" target="_blank" class="btn-custom btn-danger-custom">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+            <button onclick="window.print()" class="btn-custom btn-info-custom">
+                <i class="bi bi-printer"></i> Imprimer
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Liste des clients -->
+    <div id="clientsList">
+        {% for bloc in etat %}
+        <div class="client-card" data-client-name="{{ bloc.client.nom_client|lower }}" 
+             data-client-amount="{{ bloc.total_reste }}">
+            <div class="client-header" onclick="toggleClientDetails('client-{{ loop.index }}')">
+                <div class="client-info">
+                    <div class="client-name">
+                        <div class="client-avatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ bloc.client.nom_client }}</h5>
+                            <small>{{ bloc.factures|length }} facture(s) impayée(s)</small>
+                        </div>
+                    </div>
+                    <div class="client-stats">
+                        <div class="client-stat">
+                            <div class="client-stat-value">{{ bloc.factures|length }}</div>
+                            <div class="client-stat-label">Factures</div>
+                        </div>
+                        <div class="client-total">
+                            {{ bloc.total_reste|money }}
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down" style="font-size: 1.5rem;"></i>
+                </div>
+                {% if total_creances > 0 %}
+                <div class="debt-progress">
+                    <div class="progress-bar-custom">
+                        <div class="progress-fill fill-danger" style="width: {{ (bloc.total_reste / total_creances * 100)|round(1) }}%"></div>
+                    </div>
+                    <small class="text-white-50">{{ (bloc.total_reste / total_creances * 100)|round(1) }}% du total des créances</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="client-{{ loop.index }}" class="client-details" style="display: none;">
+                <div class="table-wrapper">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>N° Facture</th>
+                                <th>Total facture</th>
+                                <th>Reste à payer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in bloc.factures %}
+                            <tr>
+                                <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ v.facture.numero }}</strong>{% if v.facture.numero_facture %} <br><small>{{ v.facture.numero_facture }}</small>{% endif %}</td>
+                                <td>{{ v.total|money }}</td>
+                                <td>
+                                    <span class="text-danger fw-bold">
+                                        {{ v.reste_a_payer|money }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-danger">
+                                <td colspan="3" class="text-end fw-bold">Total client:</td>
+                                <td class="fw-bold fs-5">{{ bloc.total_reste|money }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not etat %}
+    <div class="alert-warning-custom">
+        <i class="bi bi-check-circle" style="font-size: 2rem; color: var(--success-color);"></i>
+        <div>
+            <strong>Aucune dette enregistrée</strong><br>
+            Tous les clients sont à jour de leurs paiements.
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-{% endfor %}
-
-</div>
+<script>
+    // Filtrer par recherche
+    document.getElementById('searchClient')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const clients = document.querySelectorAll('.client-card');
+        clients.forEach(client => {
+            const clientName = client.dataset.clientName;
+            if (clientName.includes(searchTerm)) {
+                client.style.display = 'block';
+            } else {
+                client.style.display = 'none';
+            }
+        });
+    });
+    
+    // Reset filtres
+    document.getElementById('resetFilters')?.addEventListener('click', function() {
+        document.getElementById('searchClient').value = '';
+        const clients = document.querySelectorAll('.client-card');
+        clients.forEach(client => client.style.display = 'block');
+    });
+    
+    // Basculer détails client
+    function toggleClientDetails(id) {
+        const element = document.getElementById(id);
+        if (element.style.display === 'none') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+    
+    // Exporter vers Excel
+    function exportToExcel() {
+        let csv = [["Client", "Date", "N° Facture", "Total facture", "Reste à payer"]];
+        
+        document.querySelectorAll('.client-card').forEach(client => {
+            const clientName = client.querySelector('.client-name h5')?.innerText;
+            client.querySelectorAll('.table-custom tbody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 4) {
+                    csv.push([
+                        clientName,
+                        cells[0]?.innerText,
+                        cells[1]?.innerText,
+                        cells[2]?.innerText,
+                        cells[3]?.innerText
+                    ]);
+                }
+            });
+        });
+        
+        const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                              { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'etat_restes_a_payer.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+</script>
 {% endblock %}

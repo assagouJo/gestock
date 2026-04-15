@@ -1,217 +1,510 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bons-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .bons-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .bons-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--info-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--info-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 35px; }
+    .table-custom th:nth-child(2) { width: 80px; }
+    .table-custom th:nth-child(3) { width: 85px; }
+    .table-custom th:nth-child(4) { width: 100px; }
+    .table-custom th:nth-child(5) { width: 85px; }
+    .table-custom th:nth-child(6) { width: 85px; }
+    .table-custom th:nth-child(7) { width: 55px; }
+    .table-custom th:nth-child(8) { width: 55px; }
+    .table-custom th:nth-child(9) { width: 55px; }
+    .table-custom th:nth-child(10) { width: 85px; }
+    .table-custom th:nth-child(11) { width: 60px; }
+    .table-custom th:nth-child(12) { width: 90px; }
+    .table-custom th:nth-child(13) { width: 100px; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 8px 5px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 6px 5px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Badges compacts avec tooltip */
+    .badge-client, .badge-vendeur, .badge-compagnie {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+    }
+
+    .badge-client { background: var(--primary-color); color: white; }
+    .badge-vendeur { background: var(--success-color); color: white; }
+    .badge-compagnie { background: var(--info-color); color: white; }
+
+    .badge-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .checkbox-custom {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .montant {
+        white-space: nowrap;
+        text-align: right;
+        font-weight: 500;
+    }
+
+    .btn-group .btn {
+        padding: 2px 6px;
+        font-size: 0.7rem;
+        margin: 0 1px;
+    }
+
+    @media (max-width: 1200px) {
+        .table-custom th:nth-child(4) { width: 80px; }
+        .table-custom th:nth-child(13) { width: 80px; }
+    }
+
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .bons-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-
-<div class="container mt-4">
-
-<h4 class="fw-bold">📦 Bons de commande</h4>
-
-<div class="d-flex gap-2 mb-3">
-    <a href="{{ url_for('nouveau_bon_commande') }}" class="btn btn-primary">
-        ➕ Nouveau bon
-    </a>
-    
-    <button type="button" class="btn btn-danger" id="delete-selected-btn" style="display: none;" onclick="deleteSelected()">
-        🗑 Supprimer la sélection
-    </button>
-</div>
-
-{% if bons %}
-
-<form method="POST" id="delete-form" action="{{ url_for('delete_bons_commande') }}">
-<div class="card">
-
-<div class="table-responsive" style="max-height:380px; overflow-y:auto;">
-    <table class="table table-hover table-bordered align-middle">
-        <thead class="table-dark sticky-top">
-            <th width="30">
-                <input type="checkbox" id="select-all">
-            </th>
-            <th>Numéro</th>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Vendeur</th>
-            <th>Compagnie</th>
-            <th>Quantité</th>
-            <th>Livré</th>
-            <th>Reste</th>
-            <th>Total (FCFA)</th>
-            <th>BL associés</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </thead>
-
-        <tbody>
-            {% for bon in bons %}
-            <tr>
-                <td class="text-center">
-                    <input type="checkbox" name="bon_ids[]" value="{{ bon.id }}" class="bon-checkbox">
-                </td>
-                <td class="small fw-bold">{{ bon.numero }}</td>
-                <td class="small">{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
-                <td class="small">{{ bon.client.nom_client }}</td>
-                <td class="small">
-                    {% if bon.vendeur %}
-                        <span class="badge bg-primary">{{ bon.vendeur.nom }}</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Non assigné</span>
-                    {% endif %}
-                </td>
-                <td class="small">
-                    {% if bon.compagnie %}
-                        <span class="badge bg-info">{{ bon.compagnie.nom }}</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Non assigné</span>
-                    {% endif %}
-                </td>
-                <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</td>
-                <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</td>
-                <td class="text-center">
-                    {% set reste = bon.lignes | sum(attribute='reste_a_livrer') %}
-                    {% if reste > 0 %}
-                        <span class="badge bg-warning text-dark">{{ reste }}</span>
-                    {% else %}
-                        <span class="badge bg-success">0</span>
-                    {% endif %}
-                </td>
-                <td class="text-end fw-bold">
-                    {{ "{:,.0f}".format(bon.total|float) }} FCFA
-                </td>
-                <td class="text-center">
-                    {% if bon.livraisons|length > 0 %}
-                        <span class="badge bg-info">{{ bon.livraisons|length }} BL</span>
-                        <button type="button" class="btn btn-sm btn-link" onclick="showBLList({{ bon.livraisons|map(attribute='numero')|list|tojson }})">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    {% else %}
-                        <span class="badge bg-secondary">Aucun</span>
-                    {% endif %}
-                </td>
-                <td class="text-center">
-                    <span class="badge
-                        {% if bon.status == 'livree' %}
-                            bg-success
-                        {% elif bon.status == 'livraison_partielle' %}
-                            bg-warning text-dark
-                        {% elif bon.status == 'annulee' %}
-                            bg-danger
-                        {% elif bon.status == 'confirmee' %}
-                            bg-info
-                        {% elif bon.status == 'brouillon' %}
-                            bg-secondary
-                        {% elif bon.status == 'facturee' %}
-                            bg-primary
-                        {% else %}
-                            bg-secondary
-                        {% endif %}
-                    ">
-                        {% if bon.status == 'livraison_partielle' %}
-                            Livraison partielle
-                        {% else %}
-                            {{ bon.status|capitalize }}
-                        {% endif %}
-                    </span>
-                    {% if bon.status == 'livraison_partielle' %}
-                        <br>
-                        <small class="text-muted">{{ "%.1f"|format(bon.pourcentage_livre) }}%</small>
-                    {% endif %}
-                </td>
-                <td class="text-center">
-                    <div class="btn-group" role="group">
-                        <a href="{{ url_for('details_bon_commande', bon_id=bon.id) }}" 
-                           class="btn btn-sm btn-info" title="Voir">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        {% if bon.status == 'brouillon' %}
-                            <a href="{{ url_for('modifier_bon_commande', bon_id=bon.id) }}" 
-                               class="btn btn-sm btn-warning" title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <button type="button" 
-                                    onclick="confirmerCommande({{ bon.id }}, '{{ bon.numero }}')" 
-                                    class="btn btn-sm btn-success" title="Confirmer">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                        {% endif %}
-                        {% if bon.status == 'confirmee' %}
-                            <a href="{{ url_for('create_bon_livraison', commande_id=bon.id) }}" 
-                               class="btn btn-sm btn-primary" title="Créer BL">
-                                <i class="bi bi-truck"></i>
-                            </a>
-                        {% endif %}
-                        {% if bon.livraisons|length == 0 and bon.status != 'livree' %}
-                            <button type="button" 
-                                    onclick="confirmDelete({{ bon.id }}, '{{ bon.numero }}', {{ bon.livraisons|length }})" 
-                                    class="btn btn-sm btn-danger" title="Supprimer">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-</div>
-</form>
-
-<!-- Résumé des commandes -->
-<div class="mt-3">
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i>
-        <strong>Résumé des commandes :</strong>
-        <div class="row mt-2">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted">Total commandes</h6>
-                        <h5 class="text-primary">{{ "{:,.0f}".format(bons|sum(attribute='total')|float) }} FCFA</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted">En attente</h6>
-                        <h5 class="text-warning">{{ bons|selectattr('status', 'equalto', 'confirmee')|list|length }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted">Livrées</h6>
-                        <h5 class="text-success">{{ bons|selectattr('status', 'equalto', 'livree')|list|length }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted">Partiellement livrées</h6>
-                        <h5 class="text-info">{{ bons|selectattr('status', 'equalto', 'livraison_partielle')|list|length }}</h5>
-                    </div>
-                </div>
-            </div>
+<div class="bons-container">
+    <!-- En-tête -->
+    <div class="bons-header">
+        <h4>
+            <i class="bi bi-file-text"></i> Bons de Commande
+        </h4>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('nouveau_bon_commande') }}" class="btn-add">
+                <i class="bi bi-plus-circle"></i> Nouveau bon
+            </a>
+            <button type="button" class="btn-add" id="delete-selected-btn" style="display: none; background: var(--danger-color); color: white;" onclick="deleteSelected()">
+                <i class="bi bi-trash"></i> Supprimer
+            </button>
         </div>
     </div>
-</div>
 
-{% else %}
+    {% if bons %}
+    <!-- Statistiques -->
+    {% set total_commandes = bons|sum(attribute='total') %}
+    {% set en_attente = bons|selectattr('status', 'equalto', 'confirmee')|list|length %}
+    {% set livrees = bons|selectattr('status', 'equalto', 'livree')|list|length %}
+    {% set partielles = bons|selectattr('status', 'equalto', 'livraison_partielle')|list|length %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_commandes).replace(',', ' ') }} F</div>
+            <div class="stat-label">Total commandes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value">{{ en_attente }}</div>
+            <div class="stat-label">En attente</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ livrees }}</div>
+            <div class="stat-label">Livrées</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value">{{ partielles }}</div>
+            <div class="stat-label">Partielles</div>
+        </div>
+    </div>
 
-<div class="alert alert-warning text-center">
-    <i class="bi bi-exclamation-triangle"></i>
-    Aucun bon de commande enregistré.
-    <br>
-    <a href="{{ url_for('nouveau_bon_commande') }}" class="btn btn-primary mt-2">
-        ➕ Créer le premier bon de commande
-    </a>
-</div>
-
-{% endif %}
-
+    <!-- Formulaire de suppression -->
+    <form method="POST" id="delete-form" action="{{ url_for('delete_bons_commande') }}">
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="bi bi-list-ul"></i> Liste des bons de commande
+                    <span class="badge bg-secondary ms-2">{{ bons|length }}</span>
+                </div>
+                <div class="export-buttons">
+                    <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                        <i class="bi bi-printer"></i> Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom" id="bonsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all" class="checkbox-custom"></th>
+                            <th>N°</th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Vendeur</th>
+                            <th>Compagnie</th>
+                            <th>Qté</th>
+                            <th>Livré</th>
+                            <th>Reste</th>
+                            <th>Total</th>
+                            <th>BL</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bon in bons %}
+                        <tr>
+                            <td class="text-center">
+                                <input type="checkbox" name="bon_ids[]" value="{{ bon.id }}" class="checkbox-custom bon-checkbox">
+                            </td>
+                            <td class="fw-bold">{{ bon.numero }}</td>
+                            <td>{{ bon.date_creation.strftime('%d/%m/%y') }}</td>
+                            
+                            <!-- CLIENT AVEC TOOLTIP -->
+                            <td>
+                                <span class="badge-client" 
+                                      title="{{ bon.client.nom_client }}"
+                                      style="cursor: help;">
+                                    {{ bon.client.nom_client|truncate(18, true) }}
+                                </span>
+                            </td>
+                            
+                            <!-- VENDEUR AVEC TOOLTIP -->
+                            <td>
+                                {% if bon.vendeur %}
+                                    <span class="badge-vendeur" 
+                                          title="{{ bon.vendeur.nom }}"
+                                          style="cursor: help;">
+                                        {{ bon.vendeur.nom|truncate(15, true) }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary" title="Non assigné">N/A</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- COMPAGNIE AVEC TOOLTIP -->
+                            <td>
+                                {% if bon.compagnie %}
+                                    <span class="badge-compagnie" 
+                                          title="{{ bon.compagnie.nom }}"
+                                          style="cursor: help;">
+                                        {{ bon.compagnie.nom|truncate(15, true) }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary" title="Non assigné">N/A</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</td>
+                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</td>
+                            <td class="text-center">
+                                {% set reste = bon.lignes | sum(attribute='reste_a_livrer') %}
+                                {% if reste > 0 %}
+                                    <span class="badge bg-warning text-dark" title="{{ reste }} unité(s) restante(s)">{{ reste }}</span>
+                                {% else %}
+                                    <span class="badge bg-success" title="Totalement livré">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="montant">{{ "{:,.0f}".format(bon.total|float).replace(',', ' ') }} F</td>
+                            <td class="text-center">
+                                {% if bon.livraisons|length > 0 %}
+                                    <span class="badge bg-info" title="{{ bon.livraisons|length }} bon(s) de livraison">{{ bon.livraisons|length }} BL</span>
+                                    <button type="button" class="btn btn-sm btn-link" onclick="showBLList({{ bon.livraisons|map(attribute='numero')|list|tojson }})" title="Voir les BL">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="badge bg-secondary" title="Aucun bon de livraison">Aucun</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-status
+                                    {% if bon.status == 'livree' %}bg-success
+                                    {% elif bon.status == 'livraison_partielle' %}bg-warning text-dark
+                                    {% elif bon.status == 'annulee' %}bg-danger
+                                    {% elif bon.status == 'confirmee' %}bg-info
+                                    {% elif bon.status == 'brouillon' %}bg-secondary
+                                    {% elif bon.status == 'facturee' %}bg-primary
+                                    {% else %}bg-secondary{% endif %}"
+                                    title="Statut: {{ bon.status|replace('_', ' ')|title }}">
+                                    {% if bon.status == 'livraison_partielle' %}
+                                        Partiel
+                                    {% else %}
+                                        {{ bon.status|replace('_', ' ')|title|truncate(10, true) }}
+                                    {% endif %}
+                                </span>
+                                {% if bon.status == 'livraison_partielle' %}
+                                    <br>
+                                    <small class="text-muted" title="{{ bon.pourcentage_livre }}% livré">{{ "%.0f"|format(bon.pourcentage_livre) }}%</small>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('details_bon_commande', bon_id=bon.id) }}" 
+                                       class="btn btn-sm btn-info" title="Voir les détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if bon.status == 'brouillon' %}
+                                        <a href="{{ url_for('modifier_bon_commande', bon_id=bon.id) }}" 
+                                           class="btn btn-sm btn-warning" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" 
+                                                onclick="confirmerCommande({{ bon.id }}, '{{ bon.numero }}')" 
+                                                class="btn btn-sm btn-success" title="Confirmer la commande">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    {% endif %}
+                                    {% if bon.status == 'confirmee' %}
+                                        <a href="{{ url_for('create_bon_livraison', commande_id=bon.id) }}" 
+                                           class="btn btn-sm btn-primary" title="Créer un bon de livraison">
+                                            <i class="bi bi-truck"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if bon.livraisons|length == 0 and bon.status != 'livree' %}
+                                        <button type="button" 
+                                                onclick="confirmDelete({{ bon.id }}, '{{ bon.numero }}', {{ bon.livraisons|length }})" 
+                                                class="btn btn-sm btn-danger" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="9" class="text-end fw-bold">TOTAL GÉNÉRAL :</td>
+                            <td class="montant fw-bold">{{ "{:,.0f}".format(total_commandes).replace(',', ' ') }} F</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="bi bi-exclamation-triangle"></i>
+        Aucun bon de commande enregistré.
+        <br>
+        <a href="{{ url_for('nouveau_bon_commande') }}" class="btn btn-primary mt-2">
+            ➕ Créer le premier bon de commande
+        </a>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -235,16 +528,12 @@ function toggleDeleteButton() {
     }
 }
 
-// Fonction pour confirmer une commande
-// Fonction pour confirmer une commande
+// Confirmer une commande
 function confirmerCommande(bonId, bonNumero) {
     if(confirm(`Confirmer le bon de commande ${bonNumero} ?\n\nUne fois confirmé, vous pourrez créer des bons de livraison.`)) {
         fetch(`/confirmer_bon_commande/${bonId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-                // Supprimez ou commentez cette ligne :
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(data => {
@@ -261,7 +550,7 @@ function confirmerCommande(bonId, bonNumero) {
     }
 }
 
-// Fonction pour confirmer la suppression
+// Confirmer la suppression
 function confirmDelete(bonId, bonNumero, blCount) {
     let message = `Voulez-vous vraiment supprimer le bon de commande ${bonNumero} ?`;
     
@@ -272,23 +561,19 @@ function confirmDelete(bonId, bonNumero, blCount) {
         message += `(Cliquez sur OK pour aller voir les BL, Annuler pour rester)`;
         
         if (confirm(message)) {
-            // Rediriger vers les BL de cette commande
             window.location.href = `/bon-livraison?commande_id=${bonId}`;
         }
         return;
     }
     
     if (confirm(message)) {
-        // Créer un formulaire temporaire
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ url_for("delete_bons_commande") }}';
-        
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'bon_ids[]';
         input.value = bonId;
-        
         form.appendChild(input);
         document.body.appendChild(form);
         form.submit();
@@ -303,7 +588,7 @@ function deleteSelected() {
     
     selected.forEach(cb => {
         const row = cb.closest('tr');
-        const blCell = row.cells[10]; // Index de la colonne BL
+        const blCell = row.cells[10];
         const blText = blCell.innerText;
         if (blText !== 'Aucun' && !blText.includes('0')) {
             hasBL = true;
@@ -335,33 +620,35 @@ function showBLList(blList) {
         alert('Aucun bon de livraison associé');
     }
 }
+
+// Export Excel
+function exportToExcel() {
+    let csv = [["N°", "Date", "Client", "Vendeur", "Compagnie", "Qté", "Livré", "Reste", "Total", "Status"]];
+    
+    document.querySelectorAll('#bonsTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 12) {
+            csv.push([
+                cells[1]?.innerText,
+                cells[2]?.innerText,
+                cells[3]?.innerText,
+                cells[4]?.innerText,
+                cells[5]?.innerText,
+                cells[6]?.innerText,
+                cells[7]?.innerText,
+                cells[8]?.innerText,
+                cells[9]?.innerText,
+                cells[11]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'bons_commande.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
 </script>
-
-<style>
-    .btn-group .btn {
-        margin: 0 2px;
-    }
-    .table th, .table td {
-        vertical-align: middle;
-    }
-    .btn-link {
-        text-decoration: none;
-        padding: 0 5px;
-    }
-    .btn-link:hover {
-        text-decoration: underline;
-    }
-    .badge {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.6rem;
-    }
-    .card {
-        border: none;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .alert-info .card {
-        background-color: white;
-    }
-</style>
-
 {% endblock %}

@@ -1,18 +1,311 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kit-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .card-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    /* Cartes d'informations */
+    .info-card {
+        background: var(--light-color);
+        border-radius: 12px;
+        padding: 15px;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .info-card-title {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .info-table {
+        width: 100%;
+        font-size: 0.85rem;
+    }
+
+    .info-table td {
+        padding: 6px 0;
+    }
+
+    .info-table td:first-child {
+        font-weight: 600;
+        width: 140px;
+        color: var(--dark-color);
+    }
+
+    .info-table td:last-child {
+        color: #555;
+    }
+
+    /* Tableau des produits */
+    .table-custom {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table-custom tbody td {
+        padding: 10px;
+        vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge-produit-principal {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-accessoire {
+        background: var(--info-color);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-quantite {
+        background: var(--success-color);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    /* Lignes de produit */
+    .produit-principal-row {
+        background-color: #e8f4fd;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .produit-accessoire-row {
+        background-color: #f8f9fa;
+    }
+
+    .produit-accessoire-row td:first-child {
+        padding-left: 40px;
+    }
+
+    /* Bloc séparateur */
+    .bloc-separator {
+        background: var(--light-color);
+        text-align: center;
+    }
+
+    .bloc-separator td {
+        padding: 5px !important;
+    }
+
+    .bloc-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Récapitulatif par bloc */
+    .recap-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid var(--light-color);
+    }
+
+    .recap-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--light-color);
+    }
+
+    .recap-item:last-child {
+        border-bottom: none;
+    }
+
+    .recap-produit {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .recap-accessoires {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+    }
+
+    .recap-quantite {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    /* Prix global */
+    .price-card {
+        background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .price-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        letter-spacing: 1px;
+    }
+
+    .price-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    /* Boutons */
+    .btn-group-custom {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-custom {
+        padding: 6px 15px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .info-table td:first-child {
+            width: 100px;
+        }
+        
+        .btn-group-custom {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-custom {
+            text-align: center;
+        }
+        
+        .price-value {
+            font-size: 1.3rem;
+        }
+        
+        .table-custom thead th {
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+        
+        .table-custom tbody td {
+            font-size: 0.75rem;
+            padding: 8px;
+        }
+    }
+
+    /* Impression */
+    @media print {
+        .btn, .btn-group-custom, .card-header .btn {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none;
+        }
+        
+        .info-card {
+            break-inside: avoid;
+        }
+        
+        .price-card {
+            background: #f8f9fa;
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="kit-container">
     <div class="card shadow">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="mb-0">
-                <i class="fas fa-file-invoice me-2"></i>Détails du Kit Proforma
+                <i class="fas fa-file-invoice me-2"></i>
+                Détails du Kit Proforma
+                <span class="badge bg-light text-dark ms-2">{{ kit.numero }}</span>
             </h5>
-            <div>
-                <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-light btn-sm me-2">
-                    <i class="fas fa-arrow-left"></i> Retour
+            <div class="btn-group-custom">
+                <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-light btn-custom">
+                    <i class="fas fa-arrow-left me-1"></i> Retour
                 </a>
-                <a href="{{ url_for('kit_proforma_pdf', kit_id=kit.id) }}" class="btn btn-success btn-sm" target="_blank">
-                    <i class="fas fa-file-pdf"></i> PDF
+                <a href="{{ url_for('kit_proforma_pdf', kit_id=kit.id) }}" class="btn btn-success btn-custom" target="_blank">
+                    <i class="fas fa-file-pdf me-1"></i> PDF
                 </a>
             </div>
         </div>
@@ -20,71 +313,34 @@
         <div class="card-body">
             <!-- INFO KIT -->
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title text-primary">
-                                <i class="fas fa-info-circle me-2"></i>Informations du kit
-                            </h6>
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <td><strong>Numéro :</strong></td>
-                                    <td>{{ kit.numero }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Date :</strong></td>
-                                    <td>{{ kit.date.strftime("%d/%m/%Y") if kit.date else '' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>ATTN :</strong></td>
-                                    <td>{{ kit.attn or 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Condition paiement :</strong></td>
-                                    <td>{{ kit.condition_paiement or 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Délai livraison :</strong></td>
-                                    <td>{{ kit.delai_livraison or 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Garantie :</strong></td>
-                                    <td>{{ kit.garantie or 'Non spécifié' }}</td>
-                                </tr>
-                            </table>
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="info-card">
+                        <div class="info-card-title">
+                            <i class="fas fa-info-circle me-2"></i>Informations du kit
                         </div>
+                        <table class="info-table">
+                            <tr><td>Numéro :</td><td><strong>{{ kit.numero }}</strong></td></tr>
+                            <tr><td>Date :</td><td>{{ kit.date.strftime("%d/%m/%Y") if kit.date else '-' }}</td></tr>
+                            <tr><td>ATTN :</td><td title="{{ kit.attn or 'Non spécifié' }}">{{ kit.attn|truncate(30, true) or '-' }}</td></tr>
+                            <tr><td>Condition paiement :</td><td>{{ kit.condition_paiement or '-' }}</td></tr>
+                            <tr><td>Délai livraison :</td><td>{{ kit.delai_livraison or '-' }}</td></tr>
+                            <tr><td>Garantie :</td><td>{{ kit.garantie or '-' }}</td></tr>
+                        </table>
                     </div>
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title text-primary">
-                                <i class="fas fa-user me-2"></i>Informations client
-                            </h6>
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <td><strong>Nom :</strong></td>
-                                    <td>{{ kit.client.nom_client if kit.client else 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Téléphone :</strong></td>
-                                    <td>{{ kit.client.telephone if kit.client and kit.client.telephone else 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Email :</strong></td>
-                                    <td>{{ kit.client.adresse_email if kit.client and kit.client.adresse_email else 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Ville :</strong></td>
-                                    <td>{{ kit.client.ville if kit.client and kit.client.ville else 'Non spécifié' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>RCC :</strong></td>
-                                    <td>{{ kit.client.numero_rcc if kit.client and kit.client.numero_rcc else 'Non spécifié' }}</td>
-                                </tr>
-                            </table>
+                    <div class="info-card">
+                        <div class="info-card-title">
+                            <i class="fas fa-user me-2"></i>Informations client
                         </div>
+                        <table class="info-table">
+                            <tr><td>Nom :</td><td><strong>{{ kit.client.nom_client if kit.client else '-' }}</strong></td></tr>
+                            <tr><td>Téléphone :</td><td>{{ kit.client.telephone if kit.client and kit.client.telephone else '-' }}</td></tr>
+                            <tr><td>Email :</td><td title="{{ kit.client.adresse_email if kit.client and kit.client.adresse_email else '-' }}">{{ kit.client.adresse_email|truncate(25, true) if kit.client and kit.client.adresse_email else '-' }}</td></tr>
+                            <tr><td>Ville :</td><td>{{ kit.client.ville if kit.client and kit.client.ville else '-' }}</td></tr>
+                            <tr><td>RCC :</td><td>{{ kit.client.numero_rcc if kit.client and kit.client.numero_rcc else '-' }}</td></tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -97,11 +353,12 @@
             </h6>
 
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
+                <table class="table table-bordered table-custom">
+                    <thead>
                         <tr>
                             <th style="width: 70%">Produit</th>
-                            <th style="width: 30%">Quantité</th>
+                            <th style="width: 15%">Quantité</th>
+                            <th style="width: 15%">Type</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,30 +367,54 @@
                                 {% if bloc.lignes and bloc.lignes|length > 0 %}
                                     <!-- Le premier produit est le produit principal -->
                                     {% set first_ligne = bloc.lignes[0] %}
-                                    <tr class="table-primary fw-bold">
+                                    <tr class="produit-principal-row">
                                         <td>
-                                            <i class="fas fa-cube me-2"></i>
-                                            {{ first_ligne.produit.nom_produit if first_ligne.produit else 'Produit inconnu' }}
+                                            <i class="fas fa-cube me-2 text-primary"></i>
+                                            <span class="badge-produit-principal" title="{{ first_ligne.produit.nom_produit if first_ligne.produit else 'Produit inconnu' }}">
+                                                {{ first_ligne.produit.nom_produit if first_ligne.produit else 'Produit inconnu' }}
+                                            </span>
+                                            {% if first_ligne.produit and first_ligne.produit.model %}
+                                                <br>
+                                                <small class="text-muted">Modèle: {{ first_ligne.produit.model }}</small>
+                                            {% endif %}
                                         </td>
-                                        <td>{{ first_ligne.quantite }}</td>
+                                        <td class="text-center">
+                                            <span class="badge-quantite">{{ first_ligne.quantite }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">Principal</span>
+                                        </td>
                                     </tr>
 
                                     <!-- Les produits suivants sont les accessoires -->
                                     {% for ligne in bloc.lignes[1:] %}
-                                    <tr>
+                                    <tr class="produit-accessoire-row">
                                         <td style="padding-left: 40px;">
                                             <i class="fas fa-angle-right me-2 text-muted"></i>
-                                            {{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}
+                                            <span class="badge-accessoire" title="{{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}">
+                                                {{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}
+                                            </span>
+                                            {% if ligne.produit and ligne.produit.model %}
+                                                <br>
+                                                <small class="text-muted" style="margin-left: 20px;">Modèle: {{ ligne.produit.model }}</small>
+                                            {% endif %}
                                         </td>
-                                        <td>{{ ligne.quantite }}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info text-white">{{ ligne.quantite }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">Accessoire</span>
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                     
                                     <!-- Ligne de séparation entre blocs -->
                                     {% if not loop.last %}
-                                    <tr>
-                                        <td colspan="2" style="padding: 0;">
-                                            <hr style="margin: 0; border-top: 2px solid #dee2e6;">
+                                    <tr class="bloc-separator">
+                                        <td colspan="3">
+                                            <div class="bloc-title">
+                                                <i class="fas fa-layer-group me-1"></i> Bloc suivant
+                                            </div>
                                         </td>
                                     </tr>
                                     {% endif %}
@@ -152,19 +433,26 @@
                             
                             {% if produits_hors_bloc|length > 0 %}
                                 <tr class="table-info">
-                                    <td colspan="2">
+                                    <td colspan="3">
                                         <strong>
                                             <i class="fas fa-puzzle-piece me-2"></i>Produits supplémentaires
                                         </strong>
                                     </td>
                                 </tr>
                                 {% for ligne in produits_hors_bloc %}
-                                <tr>
+                                <tr class="produit-accessoire-row">
                                     <td style="padding-left: 40px;">
                                         <i class="fas fa-angle-right me-2 text-muted"></i>
-                                        {{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}
+                                        <span class="badge-accessoire" title="{{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}">
+                                            {{ ligne.produit.nom_produit if ligne.produit else 'Produit inconnu' }}
+                                        </span>
                                     </td>
-                                    <td>{{ ligne.quantite }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info text-white">{{ ligne.quantite }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">Accessoire</span>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             {% endif %}
@@ -173,7 +461,7 @@
                         <!-- Message si aucun produit -->
                         {% if (not kit.blocs or kit.blocs|length == 0) and (not kit.lignes or kit.lignes|length == 0) %}
                         <tr>
-                            <td colspan="2" class="text-center text-muted py-4">
+                            <td colspan="3" class="text-center text-muted py-4">
                                 <i class="fas fa-info-circle me-2"></i>Aucun produit dans ce kit
                             </td>
                         </tr>
@@ -186,34 +474,33 @@
             {% if kit.blocs and kit.blocs|length > 0 %}
             <div class="row mt-4">
                 <div class="col-md-6">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title text-primary">
-                                <i class="fas fa-calculator me-2"></i>Récapitulatif par bloc
-                            </h6>
-                            <table class="table table-sm">
-                                {% for bloc in kit.blocs %}
-                                {% if bloc.lignes and bloc.lignes|length > 0 %}
-                                {% set first_ligne = bloc.lignes[0] %}
-                                <tr>
-                                    <td>
-                                        <strong>
-                                            {{ first_ligne.produit.nom_produit if first_ligne.produit else 'Bloc' }}
-                                        </strong>
-                                    </td>
-                                    <td>{{ bloc.lignes|length - 1 }} accessoire(s)</td>
-                                    <td>
-                                        {% set total_qte = namespace(value=0) %}
-                                        {% for ligne in bloc.lignes %}
-                                            {% set total_qte.value = total_qte.value + ligne.quantite %}
-                                        {% endfor %}
-                                        {{ total_qte.value }} unité(s)
-                                    </td>
-                                </tr>
-                                {% endif %}
-                                {% endfor %}
-                            </table>
+                    <div class="recap-card">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-calculator me-2"></i>Récapitulatif par bloc
+                        </h6>
+                        {% for bloc in kit.blocs %}
+                        {% if bloc.lignes and bloc.lignes|length > 0 %}
+                        {% set first_ligne = bloc.lignes[0] %}
+                        {% set total_qte = namespace(value=0) %}
+                        {% for ligne in bloc.lignes %}
+                            {% set total_qte.value = total_qte.value + ligne.quantite %}
+                        {% endfor %}
+                        <div class="recap-item">
+                            <div>
+                                <span class="recap-produit">
+                                    {{ first_ligne.produit.nom_produit if first_ligne.produit else 'Bloc' }}
+                                </span>
+                                <br>
+                                <span class="recap-accessoires">
+                                    {{ bloc.lignes|length - 1 }} accessoire(s)
+                                </span>
+                            </div>
+                            <span class="recap-quantite">
+                                {{ total_qte.value }} unité(s)
+                            </span>
                         </div>
+                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -224,18 +511,16 @@
             <!-- PRIX GLOBAL -->
             <div class="row mt-4">
                 <div class="col-md-4 offset-md-8">
-                    <div class="card border-success">
-                        <div class="card-body">
-                            <h5 class="d-flex justify-content-between align-items-center mb-0">
-                                <span>Prix Global :</span>
-                                <span class="text-success fs-4">
-                                    {% if kit.prix_global %}
-                                        {{ "{:,.0f}".format(kit.prix_global) }} F CFA
-                                    {% else %}
-                                        0 F CFA
-                                    {% endif %}
-                                </span>
-                            </h5>
+                    <div class="price-card">
+                        <div class="price-label">
+                            <i class="fas fa-tag me-1"></i> Prix Global
+                        </div>
+                        <div class="price-value">
+                            {% if kit.prix_global %}
+                                {{ "{:,.0f}".format(kit.prix_global).replace(',', ' ') }} FCFA
+                            {% else %}
+                                0 FCFA
+                            {% endif %}
                         </div>
                     </div>
                 </div>

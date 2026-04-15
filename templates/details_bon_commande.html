@@ -1,216 +1,447 @@
 {% extends "base_print.html" %}
 
-{% block content %}
-
-<div class="container mt-4">
-
-<div class="card shadow-sm">
-
-<div class="card-header d-flex justify-content-between align-items-center">
-
-<h5 class="mb-0">
-Bon de commande <strong class="text-danger small">{{ bon.numero }}</strong>
-</h5>
-
-<a href="{{ url_for('liste_bons_commandes') }}"
-class="btn btn-outline-secondary btn-sm">
-⬅ Retour
-</a>
-
-</div>
-
-<div class="card-body">
-
-<p>
-<strong>Client :</strong>
-{{ bon.client.nom_client }}
-</p>
-
-<p>
-<strong>Date :</strong>
-{{ bon.date_creation.strftime("%d/%m/%Y") }}
-</p>
-
-<p>
-<strong>Status :</strong>
-
-<span class="badge
-{% if bon.status == 'livree' %}
-bg-success
-{% elif bon.status == 'livraison_partielle' %}
-bg-warning
-{% elif bon.status == 'annulee' %}
-bg-danger
-{% elif bon.status == 'confirmee' %}
-bg-info
-{% else %}
-bg-secondary
-{% endif %}
-">
-
-{{ bon.status }}
-
-</span>
-
-</p>
-
-<!-- Barre de progression des livraisons -->
-{% if bon.status == 'livraison_partielle' or bon.status == 'livree' %}
-<div class="mt-3 mb-3">
-    <label class="form-label fw-bold">Progression des livraisons :</label>
-    {% set pourcentage = (bon.quantite_totale_livree / bon.quantite_totale * 100) if bon.quantite_totale > 0 else 0 %}
-    <div class="progress" style="height: 25px;">
-        <div class="progress-bar bg-success" 
-             role="progressbar" 
-             style="width: {{ pourcentage }}%"
-             aria-valuenow="{{ pourcentage }}" 
-             aria-valuemin="0" 
-             aria-valuemax="100">
-            {{ "%.0f"|format(pourcentage) }}% ({{ bon.quantite_totale_livree }}/{{ bon.quantite_totale }})
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<table class="table table-bordered table-hover">
-
-<thead class="table-light">
-    <tr>
-    <th>Produit</th>
-    <th>Conditionnement</th>
-    <th>Quantité</th>
-    <th>Prix</th>
-    <th>Total</th>
-    <th>Déjà livré</th>
-    <th>Reste à livrer</th>
-     </thead>
-
-<tbody>
-
-{% for ligne in bon.lignes %}
-
-<tr>
-    <td>{{ ligne.produit.nom_produit }} - {{ ligne.produit.model }}</td>
-    <td><span class="badge bg-info">{{ ligne.type_conditionnement.value|capitalize }}</span></td>
-    <td class="text-center">{{ ligne.quantite }}</td>
-    <td class="text-end">{{ ligne.prix_unitaire|round(2) }} FCFA</td>
-    <td class="text-end">{{ ligne.sous_total|round(2) }} FCFA</td>
-    <td class="text-center">
-        {% if ligne.quantite_livree > 0 %}
-            <span class="badge bg-success">{{ ligne.quantite_livree }}</span>
-        {% else %}
-            <span class="badge bg-secondary">0</span>
-        {% endif %}
-    </td>
-    <td class="text-center">
-        {% if ligne.reste_a_livrer > 0 %}
-            <span class="badge bg-warning text-dark">{{ ligne.reste_a_livrer }}</span>
-        {% else %}
-            <span class="badge bg-success">✓</span>
-        {% endif %}
-    </td>
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-<tfoot>
-<tr class="table-light">
-    <td colspan="4" class="text-end fw-bold">Total Général :</td>
-    <td class="text-end fw-bold">{{ bon.total|round(2) }} FCFA</td>
-    <td colspan="2"></td>
-</tr>
-</tfoot>
-
-</table>
-
-<div class="mt-3 d-flex gap-2 flex-wrap">
-
-    {% if bon.status != 'livree' and bon.status != 'annulee' %}
-    <a href="{{ url_for('nouveau_bon_livraison', commande_id=bon.id) }}"
-       class="btn btn-warning">
-        🚚 Créer une livraison
-    </a>
-    {% endif %}
-
-    {% if bon.status == 'livraison_partielle' %}
-    <a href="{{ url_for('livraison_partielle', commande_id=bon.id) }}"
-       class="btn btn-info">
-        ➕ Compléter la livraison
-    </a>
-    {% endif %}
-
-    {% if bon.status == 'livree' %}
-    <div class="btn-group" role="group">
-        <a href="{{ url_for('recapitulatif_livraisons', commande_id=bon.id) }}"
-           class="btn btn-primary">
-            📋 Récapitulatif des livraisons
-        </a>
-        <a href="{{ url_for('recapitulatif_livraisons_pdf', commande_id=bon.id) }}"
-           class="btn btn-danger">
-            📄 Télécharger PDF
-        </a>
-    </div>
-    {% endif %}
-
-    {% if bon.livraisons|length > 0 %}
-    <a href="{{ url_for('liste_bons_livraison') }}?commande_id={{ bon.id }}"
-       class="btn btn-outline-secondary">
-        📦 Voir tous les BL ({{ bon.livraisons|length }})
-    </a>
-    {% endif %}
-
-</div>
-
-<!-- Section des bons de livraison existants -->
-{% if bon.livraisons|length > 0 %}
-<div class="mt-4">
-    <h6 class="text-secondary">📋 Bons de livraison associés</h6>
-    <div class="list-group">
-        {% for bl in bon.livraisons %}
-        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-            <div>
-                <strong>{{ bl.numero }}</strong>
-                <span class="badge {% if bl.status == 'livree' %}bg-success{% else %}bg-warning text-dark{% endif %} ms-2">
-                    {{ bl.status }}
-                </span>
-                <small class="text-muted ms-2">{{ bl.date_creation.strftime('%d/%m/%Y') }}</small>
-            </div>
-            <div>
-                <a href="{{ url_for('detail_bon_livraison', id=bl.id) }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-eye"></i> Voir
-                </a>
-                <a href="{{ url_for('bon_livraison_pdf', id=bl.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                    <i class="bi bi-file-pdf"></i> PDF
-                </a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
-
-</div>
-
-</div>
-
-</div>
-
+{% block styles %}
 <style>
-    .progress {
-        border-radius: 20px;
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         overflow: hidden;
     }
-    .progress-bar {
-        transition: width 0.3s ease;
+
+    .card-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
     }
-    .btn-group {
-        gap: 5px;
+
+    .card-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
     }
-    .list-group-item {
-        border-left: 4px solid #d32f2f;
+
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Informations */
+    .info-group {
+        background: var(--light-color);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: baseline;
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        width: 120px;
+        color: var(--dark-color);
+    }
+
+    .info-value {
+        flex: 1;
+        color: #555;
+    }
+
+    /* Progress bar */
+    .progress-custom {
+        height: 30px;
+        border-radius: 15px;
+        overflow: hidden;
+        background: var(--light-color);
+    }
+
+    .progress-bar-custom {
+        background: linear-gradient(90deg, var(--success-color), #27ae60);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: width 0.5s ease;
+    }
+
+    /* Tableau */
+    .table-custom {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table-custom tbody td {
+        padding: 10px;
+        vertical-align: middle;
+    }
+
+    .table-custom tfoot td {
+        background: var(--light-color);
+        padding: 12px;
+        font-weight: bold;
+    }
+
+    /* Badges produit */
+    .badge-produit {
+        background: var(--primary-color);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+    }
+
+    .badge-conditionnement {
+        background: var(--info-color);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+    }
+
+    .badge-livre {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .badge-reste {
+        background: var(--warning-color);
+        color: #856404;
+    }
+
+    /* Boutons */
+    .btn-group-custom {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-custom {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Liste des BL */
+    .bl-list {
+        margin-top: 20px;
+    }
+
+    .bl-item {
+        border-left: 4px solid var(--success-color);
+        transition: all 0.3s ease;
+    }
+
+    .bl-item:hover {
+        transform: translateX(5px);
+        background: #f8f9fa;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .info-item {
+            flex-direction: column;
+        }
+        
+        .info-label {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .btn-group-custom {
+            justify-content: center;
+        }
+        
+        .table-custom thead th {
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+        
+        .table-custom tbody td {
+            font-size: 0.75rem;
+            padding: 8px;
+        }
+    }
+
+    /* Impression */
+    @media print {
+        .btn, .btn-group-custom, .card-header .btn {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none;
+        }
+        
+        .progress-custom {
+            border: 1px solid #ddd;
+        }
+        
+        .badge {
+            border: 1px solid #ddd;
+            background: #f8f9fa !important;
+            color: #333 !important;
+        }
     }
 </style>
+{% endblock %}
 
+{% block content %}
+<div class="detail-container">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0">
+                <i class="bi bi-file-text"></i>
+                Bon de commande <strong class="text-warning">{{ bon.numero }}</strong>
+            </h5>
+            <a href="{{ url_for('liste_bons_commandes') }}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+
+        <div class="card-body">
+            <!-- Informations -->
+            <div class="info-group">
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="bi bi-person"></i> Client :
+                    </span>
+                    <span class="info-value fw-bold" title="{{ bon.client.nom_client }}">
+                        {{ bon.client.nom_client }}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="bi bi-calendar"></i> Date :
+                    </span>
+                    <span class="info-value">{{ bon.date_creation.strftime("%d/%m/%Y") }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="bi bi-tag"></i> Statut :
+                    </span>
+                    <span class="info-value">
+                        <span class="badge-status
+                            {% if bon.status == 'livree' %}bg-success
+                            {% elif bon.status == 'livraison_partielle' %}bg-warning text-dark
+                            {% elif bon.status == 'annulee' %}bg-danger
+                            {% elif bon.status == 'confirmee' %}bg-info
+                            {% else %}bg-secondary{% endif %}"
+                            title="Statut: {{ bon.status|replace('_', ' ')|title }}">
+                            <i class="bi 
+                                {% if bon.status == 'livree' %}bi-check-circle
+                                {% elif bon.status == 'livraison_partielle' %}bi-exclamation-triangle
+                                {% elif bon.status == 'annulee' %}bi-x-circle
+                                {% elif bon.status == 'confirmee' %}bi-check-lg
+                                {% else %}bi-clock{% endif %}"></i>
+                            {% if bon.status == 'livraison_partielle' %}
+                                Livraison partielle
+                            {% else %}
+                                {{ bon.status|replace('_', ' ')|title }}
+                            {% endif %}
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Barre de progression des livraisons -->
+            {% if bon.status == 'livraison_partielle' or bon.status == 'livree' %}
+            <div class="mb-4">
+                <label class="form-label fw-bold">
+                    <i class="bi bi-graph-up"></i> Progression des livraisons :
+                </label>
+                {% set pourcentage = (bon.quantite_totale_livree / bon.quantite_totale * 100) if bon.quantite_totale > 0 else 0 %}
+                <div class="progress-custom">
+                    <div class="progress-bar-custom" 
+                         role="progressbar" 
+                         style="width: {{ pourcentage }}%"
+                         title="{{ "%.1f"|format(pourcentage) }}% livré">
+                        {{ "%.0f"|format(pourcentage) }}% ({{ bon.quantite_totale_livree }}/{{ bon.quantite_totale }})
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tableau des produits -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-custom">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Conditionnement</th>
+                            <th class="text-center">Quantité</th>
+                            <th class="text-end">Prix unitaire</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center">Déjà livré</th>
+                            <th class="text-center">Reste à livrer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in bon.lignes %}
+                        <tr>
+                            <td>
+                                <span class="badge-produit" title="{{ ligne.produit.nom_produit }}">
+                                    {{ ligne.produit.nom_produit|truncate(30, true) }}
+                                </span>
+                                <br>
+                                <small class="text-muted">Modèle: {{ ligne.produit.model or '-' }}</small>
+                             </td>
+                            <td>
+                                <span class="badge-conditionnement">
+                                    {{ ligne.type_conditionnement.value|capitalize }}
+                                </span>
+                             </td>
+                            <td class="text-center fw-bold">{{ ligne.quantite }}</td>
+                            <td class="text-end">{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }} FCFA</td>
+                            <td class="text-end fw-bold text-primary">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }} FCFA</td>
+                            <td class="text-center">
+                                {% if ligne.quantite_livree > 0 %}
+                                    <span class="badge-livre badge-status" title="{{ ligne.quantite_livree }} unité(s) livrée(s)">
+                                        <i class="bi bi-check-circle"></i> {{ ligne.quantite_livree }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary" title="Aucune livraison">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if ligne.reste_a_livrer > 0 %}
+                                    <span class="badge-reste badge-status" title="{{ ligne.reste_a_livrer }} unité(s) restante(s)">
+                                        <i class="bi bi-clock"></i> {{ ligne.reste_a_livrer }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success" title="Totalement livré">
+                                        <i class="bi bi-check-all"></i> ✓
+                                    </span>
+                                {% endif %}
+                            </td>
+                         </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">Total Général :</td>
+                            <td class="text-end fw-bold text-success fs-5">{{ "{:,.0f}".format(bon.total).replace(',', ' ') }} FCFA</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="btn-group-custom mt-4">
+                {% if bon.status != 'livree' and bon.status != 'annulee' %}
+                <a href="{{ url_for('nouveau_bon_livraison', commande_id=bon.id) }}" class="btn btn-warning btn-custom">
+                    <i class="bi bi-truck"></i> Créer une livraison
+                </a>
+                {% endif %}
+
+                {% if bon.status == 'livraison_partielle' %}
+                <a href="{{ url_for('livraison_partielle', commande_id=bon.id) }}" class="btn btn-info btn-custom">
+                    <i class="bi bi-plus-circle"></i> Compléter la livraison
+                </a>
+                {% endif %}
+
+                {% if bon.status == 'livree' %}
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('recapitulatif_livraisons', commande_id=bon.id) }}" class="btn btn-primary btn-custom">
+                        <i class="bi bi-list-ul"></i> Récapitulatif des livraisons
+                    </a>
+                    <a href="{{ url_for('recapitulatif_livraisons_pdf', commande_id=bon.id) }}" class="btn btn-danger btn-custom">
+                        <i class="bi bi-file-pdf"></i> Télécharger PDF
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if bon.livraisons|length > 0 %}
+                <a href="{{ url_for('liste_bons_livraison') }}?commande_id={{ bon.id }}" class="btn btn-outline-secondary btn-custom">
+                    <i class="bi bi-box-seam"></i> Voir tous les BL ({{ bon.livraisons|length }})
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Section des bons de livraison existants -->
+            {% if bon.livraisons|length > 0 %}
+            <div class="bl-list">
+                <h6 class="text-secondary mb-3">
+                    <i class="bi bi-truck"></i> Bons de livraison associés
+                </h6>
+                <div class="list-group">
+                    {% for bl in bon.livraisons %}
+                    <div class="list-group-item bl-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <strong class="text-primary">{{ bl.numero }}</strong>
+                            <span class="badge-status {% if bl.status == 'livree' %}bg-success{% else %}bg-warning text-dark{% endif %} ms-2"
+                                  title="Statut: {{ bl.status }}">
+                                {% if bl.status == 'livree' %}
+                                    <i class="bi bi-check-circle"></i> Livré
+                                {% else %}
+                                    <i class="bi bi-exclamation-triangle"></i> Partiel
+                                {% endif %}
+                            </span>
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-calendar"></i> {{ bl.date_creation.strftime('%d/%m/%Y') }}
+                            </small>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('detail_bon_livraison', id=bl.id) }}" class="btn btn-outline-primary" title="Voir le détail">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                            <a href="{{ url_for('bon_livraison_pdf', id=bl.id) }}" class="btn btn-outline-secondary" target="_blank" title="Télécharger PDF">
+                                <i class="bi bi-file-pdf"></i> PDF
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

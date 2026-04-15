@@ -1,98 +1,459 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kit-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .kit-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .kit-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--primary-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 50px; }
+    .table-custom th:nth-child(2) { width: 100px; }
+    .table-custom th:nth-child(3) { width: 200px; }
+    .table-custom th:nth-child(4) { width: 100px; }
+    .table-custom th:nth-child(5) { width: 120px; }
+    .table-custom th:nth-child(6) { width: 200px; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 8px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Badge client */
+    .badge-client {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--primary-color);
+        color: white;
+        cursor: help;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .badge-numero {
+        background: var(--info-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    /* Prix */
+    .prix-value {
+        font-weight: bold;
+        color: var(--success-color);
+        font-size: 0.9rem;
+    }
+
+    /* Actions groupées */
+    .action-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .action-group .btn {
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        border-radius: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .kit-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-custom th:nth-child(3) { width: 150px; }
+        .table-custom th:nth-child(6) { width: 180px; }
+    }
+
+    @media (max-width: 768px) {
+        .table-custom {
+            font-size: 0.7rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 6px;
+        }
+        
+        .action-group .btn {
+            padding: 3px 6px;
+            font-size: 0.65rem;
+        }
+        
+        .badge-client {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="kit-container">
+    <!-- En-tête -->
+    <div class="kit-header">
+        <h4>
+            <i class="fas fa-file-alt"></i> Kits Proforma
+        </h4>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('nouveau_kit_proforma') }}" class="btn-add">
+                <i class="fas fa-plus-circle"></i> Nouveau Kit
+            </a>
+        </div>
+    </div>
 
-<div class="container mt-4">
+    {% if kits %}
+    <!-- Statistiques -->
+    {% set total_kits = kits|length %}
+    {% set total_prix = kits|sum(attribute='prix_global') %}
+    {% set moyenne_prix = total_prix / total_kits if total_kits > 0 else 0 %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value">{{ total_kits }}</div>
+            <div class="stat-label">Total Kits</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_prix).replace(',', ' ') }} F</div>
+            <div class="stat-label">Valeur totale</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">{{ "{:,.0f}".format(moyenne_prix).replace(',', ' ') }} F</div>
+            <div class="stat-label">Moyenne par kit</div>
+        </div>
+    </div>
 
-<div class="card shadow">
-
-<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-
-<h5 class="mb-0">Liste des Kit Proformas</h5>
-
-<a href="{{ url_for('nouveau_kit_proforma') }}" class="btn btn-light btn-sm">
-Nouveau Kit Proforma
-</a>
-
+    <!-- Tableau -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-list-ul"></i> Liste des kits proforma
+                <span class="badge bg-secondary ms-2">{{ total_kits }} kit(s)</span>
+            </div>
+            <div class="export-buttons">
+                <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                    <i class="fas fa-print"></i> Imprimer
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-custom" id="kitsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Numéro</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Prix Global</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kit in kits %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td class="text-center">
+                            <span class="badge-numero" title="Kit n°{{ kit.numero }}">
+                                {{ kit.numero }}
+                            </span>
+                        </td>
+                        
+                        <!-- CLIENT AVEC TOOLTIP -->
+                        <td>
+                            <span class="badge-client" 
+                                  title="{{ kit.client.nom_client if kit.client else 'Client non spécifié' }}"
+                                  style="cursor: help;">
+                                {{ kit.client.nom_client|truncate(30, true) if kit.client else 'Non spécifié' }}
+                            </span>
+                        </td>
+                        
+                        <td class="text-center">{{ kit.date.strftime('%d/%m/%Y') if kit.date else '-' }}</td>
+                        
+                        <td class="text-center">
+                            <span class="prix-value">
+                                {{ "{:,.0f}".format(kit.prix_global).replace(',', ' ') if kit.prix_global else '0' }} F
+                            </span>
+                        </td>
+                        
+                        <td class="text-center">
+                            <div class="action-group">
+                                <a href="{{ url_for('details_kit_proforma', kit_id=kit.id) }}" 
+                                   class="btn btn-sm btn-primary" title="Voir les détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('modifier_kit_proforma', kit_id=kit.id) }}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('supprimer_kit_proforma', kit_id=kit.id) }}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer"
+                                   onclick="return confirm('Supprimer ce kit ?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td colspan="4" class="text-end fw-bold">TOTAL :</td>
+                        <td class="text-center fw-bold">{{ "{:,.0f}".format(total_prix).replace(',', ' ') }} F</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun kit proforma enregistré.
+        <br>
+        <a href="{{ url_for('nouveau_kit_proforma') }}" class="btn btn-primary mt-2">
+            <i class="fas fa-plus-circle"></i> Créer le premier kit
+        </a>
+    </div>
+    {% endif %}
 </div>
 
+<script>
+// Export Excel
+function exportToExcel() {
+    let csv = [["#", "Numéro", "Client", "Date", "Prix Global"]];
+    
+    document.querySelectorAll('#kitsTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            csv.push([
+                cells[0]?.innerText,
+                cells[1]?.innerText,
+                cells[2]?.innerText,
+                cells[3]?.innerText,
+                cells[4]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'kits_proforma.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+</script>
 
-<div class="card-body">
-
-<div class="table-responsive">
-
-<table class="table table-bordered table-striped table-hover">
-
-<thead class="table-dark">
-
-<tr>
-
-<th>#</th>
-<th>Numéro</th>
-<th>Client</th>
-<th>Date</th>
-<th>Prix Global</th>
-<th>Actions</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for kit in kits %}
-
-<tr>
-
-<td>{{ loop.index }}</td>
-
-<td>
-<strong>{{ kit.numero }}</strong>
-</td>
-
-<td>
-{{ kit.client.nom_client }}
-</td>
-
-<td>
-{{ kit.date.strftime("%d/%m/%Y") }}
-</td>
-
-<td class="text-success">
-<strong>{{ "{:,.0f}".format(kit.prix_global) }}</strong>
-</td>
-
-<td>
-
-<a href="{{ url_for('details_kit_proforma', kit_id=kit.id) }}" 
-class="btn btn-sm btn-primary">
-Voir
-</a>
-
-<a href="{{url_for('modifier_kit_proforma', kit_id=kit.id)}}" class="btn btn-sm btn-warning">
-Modifier
-</a>
-
-<a href="{{url_for('supprimer_kit_proforma', kit_id=kit.id)}}" class="btn btn-sm btn-danger">
-Supprimer
-</a>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

@@ -1,432 +1,711 @@
 {% extends "base.html" %}
-{% block title %}Nouvelle Vente{% endblock %}
+{% block title %}Nouvelle Vente | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .ventes-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .ventes-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .ventes-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: white;
+        color: var(--primary-color);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 35px; }
+    .table-custom th:nth-child(2) { width: 85px; }
+    .table-custom th:nth-child(3) { width: 100px; }
+    .table-custom th:nth-child(4) { width: 85px; }
+    .table-custom th:nth-child(5) { width: 85px; }
+    .table-custom th:nth-child(6) { width: 100px; }
+    .table-custom th:nth-child(7) { width: 80px; }
+    .table-custom th:nth-child(8) { width: 50px; }
+    .table-custom th:nth-child(9) { width: 85px; }
+    .table-custom th:nth-child(10) { width: 80px; }
+    .table-custom th:nth-child(11) { width: 60px; }
+    .table-custom th:nth-child(12) { width: 60px; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 8px 5px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom td {
+        padding: 6px 5px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Badges compacts avec tooltip */
+    .badge-client, .badge-vendeur, .badge-compagnie {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+    }
+
+    .badge-client { background: var(--primary-color); color: white; }
+    .badge-vendeur { background: var(--success-color); color: white; }
+    .badge-compagnie { background: var(--info-color); color: white; }
+
+    /* Tooltip personnalisé pour les badges */
+    .badge-client:hover,
+    .badge-vendeur:hover,
+    .badge-compagnie:hover {
+        position: relative;
+    }
+
+    .badge-paye { background: var(--success-color); color: white; }
+    .badge-partiel { background: var(--warning-color); color: #856404; }
+    .badge-impaye { background: var(--danger-color); color: white; }
+
+    .badge-paye, .badge-partiel, .badge-impaye {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .cell-divided div {
+        padding: 2px 0;
+        border-bottom: 1px dashed #eee;
+        font-size: 0.7rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cell-divided div:last-child {
+        border-bottom: none;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .action-group .btn {
+        padding: 2px 6px;
+        font-size: 0.7rem;
+    }
+
+    .checkbox-custom {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .montant {
+        white-space: nowrap;
+        text-align: right;
+        font-weight: 500;
+    }
+
+    @media (max-width: 1200px) {
+        .table-custom th:nth-child(6) { width: 80px; }
+        .table-custom th:nth-child(7) { width: 70px; }
+    }
+
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .ventes-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="fw-bold text-primary mb-0">📋 Ventes</h4>
-    <button class="btn btn-outline-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#venteModal">
-      ➕ Nouvelle Vente
-    </button>
-</div>
-
-{% if ventes %}
-<form action="{{ url_for('supprimer_ventes') }}" method="post">
-
-  <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-    <table class="table table-hover table-bordered align-middle">
-      <thead class="table-dark sticky-top">
-        <tr>
-          <th width="30"></th>
-          <th>Date</th>
-          <th>Client</th>
-          <th>Vendeur</th>
-          <th>Compagnie</th>
-          <th>Produits</th>
-          <th>Prix</th>
-          <th>Qté</th>
-          <th>Sous-total</th>
-          <th>Statut</th>
-          <th>Action</th>
-          <th>Voir</th>
-        </tr>
-      </thead>
-
-      <tbody>
-      {% for vente in ventes %}
-        <tr ondblclick="ouvrirEdition(this)"
-            data-id="{{ vente.id }}"
-            style="cursor:pointer">
-
-          <td class="text-center">
-            <input type="checkbox" name="vente_ids" value="{{ vente.id }}">
-          </td>
-
-          <td>{{ vente.date_vente.strftime('%d/%m/%Y') }}</td>
-
-          <td class="fw-bold text-primary">
-            {{ vente.client.nom_client }}
-          </td>
-
-          <!-- VENDEUR -->
-          <td class="fw-bold text-dark">
-            {{ vente.vendeur.nom }}
-          </td>
-
-          <!-- COMPAGNIE -->
-          <td>
-            <span class="badge bg-info text-dark">
-              {{ vente.compagnie.nom }}
-            </span>
-          </td>
-
-          <!-- PRODUITS -->
-          <td class="cell-divided">
-            {% for ligne in vente.lignes %}
-              {% if ligne.stock and ligne.stock.produit %}
-                <div>{{ ligne.stock.produit.nom_produit }}</div>
-              {% else %}
-                <div class="text-danger">Produit supprimé</div>
-              {% endif %}
-            {% endfor %}
-          </td>
-
-          <!-- PRIX -->
-          <td class="cell-divided">
-            {% for ligne in vente.lignes %}
-              <div>{{ ligne.prix_unitaire | money }}</div>
-            {% endfor %}
-          </td>
-
-          <!-- QTÉ -->
-          <td class="cell-divided">
-            {% for ligne in vente.lignes %}
-              <div>{{ ligne.quantite }}</div>
-            {% endfor %}
-          </td>
-
-          <!-- SOUS-TOTAL -->
-          <td class="cell-divided">
-            {% for ligne in vente.lignes %}
-              <div>{{ (ligne.quantite * ligne.prix_unitaire) | money }}</div>
-            {% endfor %}
-          </td>
-
-          <!-- STATUT -->
-          <td>
-            {% if vente.statut_paiement == "paye" %}
-              <span class="badge bg-success">Payée</span>
-            {% elif vente.statut_paiement == "partiel" %}
-              <span class="badge bg-warning text-dark">Partielle</span>
-            {% else %}
-              <span class="badge bg-danger">Impayée</span>
-            {% endif %}
-          </td>
-
-          <td>
-            <a href="{{ url_for('paiement_vente', vente_id=vente.id) }}"
-               class="btn btn-sm btn-primary">
-              💰 Paiement
-            </a>
-          </td>
-
-          <td>
-            <a href="{{ url_for('voir_facture', vente_id=vente.id) }}"
-               class="btn btn-sm btn-outline-secondary">
-              🧾 Facture
-            </a>
-          </td>
-
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <button type="submit"
-          class="btn btn-outline-danger mt-3"
-          onclick="return confirm('Voulez-vous supprimer les ventes sélectionnées ?')">
-    🗑️ Supprimer
-  </button>
-
-</form>
-
-{% else %}
-<div class="alert alert-warning text-center">
-  Aucune vente enregistrée.
-</div>
-{% endif %}
-
-<!-- ================================================= -->
-<!-- 🧾 MODAL : NOUVELLE VENTE -->
-<!-- ================================================= -->
-<div class="modal fade" id="venteModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold text-primary">
-          🧾 Nouvelle Vente
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <form method="post" action="{{ url_for('nouvelle_vente') }}">
-
-          <!-- CLIENT + VENDEUR + COMPAGNIE -->
-          <div class="row mb-3">
-
-             <div class="col-md-3">
-              <label class="form-label fw-bold">Date</label>
-              <input type="datetime-local"
-                    name="date_vente"
-                    class="form-control"
-                    value="{{ now.strftime('%Y-%m-%d') }}"
-                    required>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Client</label>
-              <select name="client_id" class="form-select" required>
-                {% for c in clients %}
-                  <option value="{{ c.id }}">{{ c.nom_client }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Vendeur</label>
-              <select name="vendeur_id" class="form-select" required>
-                <option value="">-- Vendeur --</option>
-                {% for v in vendeurs %}
-                  <option value="{{ v.id }}">{{ v.nom }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Compagnie</label>
-              <select name="compagnie_id" class="form-select" required>
-                <option value="">-- Compagnie --</option>
-                {% for c in compagnies %}
-                  <option value="{{ c.id }}">{{ c.nom }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-          </div>
-
-          <!-- LIGNES PRODUITS -->
-          <table class="table table-sm table-bordered">
-            <thead class="table-light">
-              <tr>
-                <th>Produit</th>
-                <th>Conditionnement</th>
-                <th>Lot</th>
-                <th width="120">Qté</th>
-                <th width="150">Prix</th>
-                <th width="40"></th>
-              </tr>
-            </thead>
-
-            <tbody id="lignesVente">
-            <tr class="ligne-vente">
-
-              <!-- PRODUIT - UNIQUEMENT CEUX AVEC STOCK -->
-              <td>
-                <select class="form-select produit-select" required>
-                  <option value="">-- Produit --</option>
-                  {% for p in produits_avec_stock %}
-                    <option value="{{ p.id }}">{{ p.nom_produit }} - {{ p.model }}</option>
-                  {% endfor %}
-                </select>
-              </td>
-
-              <!-- CONDITIONNEMENT -->
-              <td>
-                <select class="form-select conditionnement-select" required>
-                  <option value="">-- Conditionnement --</option>
-                  <!-- Les options seront remplies dynamiquement par JS -->
-                </select>
-              </td>
-
-              <!-- LOT -->
-              <td>
-                <select name="stock_id[]" class="form-select stock-select" required>
-                  <option value="">-- Lot --</option>
-                  <!-- Les options seront remplies dynamiquement par JS -->
-                </select>
-              </td>
-
-              <td>
-                <input type="number" name="quantite[]"
-                      class="form-control" min="1" required>
-              </td>
-
-              <td>
-                <input type="number" name="prix_unitaire[]"
-                      class="form-control" min="0" step="0.01" required>
-              </td>
-
-              <td class="text-center">
-                <button type="button"
-                        class="btn btn-danger btn-sm supprimer">✖</button>
-              </td>
-
-            </tr>
-            </tbody>
-
-          </table>
-
-          <button type="button"
-                  class="btn btn-outline-secondary mb-3"
-                  id="ajouterLigneVente">
-            ➕ Ajouter ligne
-          </button>
-
-          <div class="d-flex justify-content-end gap-2">
-            <button type="submit" class="btn btn-primary">
-              Valider
-            </button>
-            <button type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-              Annuler
-            </button>
-          </div>
-
-        </form>
-      </div>
-
+<div class="ventes-container">
+    <div class="ventes-header">
+        <h4>
+            <i class="bi bi-cart-check"></i> Gestion des Ventes
+        </h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#venteModal">
+            <i class="bi bi-plus-circle"></i> Nouvelle Vente
+        </button>
     </div>
-  </div>
+
+    {% if ventes %}
+    {% set total_ventes = ventes|length %}
+    {% set total_montant = ventes|sum(attribute='total') %}
+    {% set total_paye = ventes|sum(attribute='montant_paye') %}
+    {% set total_dettes = ventes|sum(attribute='reste_a_payer') %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value">{{ total_ventes }}</div>
+            <div class="stat-label">Total Ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_montant).replace(',', ' ') }} F</div>
+            <div class="stat-label">Total Ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_paye).replace(',', ' ') }} F</div>
+            <div class="stat-label">Encaissé</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_dettes).replace(',', ' ') }} F</div>
+            <div class="stat-label">Reste</div>
+        </div>
+    </div>
+
+    <form action="{{ url_for('supprimer_ventes') }}" method="post" id="deleteForm">
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="bi bi-list-ul"></i> Historique des ventes
+                    <span class="badge bg-secondary ms-2">{{ total_ventes }}</span>
+                </div>
+                <div class="export-buttons">
+                    <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                        <i class="bi bi-printer"></i> Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" class="checkbox-custom"></th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Vendeur</th>
+                            <th>Compagnie</th>
+                            <th>Produits</th>
+                            <th>Prix</th>
+                            <th>Qté</th>
+                            <th>Sous-total</th>
+                            <th>Statut</th>
+                            <th colspan="2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vente in ventes %}
+                        <tr ondblclick="ouvrirEdition(this)" data-id="{{ vente.id }}">
+                            <td class="text-center">
+                                <input type="checkbox" name="vente_ids" value="{{ vente.id }}" class="checkbox-custom vente-checkbox">
+                            </td>
+                            <td class="text-center">{{ vente.date_vente.strftime('%d/%m/%y') }}</td>
+                            
+                            <!-- CLIENT AVEC TOOLTIP - Affiche le nom complet au survol -->
+                            <td>
+                                <span class="badge-client" 
+                                      title="{{ vente.client.nom_client }}"
+                                      style="cursor: help;">
+                                    {{ vente.client.nom_client|truncate(18, true) }}
+                                </span>
+                            </td>
+                            
+                            <!-- VENDEUR AVEC TOOLTIP -->
+                            <td>
+                                <span class="badge-vendeur" 
+                                      title="{{ vente.vendeur.nom }}"
+                                      style="cursor: help;">
+                                    {{ vente.vendeur.nom|truncate(15, true) }}
+                                </span>
+                            </td>
+                            
+                            <!-- COMPAGNIE AVEC TOOLTIP -->
+                            <td>
+                                <span class="badge-compagnie" 
+                                      title="{{ vente.compagnie.nom }}"
+                                      style="cursor: help;">
+                                    {{ vente.compagnie.nom|truncate(15, true) }}
+                                </span>
+                            </td>
+                            
+                            <td class="cell-divided">
+                                {% for ligne in vente.lignes[:3] %}
+                                    {% if ligne.stock and ligne.stock.produit %}
+                                        <div title="{{ ligne.stock.produit.nom_produit }}">
+                                            {{ ligne.stock.produit.nom_produit|truncate(20, true) }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if vente.lignes|length > 3 %}
+                                    <div class="text-muted" title="{{ vente.lignes|length - 3 }} autres produit(s)">
+                                        +{{ vente.lignes|length - 3 }} autre(s)
+                                    </div>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="cell-divided">
+                                {% for ligne in vente.lignes[:3] %}
+                                    <div class="montant">{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }}</div>
+                                {% endfor %}
+                            </td>
+                            
+                            <td class="cell-divided">
+                                {% for ligne in vente.lignes[:3] %}
+                                    <div>{{ ligne.quantite }}</div>
+                                {% endfor %}
+                            </td>
+                            
+                            <td class="cell-divided">
+                                {% for ligne in vente.lignes[:3] %}
+                                    <div class="montant">{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire).replace(',', ' ') }}</div>
+                                {% endfor %}
+                            </td>
+                            
+                            <td class="text-center">
+                                {% if vente.statut_paiement == "paye" %}
+                                    <span class="badge-paye" title="Vente entièrement payée">Payée</span>
+                                {% elif vente.statut_paiement == "partiel" %}
+                                    <span class="badge-partiel" title="Paiement partiel effectué">Partiel</span>
+                                {% else %}
+                                    <span class="badge-impaye" title="Aucun paiement effectué">Impayée</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="text-center">
+                                <a href="{{ url_for('paiement_vente', vente_id=vente.id) }}"
+                                   class="btn btn-sm btn-primary" 
+                                   title="Enregistrer un paiement pour cette vente">
+                                    <i class="bi bi-cash-stack"></i>
+                                </a>
+                            </td>
+                            
+                            <td class="text-center">
+                                <a href="{{ url_for('voir_facture', vente_id=vente.id) }}"
+                                   class="btn btn-sm btn-outline-secondary" 
+                                   title="Voir la facture" 
+                                   target="_blank">
+                                    <i class="bi bi-file-text"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="8" class="text-end fw-bold">TOTAL GÉNÉRAL :</td>
+                            <td colspan="3" class="montant fw-bold">{{ "{:,.0f}".format(total_montant).replace(',', ' ') }} F</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirmSuppression()">
+                <i class="bi bi-trash"></i> Supprimer
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAllVentes()">
+                <i class="bi bi-check-all"></i> Tout
+            </button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="bi bi-exclamation-triangle"></i>
+        Aucune vente enregistrée.
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODAL : NOUVELLE VENTE -->
+<div class="modal fade" id="venteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Nouvelle Vente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('nouvelle_vente') }}" id="venteForm">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Date</label>
+                            <input type="datetime-local" name="date_vente" class="form-control form-control-sm" value="{{ now.strftime('%Y-%m-%dT%H:%M') }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Client</label>
+                            <select name="client_id" class="form-select form-select-sm" required>
+                                <option value="">-- Client --</option>
+                                {% for c in clients %}
+                                    <option value="{{ c.id }}">{{ c.nom_client }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Vendeur</label>
+                            <select name="vendeur_id" class="form-select form-select-sm" required>
+                                <option value="">-- Vendeur --</option>
+                                {% for v in vendeurs %}
+                                    <option value="{{ v.id }}">{{ v.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Compagnie</label>
+                            <select name="compagnie_id" class="form-select form-select-sm" required>
+                                <option value="">-- Compagnie --</option>
+                                {% for c in compagnies %}
+                                    <option value="{{ c.id }}">{{ c.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <label class="form-label small fw-bold">Produits</label>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Conditionnement</th>
+                                    <th>Lot</th>
+                                    <th width="80">Qté</th>
+                                    <th width="100">Prix</th>
+                                    <th width="30"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lignesVente">
+                                <tr class="ligne-vente">
+                                    <td><select class="form-select form-select-sm produit-select" required><option value="">-- Produit --</option>{% for p in produits_avec_stock %}<option value="{{ p.id }}">{{ p.nom_produit|truncate(25) }}</option>{% endfor %}</select></td>
+                                    <td><select class="form-select form-select-sm conditionnement-select" required><option value="">-- Cond. --</option></select></td>
+                                    <td><select name="stock_id[]" class="form-select form-select-sm stock-select" required><option value="">-- Lot --</option></select></td>
+                                    <td><input type="number" name="quantite[]" class="form-control form-control-sm quantite" min="1" required></td>
+                                    <td><input type="number" name="prix_unitaire[]" class="form-control form-control-sm prix" min="0" step="1" required></td>
+                                    <td class="text-center"><button type="button" class="btn btn-danger btn-sm supprimer"><i class="bi bi-trash"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="ajouterLigneVente">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">Valider</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
+const stocksData = {{ stocks_data|tojson }};
+const prixParStock = {{ prix_par_stock|tojson if prix_par_stock else '{}' }};
+
 function ouvrirEdition(row) {
-  const id = row.dataset.id;
-  if (id) {
-    window.location.href = `/vente/${id}/edit`;
-  }
+    const id = row.dataset.id;
+    if (id) window.location.href = `/vente/${id}/edit`;
+}
+
+function confirmSuppression() {
+    const checkboxes = document.querySelectorAll('.vente-checkbox:checked');
+    if (checkboxes.length === 0) { alert('Sélectionnez au moins une vente'); return false; }
+    return confirm(`Supprimer ${checkboxes.length} vente(s) ?`);
+}
+
+function selectAllVentes() {
+    const checkboxes = document.querySelectorAll('.vente-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) selectAll.checked = !allChecked;
+}
+
+document.getElementById('selectAll')?.addEventListener('change', function() {
+    document.querySelectorAll('.vente-checkbox').forEach(cb => cb.checked = this.checked);
+});
+
+function exportToExcel() {
+    let csv = [["Date", "Client", "Vendeur", "Compagnie", "Total", "Statut"]];
+    document.querySelectorAll('.table-custom tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 10) {
+            csv.push([cells[1]?.innerText, cells[2]?.innerText, cells[3]?.innerText, cells[4]?.innerText, cells[8]?.innerText, cells[9]?.innerText]);
+        }
+    });
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'ventes.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    const tbody = document.getElementById("lignesVente");
+    const btnAjouter = document.getElementById("ajouterLigneVente");
 
-  const tbody = document.getElementById("lignesVente");
-  const btnAjouter = document.getElementById("ajouterLigneVente");
-  
-  // Données des stocks disponibles
-  const stocksData = {{ stocks_data|tojson }};
-  
-  // 🔥 NOUVEAU: Données des prix par stock (si vous les passez depuis la route)
-  const prixParStock = {{ prix_par_stock|tojson if prix_par_stock else '{}' }};
-
-  // Ajouter nouvelle ligne
-  btnAjouter.addEventListener("click", () => {
-    const ligne = tbody.querySelector(".ligne-vente").cloneNode(true);
-    ligne.querySelectorAll("input").forEach(i => i.value = "");
-    ligne.querySelectorAll("select").forEach(s => {
-      s.innerHTML = s.querySelector("option").outerHTML;
-      s.selectedIndex = 0;
-    });
-    // Réinitialiser le champ prix
-    const prixInput = ligne.querySelector('input[name="prix_unitaire[]"]');
-    if (prixInput) prixInput.value = "";
-    tbody.appendChild(ligne);
-  });
-
-  // Supprimer ligne
-  tbody.addEventListener("click", e => {
-    if (e.target.classList.contains("supprimer") && tbody.children.length > 1) {
-      e.target.closest("tr").remove();
-    }
-  });
-
-  // Logique de filtrage produit -> conditionnement -> lot
-  function filtrerConditionnements(row, produitId) {
-    const conditionSelect = row.querySelector(".conditionnement-select");
-    const lotSelect = row.querySelector(".stock-select");
-    
-    // Récupérer les conditionnements disponibles pour ce produit
-    const conditionnements = new Set();
-    stocksData.forEach(stock => {
-      if (stock.produit_id == produitId && stock.quantite > 0) {
-        conditionnements.add(stock.type_conditionnement);
-      }
-    });
-    
-    // Reconstruire le select conditionnement
-    let options = '<option value="">-- Conditionnement --</option>';
-    conditionnements.forEach(cond => {
-      options += `<option value="${cond}">${cond.charAt(0).toUpperCase() + cond.slice(1)}</option>`;
-    });
-    conditionSelect.innerHTML = options;
-    conditionSelect.value = "";
-    lotSelect.innerHTML = '<option value="">-- Lot --</option>';
-  }
-  
-  function filtrerLots(row, produitId, conditionnement) {
-    const lotSelect = row.querySelector(".stock-select");
-    
-    // Filtrer les lots disponibles
-    let options = '<option value="">-- Lot --</option>';
-    stocksData.forEach(stock => {
-      if (stock.produit_id == produitId && 
-          stock.type_conditionnement === conditionnement && 
-          stock.quantite > 0) {
-        options += `<option value="${stock.id}" 
-                           data-quantite="${stock.quantite}"
-                           data-prix="${prixParStock[stock.id] || '0'}">${stock.numero_lot} (${stock.quantite} restant)</option>`;
-      }
-    });
-    lotSelect.innerHTML = options;
-  }
-
-  // Gestionnaire d'événements pour les changements
-  document.addEventListener("change", e => {
-    const row = e.target.closest("tr");
-    if (!row) return;
-
-    // Changement de produit
-    if (e.target.classList.contains("produit-select")) {
-      const produitId = e.target.value;
-      if (produitId) {
-        filtrerConditionnements(row, produitId);
-      } else {
-        // Réinitialiser si aucun produit sélectionné
+    function filtrerConditionnements(row, produitId) {
         const conditionSelect = row.querySelector(".conditionnement-select");
-        const lotSelect = row.querySelector(".stock-select");
-        conditionSelect.innerHTML = '<option value="">-- Conditionnement --</option>';
-        lotSelect.innerHTML = '<option value="">-- Lot --</option>';
-      }
+        const conditionnements = new Set();
+        stocksData.forEach(stock => { if (stock.produit_id == produitId && stock.quantite > 0) conditionnements.add(stock.type_conditionnement); });
+        let options = '<option value="">-- Cond. --</option>';
+        conditionnements.forEach(cond => { options += `<option value="${cond}">${cond}</option>`; });
+        conditionSelect.innerHTML = options;
+        row.querySelector(".stock-select").innerHTML = '<option value="">-- Lot --</option>';
     }
-    
-    // Changement de conditionnement
-    if (e.target.classList.contains("conditionnement-select")) {
-      const produitSelect = row.querySelector(".produit-select");
-      const conditionnement = e.target.value;
-      const produitId = produitSelect.value;
-      
-      if (produitId && conditionnement) {
-        filtrerLots(row, produitId, conditionnement);
-      }
-    }
-    
-    // 🔥 Changement de lot - mettre à jour le prix automatiquement
-    if (e.target.classList.contains("stock-select")) {
-      const selectedOption = e.target.options[e.target.selectedIndex];
-      const quantiteMax = selectedOption.getAttribute("data-quantite");
-      const prix = selectedOption.getAttribute("data-prix");
-      const quantiteInput = row.querySelector('input[name="quantite[]"]');
-      const prixInput = row.querySelector('input[name="prix_unitaire[]"]');
-      
-      if (quantiteMax) {
-        quantiteInput.max = quantiteMax;
-        quantiteInput.placeholder = `Max: ${quantiteMax}`;
-      }
-      
-      // 🔥 Auto-remplir le prix si disponible
-      if (prix && prix > 0) {
-        prixInput.value = parseFloat(prix).toFixed(0);
-      } else {
-        prixInput.value = "";
-      }
-    }
-  });
-  
-  // Initialiser la première ligne
-  const premiereLigne = tbody.querySelector(".ligne-vente");
-  if (premiereLigne) {
-    const produitSelect = premiereLigne.querySelector(".produit-select");
-    if (produitSelect.value) {
-      filtrerConditionnements(premiereLigne, produitSelect.value);
-    }
-  }
 
+    function filtrerLots(row, produitId, conditionnement) {
+        const lotSelect = row.querySelector(".stock-select");
+        let options = '<option value="">-- Lot --</option>';
+        stocksData.forEach(stock => {
+            if (stock.produit_id == produitId && stock.type_conditionnement === conditionnement && stock.quantite > 0) {
+                options += `<option value="${stock.id}" data-quantite="${stock.quantite}" data-prix="${prixParStock[stock.id] || '0'}">${stock.numero_lot} (${stock.quantite})</option>`;
+            }
+        });
+        lotSelect.innerHTML = options;
+    }
+
+    document.addEventListener("change", e => {
+        const row = e.target.closest("tr");
+        if (!row) return;
+        if (e.target.classList.contains("produit-select")) {
+            const produitId = e.target.value;
+            if (produitId) filtrerConditionnements(row, produitId);
+        }
+        if (e.target.classList.contains("conditionnement-select")) {
+            const produitSelect = row.querySelector(".produit-select");
+            const conditionnement = e.target.value;
+            if (produitSelect.value && conditionnement) filtrerLots(row, produitSelect.value, conditionnement);
+        }
+        if (e.target.classList.contains("stock-select")) {
+            const opt = e.target.options[e.target.selectedIndex];
+            const prix = opt.getAttribute("data-prix");
+            const prixInput = row.querySelector(".prix");
+            if (prix && prix > 0) prixInput.value = parseFloat(prix).toFixed(0);
+        }
+    });
+
+    if (btnAjouter) {
+        btnAjouter.addEventListener("click", () => {
+            const template = document.querySelector("#lignesVente .ligne-vente");
+            if (template) {
+                const newRow = template.cloneNode(true);
+                newRow.querySelectorAll("input").forEach(i => i.value = "");
+                newRow.querySelectorAll("select").forEach(s => { s.innerHTML = '<option value="">--</option>'; s.selectedIndex = 0; });
+                tbody.appendChild(newRow);
+            }
+        });
+    }
+
+    tbody.addEventListener("click", e => {
+        if (e.target.classList.contains("supprimer") || e.target.closest(".supprimer")) {
+            const btn = e.target.closest(".supprimer");
+            if (document.querySelectorAll("#lignesVente .ligne-vente").length > 1) btn.closest("tr").remove();
+            else alert("Gardez au moins un produit");
+        }
+    });
 });
 </script>
-
 {% endblock %}

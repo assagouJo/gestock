@@ -19,7 +19,7 @@
 <table class="table table-bordered">
 <thead class="table-dark">
    <tr>
-      <th>Produit</th>
+      <th style="text-align: left;">Produit</th>
       <th>Conditionnement</th>
       <th>Commandé</th>
       <th>Déjà livré</th>
@@ -33,7 +33,7 @@
 <tbody>
 {% for ligne in commande.lignes if ligne.reste_a_livrer > 0 %}
 <tr>
-   <td>
+   <td style="text-align: left;">
       {{ ligne.produit.nom_produit }} - {{ ligne.produit.model }}
       <input type="hidden" name="produit_id[]" value="{{ ligne.produit.id }}">
       <input type="hidden" name="ligne_commande_id[]" value="{{ ligne.id }}">

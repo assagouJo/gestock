@@ -2,477 +2,524 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestock - Gestion de Stock{% endblock %}</title>
     
     <!-- CSS -->
-     
-    <!-- <link rel="icon" type="image/png" sizes="256x256" href="/static/images/logo_imedical-1.png"> -->
-    <link rel="stylesheet" href="/static/style/styles.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <script src="{{url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        /* Style pour fixer la structure */
+        /* ========== VARIABLES ========== */
+        :root {
+            --primary-green: #28a745;
+            --dark-green: #218838;
+            --light-green: #d4edda;
+            --sidebar-bg: #1a1a2e;
+            --sidebar-dark: #16213e;
+        }
+        
+        /* ========== RESET & BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         html, body {
             height: 100%;
             margin: 0;
-            overflow: hidden; /* Empêche le défilement global */
+            overflow: hidden;
         }
         
         body {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        /* Header fixe */
-        header {
+        /* ========== HEADER FIXE ========== */
+        .app-header {
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1030;
-            background: inherit;
+            position: relative;
         }
         
-        /* Main prend tout l'espace restant */
-        main {
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-green);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .user-badge {
+            background: var(--light-green);
+            color: var(--dark-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* ========== MAIN LAYOUT ========== */
+        .app-main {
             flex: 1;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            min-height: 0; /* Important pour le flex */
         }
         
-        /* Row principale avec hauteur complète */
-        main .row {
+        /* ========== SIDEBAR FIXE AVEC SCROLL SI NECESSAIRE ========== */
+        .app-sidebar {
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-dark) 100%);
             height: 100%;
-            overflow: hidden;
-        }
-        
-        /* Menu latéral fixe */
-        nav {
-            height: 100%;
-            overflow-y: auto; /* Permet au menu de défiler si nécessaire */
-            flex-shrink: 0;
+            overflow-y: auto; /* Scroll si le menu est trop long */
+            overflow-x: hidden;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
-            align-self: flex-start;
         }
         
-        /* Zone de contenu défilante */
-        section {
+        /* Scrollbar sidebar */
+        .app-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .app-sidebar::-webkit-scrollbar-track {
+            background: var(--sidebar-dark);
+        }
+        
+        .app-sidebar::-webkit-scrollbar-thumb {
+            background: var(--primary-green);
+            border-radius: 5px;
+        }
+        
+        /* ========== CONTENU SCROLLABLE ========== */
+        .app-content {
             height: 100%;
-            overflow-y: auto;
+            overflow-y: auto; /* Scroll vertical pour le contenu */
             overflow-x: hidden;
-            padding-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
         }
         
-        /* Footer fixe en bas */
-        footer {
-            flex-shrink: 0;
-            position: sticky;
-            bottom: 0;
-            z-index: 1030;
-        }
-        
-        /* Personnalisation de la scrollbar pour le contenu */
-        section::-webkit-scrollbar {
+        /* Scrollbar content */
+        .app-content::-webkit-scrollbar {
             width: 8px;
         }
         
-        section::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .app-content::-webkit-scrollbar-track {
+            background: #e0e0e0;
             border-radius: 4px;
         }
         
-        section::-webkit-scrollbar-thumb {
-            background: #28a745;
+        .app-content::-webkit-scrollbar-thumb {
+            background: var(--primary-green);
             border-radius: 4px;
         }
         
-        section::-webkit-scrollbar-thumb:hover {
-            background: #218838;
+        .app-content::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-green);
         }
         
-        /* Style pour le menu si nécessaire */
-        nav::-webkit-scrollbar {
-            width: 4px;
+        /* ========== NAVIGATION ========== */
+        .nav-item-custom {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 4px 8px;
         }
         
-        nav::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .nav-item-custom:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
         }
         
-        nav::-webkit-scrollbar-thumb {
-            background: #28a745;
-            border-radius: 4px;
+        .nav-item-custom.active {
+            background: var(--primary-green);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         
-        /* Ajustement pour les petits écrans */
+        .nav-link-custom {
+            color: white !important;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .nav-link-custom i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            margin-left: auto;
+        }
+        
+        .nav-link-custom[aria-expanded="true"] .collapse-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Sous-menu */
+        .sub-menu {
+            padding-left: 45px;
+        }
+        
+        /* ========== FOOTER FIXE ========== */
+        .app-footer {
+            flex-shrink: 0;
+            background: white;
+            text-align: center;
+            padding: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        
+        /* ========== FLASH MESSAGES ========== */
+        .flash-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 450px;
+            width: 100%;
+        }
+        
+        .flash {
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .flash-success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .flash-danger { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .flash-warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        .flash-info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        
+        /* ========== MOBILE ========== */
         @media (max-width: 768px) {
-            nav {
-                overflow-y: visible;
+            .app-sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                width: 280px;
+                height: 100vh;
+                z-index: 1040;
+                transition: left 0.3s ease;
             }
             
-            section {
-                height: auto;
-                overflow-y: visible;
+            .app-sidebar.show {
+                left: 0;
             }
             
-            body {
-                overflow: auto;
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1035;
+                animation: fadeIn 0.3s ease;
             }
             
-            main .row {
-                flex-direction: column;
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
             }
+            
+            .flash-container {
+                top: 70px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+            
+            .app-content {
+                padding: 15px;
+            }
+        }
+        
+        /* ========== CARDS & COMPONENTS ========== */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn-custom {
+            border-radius: 20px;
+            padding: 8px 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: scale(1.05);
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+        
+        .table-custom {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .table-custom thead {
+            background: var(--primary-green);
+            color: white;
+        }
+        
+        .table-custom tbody tr:hover {
+            background: #f8f9fa;
         }
     </style>
     
-    {% block head %}{% endblock %}
     {% block styles %}{% endblock %}
+    {% block head %}{% endblock %}
 </head>
-<body class="bg-gradient-success">   
+
+<body>
+    {# FLASH MESSAGES #}
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-container">
-          {% for category, message in messages %}
-            <div class="flash flash-{{ category }}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}     
-    
-    <header class="container-fluid py-2">
-        <div class="row align-items-between">
-            <div class="col-2 gap-2 d-flex align-items-center">
-                <i class="bi bi-columns-gap text-light fs-3"></i>
-                <span class="fs-5 px-1 fw-semibold text-success">
-                    Gestock
-                </span>
-            </div>
-    
-            <!-- USER AUTH -->
-            <div class="col-10 d-flex gap-4 justify-content-end align-items-center">
-                {% if current_user.is_authenticated %}
-                    <div class="d-flex justify-content-end align-items-center ">
-                        <span class="fs-5 d-flex justify-content-end mx-2 align-items-center">
-                            <i class="bi bi-person-circle fs-5 mx-2"></i>
-                            {{ current_user.username }} 
-                        </span>
-                        <span class="fs-6 fw-semibold text-success">connecté(e)</span>
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}" role="alert">
+                        <i class="bi bi-{% if category == 'success' %}check-circle-fill{% elif category == 'danger' %}exclamation-triangle-fill{% elif category == 'warning' %}exclamation-diamond-fill{% else %}info-circle-fill{% endif %} fs-5"></i>
+                        <span>{{ message }}</span>
+                        <button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()" aria-label="Close"></button>
                     </div>
-                    <div>
-                        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-success">
-                            Déconnexion
-                        </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    {# HEADER FIXE #}
+    <header class="app-header">
+        <div class="container-fluid py-2">
+            <div class="row align-items-center">
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-logo">
+                            <i class="bi bi-box-seam fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="fs-4 fw-bold text-success">Gestock</span>
+                            <small class="text-muted d-none d-md-block">Gestion de Stock</small>
+                        </div>
                     </div>
-                {% endif %}
+                </div>
+                
+                <div class="col-6 col-md-9">
+                    <div class="d-flex justify-content-end align-items-center gap-3">
+                        {% if current_user.is_authenticated %}
+                            <div class="d-none d-md-flex align-items-center gap-3">
+                                <div class="text-end">
+                                    <div class="fw-semibold">{{ current_user.username }}</div>
+                                    <span class="user-badge">{{ current_user.role|upper }}</span>
+                                </div>
+                                <div class="vr"></div>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-outline-success dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle fs-5"></i>
+                                    <span class="d-none d-md-inline">Mon compte</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Mon profil</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-shield-lock me-2"></i>Changer mot de passe</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
+                                </ul>
+                            </div>
+                            
+                            <button class="btn btn-success d-md-none" type="button" id="mobileMenuToggle">
+                                <i class="bi bi-list fs-5"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </header>
     
-    <!-- CONTENU PRINCIPAL -->
-    <main class="container-fluid flex-fill">
-        <!-- NAV VERTICAL -->
-        <div class="row">
-            {% if current_user.is_authenticated %}
-                {% if request.path.startswith('/gestion_materiel') %}
-                    <nav class="col-3 col-md-2 p-1">
-                        {% set active_pages = ['paiement', 'produit', 'client', 'dashboard', 'transaction', 'facture', 'stock', 'user'] %}
-                        <ul class="nav flex-column gap-1">
-                            {% if current_user.role in ["superadmin","admin","operateur","finance"] %}
-                                <li class="nav-item bg-nav border">
-                                    <!-- Bouton principal -->
-                                    <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
-                                    data-bs-toggle="collapse"
-                                    href="#menuParam"
-                                    role="button"
-                                    aria-expanded="false">
-                                        <div>
-                                            <i class="bi bi-folder-fill fs-4 me-2"></i>
-                                            Gestion des Paramètres
-                                        </div>
-                                        <i class="bi bi-caret-down-fill fs-3"></i>
-                                    </a>
-
-                                    <!-- Sous-menu -->
-                                    <div class="collapse {% if is_active('client') 
-                                                            or is_active('fournisseur') 
-                                                            or is_active('produit')
-                                                            or is_active('magasin') 
-                                                            or is_active('liste_vendeurs') %}show{% endif %}"
-                                        id="menuParam">
-
-                                        <ul class="nav flex-column">
-                                            {% if current_user.role in ["superadmin","admin","operateur"] %}
-                                                <li class="nav-item border-2 border-top">
-                                                    <a class="nav-link text-light {% if is_active('fournisseur') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('fournisseur') }}">
-                                                        Gestion Fournisseurs
-                                                    </a>
-                                                </li>
-                                                
-                                                <li class="nav-item border-2 border-top">
-                                                    <a class="nav-link text-light {% if is_active('produit') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('produit') }}">
-                                                        Gestion Produits
-                                                    </a>
-                                                </li>
-                                                
-                                                <li class="nav-item border-2 border-top">
-                                                    <a class="nav-link text-light {% if is_active('magasin') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('magasin') }}">
-                                                        Gestion Magasins
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-
-                                            {% if current_user.role in ["superadmin","admin","finance","operateur"] %}
-                                                <li class="nav-item border-2 border-top">
-                                                    <a class="nav-link text-light {% if is_active('client') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('client') }}">
-                                                        Gestion Clients
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                            {% if current_user.role in ["superadmin","admin","finance"] %}
-                                                <li class="nav-item border-2 border-top">
-                                                    <a class="nav-link text-light {% if is_active('liste_vendeurs') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('liste_vendeurs') }}">
-                                                        Gestion Vendeurs
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                        </ul>
-                                    </div>
-                                </li>
-                            {% endif %}
-                            {% if current_user.role in ["admin","superadmin","finance","operateur"] %}                   
-                                <li class="{{ 'bg-nav2' if is_active('compagnie') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-building fs-3 text-light"></i>
-                                    <a class="nav-link text-light" href="{{url_for('compagnie')}}">Ma Compagnie</a>
-                                </li>
-                            {% endif %}
-                            {% if current_user.role in ["admin","superadmin"] %}
-                                <li class="{{ 'bg-nav2' if is_active('user') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-people fs-3 text-light"></i>
-                                    <a class="nav-link text-light" href="{{url_for('user')}}">Gestion Utilisateurs</a>
-                                </li>
-                            {% endif %}
-                            {% if current_user.role in ["superadmin","admin","operateur","finance"] %}
-                                <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-arrow-left-square-fill text-light fs-3"></i>
-                                    {% if current_user.role in ["admin","superadmin"] %}
-                                        <a class="nav-link text-light" href="{{url_for('dashboard')}}">Retour</a>
-                                    {% elif current_user.role == "finance" %}
-                                        <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Retour</a>
-                                    {% else %}
-                                        <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Retour</a>
-                                    {% endif %}
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+    {# MAIN CONTENT - Sidebar fixe, contenu scrollable #}
+    <main class="app-main">
+        <div class="container-fluid h-100 p-0">
+            <div class="row h-100 g-0">
+                {% if current_user.is_authenticated %}
+                    {# SIDEBAR FIXE (ne bouge pas, scroll interne si nécessaire) #}
+                    <div class="col-md-3 col-lg-2 d-none d-md-block p-0" style="height: 100%;">
+                        <div class="app-sidebar" style="height: 100%;">
+                            {% include 'partials/sidebar.html' %}
+                        </div>
+                    </div>
+                    
+                    {# SIDEBAR MOBILE #}
+                    <div id="mobileSidebar" class="app-sidebar d-md-none" style="height: 100%;">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom border-light bg-dark">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-box-seam fs-4 text-success"></i>
+                                <span class="fs-5 fw-bold text-white">Gestock</span>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" id="closeMobileMenu"></button>
+                        </div>
+                        <div style="height: calc(100% - 60px); overflow-y: auto;">
+                            {% include 'partials/sidebar.html' %}
+                        </div>
+                    </div>
+                    <div id="sidebarOverlay" class="sidebar-overlay d-none"></div>
+                    
+                    {# CONTENU SCROLLABLE - C'EST ICI QUE ÇA SCROLL #}
+                    {% set content_col = "col-md-9 col-lg-10" %}
                 {% else %}
-                    <nav class="col-3 col-md-2 p-1">
-                        <ul class="nav flex-column gap-1">
-                            {% if current_user.role in ["admin","superadmin"] %}
-                                <li class=" {{ 'bg-nav2' if is_active('dashboard') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-speedometer text-light fs-3"></i>
-                                    <a class="nav-link active text-light" href="{{ url_for('dashboard') }}">Dashboard</a>
-                                </li>
-                            {% endif %}
-                            {% if current_user.role in ["admin","superadmin","operateur"] %}
-                                <li class=" {{ 'bg-nav2' if is_active('etat_stock') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-box-seam text-light fs-3"></i>
-                                    <a class="nav-link text-light" href="{{url_for('etat_stock')}}">Entree Stock</a>
-                                </li>
-                            {% endif %}
-                            {% if current_user.role in ["admin","superadmin","operateur"] %}
-                                <li class="{{ 'bg-nav2' if is_active('nouvelle_achat') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-cart-plus text-light fs-3"></i>
-                                    <a class="nav-link text-light" href="{{url_for('nouveau_achat')}}">Achat</a>
-                                </li>
-                            {% endif %}
-
-                            {% if current_user.role in ["admin","superadmin","finance"] %}
-                                <li class="{{ 'bg-nav2' if is_active('nouvelle_vente') else '' }} nav-item bg-nav-hover bg-nav px-1 border d-flex flex-fill justify-content-start align-items-center">
-                                    <i class="bi bi-cash-coin text-light fs-3"></i>
-                                    <a class="nav-link text-light" href="{{url_for('nouvelle_vente')}}">Vente</a>
-                                </li>
-                            {% endif %}
-                            
-                            <!-- documents -->
-                            <li class="nav-item bg-nav">
-                                <!-- Bouton principal -->
-                                <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
-                                data-bs-toggle="collapse"
-                                href="#menuBonLivraison"
-                                role="button"
-                                aria-expanded="false">
-                                    <div class="">
-                                        <i class="bi bi-file-earmark-text fs-2"></i>
-                                        Editer Documents
-                                    </div>
-                                    <i class="bi bi-caret-down-fill fs-3"></i>
-                                </a>
-
-                                <!-- Sous-menu -->
-                                <div class="collapse 
-                                    {% if is_active('liste_bons_livraison') 
-                                    or is_active('liste_proformas') 
-                                    or is_active('liste_bons_commandes')
-                                    or is_active('list_kit_proforma')
-                                    or is_active('creer_certificat')
-                                    %}show{% endif %}"
-                                    id="menuBonLivraison">
-
-                                    <ul class="nav flex-column">
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold border-light text-black {% if is_active('liste_bons_livraison') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('liste_bons_livraison') }}">
-                                                Bon de Livraison
-                                            </a>
-                                        </li>
-                                        <li class="nav-item border-2 border-top bg-transparent">
-                                            <a class="nav-link fw-bold border-light text-black {% if is_active('creer_certificat') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('creer_certificat') }}">
-                                                Reparation
-                                            </a>
-                                        </li>
-                                        <li class="nav-item fw-bold border-2 border-top bg-transparent">
-                                            <a class="nav-link border-light text-black {% if is_active('liste_proformas') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('liste_proformas') }}">
-                                                Proforma
-                                            </a>
-                                        </li>
-                                        <li class="nav-item fw-bold border-2 border-top bg-transparent">
-                                            <a class="nav-link border-light text-black {% if is_active('list_kit_proforma') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('list_kit_proforma') }}">
-                                                Kit Proforma
-                                            </a>
-                                        </li>
-                                        <li class="nav-item fw-bold border-2 border-top bg-transparent">
-                                            <a class="nav-link border-light text-black {% if is_active('liste_bons_commandes') %}bg-nav2{% endif %}"
-                                            href="{{ url_for('liste_bons_commandes') }}">
-                                                Bon de Commande
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-
-                            <!-- rapports -->
-                            {% if current_user.role in ["admin","superadmin","finance"] %}
-                                <li class="nav-item bg-nav">
-                                    <!-- Bouton principal -->
-                                    <a class="nav-link text-light d-flex align-items-center justify-content-between px-2"
-                                    data-bs-toggle="collapse"
-                                    href="#menuRapports"
-                                    role="button"
-                                    aria-expanded="false">
-                                        <div class="">
-                                            <i class="bi bi-bar-chart-line fs-2"></i>
-                                            Rapports
-                                        </div>
-                                        <i class="bi bi-caret-down-fill fs-3"></i>
-                                    </a>
-
-                                    <!-- Sous-menu -->
-                                    <div class="collapse 
-                                        {% if is_active('rapport_stock') 
-                                            or is_active('rapport_vendeur') 
-                                            or is_active('rapport_client')
-                                            or is_active('logs') 
-                                            or is_active('etat_propositions') %}show{% endif %}"
-                                        id="menuRapports">
-
-                                        <ul class="nav flex-column">
-                                            {% if current_user.role in ["admin","superadmin"] %}
-                                                <li class="nav-item border-2 border-top bg-transparent">
-                                                    <a class="nav-link fw-bold border-light text-black {% if is_active('rapport_stock') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('rapport_stock') }}">
-                                                        Rapport Stock
-                                                    </a>
-                                                </li>
-
-                                                <li class="nav-item border-2 border-top bg-transparent">
-                                                    <a class="nav-link fw-bold text-black {% if is_active('rapport_vendeur') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('rapport_vendeur') }}">
-                                                        Rapport Vendeurs
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                            <li class="nav-item border-2 border-top bg-transparent">
-                                                <a class="nav-link fw-bold text-black {% if is_active('rapport_client') %}bg-nav2{% endif %}"
-                                                href="{{ url_for('rapport_client') }}">
-                                                    Rapport Clients
-                                                </a>
-                                            </li>
-
-                                            <li class="nav-item border-2 border-top bg-transparent">
-                                                <a class="nav-link fw-bold text-black {% if is_active('etat_propositions') %}bg-nav2{% endif %}"
-                                                href="{{ url_for('etat_propositions') }}">
-                                                    Etat des Propositions
-                                                </a>
-                                            </li>
-                                            {% if current_user.role in "superadmin" %}
-                                                <li class="nav-item border-2 border-top bg-transparent">
-                                                    <a class="nav-link fw-bold text-black {% if is_active('logs') %}bg-nav2{% endif %}"
-                                                    href="{{ url_for('logs') }}">
-                                                        Logs
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                        </ul>
-                                    </div>
-                                </li>
-                            {% endif %}
-                            
-                            {% if current_user.role in ["admin","operateur","superadmin","finance"] %}
-                                <li class="nav-item bg-nav-hover bg-nav px-1 border d-flex gap-2 flex-fill justify-content-start mt-1 align-items-center">
-                                    <i class="bi bi-gear-wide-connected text-light fs-3"></i>
-                                    {% if current_user.role in ["admin","operateur","superadmin"] %}
-                                        <a class="nav-link text-light" href="{{url_for('fournisseur')}}">Parametre de Base</a>
-                                    {% else %}
-                                        <a class="nav-link text-light" href="{{url_for('client')}}">Parametre de Base</a>
-                                    {% endif %}
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                    {% set content_col = "col-12" %}
                 {% endif %}
-            {% endif %}
-            
-            <!-- CONTENU DES PAGES - SEULE PARTIE DEFILANTE -->
-            <section class="{% if current_user.is_authenticated %}col-9 col-md-10{% else %}col-12{% endif %}">
-                {% block content %}{% endblock %}
-            </section>
+                
+                {# ZONE DE CONTENU AVEC SCROLL #}
+                <div class="{{ content_col }} p-0" style="height: 100%;">
+                    <div class="app-content">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
-
-    <!-- FOOTER -->
-    <footer class="bg-success text-light text-center py-3 mt-auto">
-        <p class="mb-0">© 2026 - GESTSTOCK - Keeping safe the flow of your goods </p>
+    
+    {# FOOTER FIXE #}
+    <footer class="app-footer">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-c-circle"></i> 2026 - GESTSTOCK
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Keeping safe the flow of your goods
+                    </small>
+                </div>
+            </div>
+        </div>
     </footer>
-
+    
+    {# SCRIPTS #}
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script>
+        // Auto-hide flash messages
         setTimeout(() => {
-            const flashes = document.querySelectorAll(".flash");
-            flashes.forEach(flash => {
-                flash.style.transition = "opacity 0.5s ease";
-                flash.style.opacity = "0";
-                setTimeout(() => flash.remove(), 500);
+            document.querySelectorAll('.flash').forEach(flash => {
+                setTimeout(() => {
+                    flash.style.transition = 'opacity 0.5s ease';
+                    flash.style.opacity = '0';
+                    setTimeout(() => flash.remove(), 500);
+                }, 4000);
             });
-        }, 5000); // 5 secondes
+        }, 1000);
+        
+        // Close flash message button
+        document.querySelectorAll('.flash .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.flash').remove();
+            });
+        });
+        
+        // Mobile menu
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const closeMobileMenu = document.getElementById('closeMobileMenu');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => {
+                mobileSidebar.classList.add('show');
+                sidebarOverlay.classList.remove('d-none');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+        
+        function closeMobileMenuFunc() {
+            if (mobileSidebar) {
+                mobileSidebar.classList.remove('show');
+                sidebarOverlay.classList.add('d-none');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        if (closeMobileMenu) {
+            closeMobileMenu.addEventListener('click', closeMobileMenuFunc);
+        }
+        
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMobileMenuFunc);
+        }
+        
+        // Active nav item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link-custom').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#' && currentPath === href) {
+                    link.closest('.nav-item-custom')?.classList.add('active');
+                }
+            });
+        });
+        
+        // Responsive resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                closeMobileMenuFunc();
+            }
+        });
     </script>
     
-    {% block script %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

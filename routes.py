@@ -75,23 +75,63 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+
+# ==================== PARTIE PYTHON/FLASKS ====================
+
 @app.context_processor
 def utility_processor():
+    """Ajoute des fonctions utilitaires à tous les templates"""
     def is_active(prefix):
+        """Vérifie si l'endpoint actuel correspond au préfixe donné"""
         return request.endpoint and prefix in request.endpoint
-    return dict(is_active=is_active)
+    
+    def has_role(*roles):
+        """Vérifie si l'utilisateur connecté a l'un des rôles spécifiés"""
+        if not current_user.is_authenticated:
+            return False
+        return current_user.role in roles
+    
+    def current_route():
+        """Retourne le nom de la route actuelle"""
+        return request.endpoint
+    
+    return dict(
+        is_active=is_active,
+        has_role=has_role,
+        current_route=current_route
+    )
 
 
 def role_required(*roles):
+    """
+    Décorateur pour restreindre l'accès aux routes selon les rôles
+    
+    Args:
+        *roles: Liste des rôles autorisés
+    
+    Usage:
+        @app.route('/admin')
+        @role_required('admin', 'superadmin')
+        def admin_panel():
+            return "Admin Panel"
+    """
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
             if not current_user.is_authenticated:
-                flash("Veuillez vous connecter.", "warning")
+                flash("Veuillez vous connecter pour accéder à cette page.", "warning")
                 return redirect(url_for("login"))
+            
             if current_user.role not in roles:
-                flash("Vous n'avez pas la permission d'effectuer cette action.","danger")
-                return redirect(request.referrer)
+                flash(f"Accès refusé. Rôle '{current_user.role}' non autorisé pour cette action.", "danger")
+                # Rediriger vers la page appropriée selon le rôle
+                if current_user.role == "finance":
+                    return redirect(url_for("nouvelle_vente"))
+                elif current_user.role == "operateur":
+                    return redirect(url_for("nouveau_achat"))
+                else:
+                    return redirect(url_for("dashboard"))
+            
             return f(*args, **kwargs)
         return wrapped
     return decorator
@@ -99,37 +139,54 @@ def role_required(*roles):
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    """Page de connexion principale"""
+    # Si déjà connecté, rediriger vers le bon tableau de bord
     if current_user.is_authenticated:
-        if current_user.role in ["admin","superadmin"]:
-            return redirect(url_for("dashboard"))
-        elif current_user.role == "finance":
-            return redirect(url_for("nouvelle_vente"))
-        else:
-            return redirect(url_for("nouveau_achat"))        
-
-    form = LoginForm(csrf_enabled=False)
-
+        return redirect_based_on_role(current_user.role)
+    
+    form = LoginForm()
+    
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-
+        
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
-
+            
+            # Vérifier si l'utilisateur doit changer son mot de passe
             if user.must_change_password:
+                flash("Veuillez changer votre mot de passe avant de continuer.", "warning")
                 return redirect(url_for('force_change_password'))
-
-            # 🔥 REDIRECTION SELON LE RÔLE
-            if user.role in ["admin","superadmin"]:
-                return redirect(url_for("dashboard"))
-            elif current_user.role == "finance":
-                return redirect(url_for("nouvelle_vente"))
-            else:
-                return redirect(url_for("nouveau_achat")) 
-
-        flash("Identifiants incorrects", "danger")
-
+            
+            flash(f"Bienvenue {user.username} !", "success")
+            return redirect_based_on_role(user.role)
+        
+        flash("Identifiants incorrects. Veuillez réessayer.", "danger")
+    
     return render_template('login.html', form=form)
 
+
+def redirect_based_on_role(role):
+    """
+    Redirige l'utilisateur vers sa page d'accueil selon son rôle
+    
+    Args:
+        role: Rôle de l'utilisateur
+    """
+    role_redirects = {
+        "admin": "dashboard",
+        "superadmin": "dashboard",
+        "finance": "nouvelle_vente",
+        "operateur": "nouveau_achat"
+    }
+    
+    redirect_route = role_redirects.get(role, "dashboard")
+    
+    # Vérifier que la route existe
+    try:
+        return redirect(url_for(redirect_route))
+    except:
+        # Fallback vers dashboard si la route n'existe pas
+        return redirect(url_for("dashboard"))
 
 
 @app.route('/force-change-password', methods=['GET', 'POST'])
@@ -4186,19 +4243,24 @@ def rapport_vendeur():
 
     ventes = []
     total = 0
+    vendeur_selected = None  # Ajoutez cette ligne
 
     if vendeur_id:
-        ventes = Vente.query.filter_by(vendeur_id=vendeur_id)\
-                            .order_by(Vente.date_vente.desc())\
-                            .all()
-
-        total = sum(v.total for v in ventes)
+        # Récupérer le vendeur sélectionné
+        vendeur_selected = Vendeur.query.get(vendeur_id)  # Ajoutez cette ligne
+        
+        if vendeur_selected:  # Vérifiez que le vendeur existe
+            ventes = Vente.query.filter_by(vendeur_id=vendeur_id)\
+                                .order_by(Vente.date_vente.desc())\
+                                .all()
+            total = sum(v.total for v in ventes)
 
     return render_template(
         "rapport_vendeur.html",
         vendeurs=vendeurs,
         ventes=ventes,
-        total=total
+        total=total,
+        vendeur_selected=vendeur_selected  # Ajoutez cette ligne
     )
 
 

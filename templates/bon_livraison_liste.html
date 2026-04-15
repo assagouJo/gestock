@@ -1,131 +1,459 @@
 {% extends "base.html" %}
-{% block title %}Liste Bons de Livraison{% endblock %}
+{% block title %}Liste Bons de Livraison | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bl-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .bl-header {
+        background: linear-gradient(135deg, var(--success-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .bl-header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        margin-top: 3px;
+    }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm-custom {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-excel {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-print {
+        background: #3498db;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        table-layout: fixed;
+    }
+
+    /* Largeurs fixes des colonnes */
+    .table-custom th:nth-child(1) { width: 40px; }
+    .table-custom th:nth-child(2) { width: 85px; }
+    .table-custom th:nth-child(3) { width: 100px; }
+    .table-custom th:nth-child(4) { width: 150px; }
+    .table-custom th:nth-child(5) { width: 100px; }
+    .table-custom th:nth-child(6) { width: 200px; }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 10px 8px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table-custom td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Badges */
+    .badge-client {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: var(--primary-color);
+        color: white;
+        cursor: help;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-livree { background: var(--success-color); color: white; }
+    .badge-partielle { background: var(--warning-color); color: #856404; }
+    .badge-annule { background: var(--danger-color); color: white; }
+    .badge-brouillon { background: var(--secondary-color); color: white; }
+
+    .checkbox-custom {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    /* Boutons d'action */
+    .action-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .action-group .btn {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        border-radius: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .bl-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-header {
+            flex-direction: column;
+        }
+        
+        .export-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-custom th:nth-child(6) { width: 180px; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="bl-container">
+    <!-- En-tête -->
+    <div class="bl-header">
+        <h4>
+            <i class="bi bi-truck"></i> Bons de Livraison
+        </h4>
+    </div>
 
-<div class="container mt-4">
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold text-success">🚚 Bons de Livraison</h4>
+    {% if bons %}
+    <!-- Statistiques -->
+    {% set total_bl = bons|length %}
+    {% set bl_livrees = bons|selectattr('status', 'equalto', 'livree')|list|length %}
+    {% set bl_partielle = bons|selectattr('status', 'equalto', 'partielle')|list|length %}
+    {% set bl_annule = bons|selectattr('status', 'equalto', 'annule')|list|length %}
     
-    <!-- <div>
-        <a href="{{ url_for('nouveau_bon_livraison') }}" class="btn btn-success btn-sm me-2">
-            ➕ Nouveau Bon
-        </a>
-    </div> -->
-</div>
-
-{% if bons %}
-
-<!-- Formulaire unique qui englobe tout le tableau -->
-<form method="POST" action="{{ url_for('delete_bon_livraisons') }}" id="deleteForm" onsubmit="return confirmDelete()">
-    
-    <div class="card">
-        <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
-            <table class="table table-hover table-bordered align-middle">
-                <thead class="table-dark sticky-top">
-                    <tr>
-                        <th style="width: 40px;">
-                            <input type="checkbox" id="check_all">
-                        </th>
-                        <th>Date</th>
-                        <th>N° Bon</th>
-                        <th>Client</th>
-                        <th>Statut</th>
-                        <th width="300">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for bon in bons %}
-                    <tr>
-                        <td class="text-center">
-                            <input type="checkbox" name="bons_ids[]" value="{{ bon.id }}" class="bon-checkbox">
-                        </td>
-                        <td class="small">{{ bon.date_creation.strftime('%d/%m/%Y') }}</td>
-                        <td class="small fw-bold">{{ bon.numero }}</td>
-                        <td class="small">{{ bon.client.nom_client }}</td>
-                        <td>
-                            <span class="badge {% if bon.status == 'livree' %}bg-success
-                                          {% elif bon.status == 'partielle' %}bg-warning
-                                          {% elif bon.status == 'annule' %}bg-danger
-                                          {% else %}bg-secondary{% endif %}">
-                                {% if bon.status == 'livree' %}Livrée
-                                {% elif bon.status == 'partielle' %}Livraison Partielle
-                                {% elif bon.status == 'annule' %}Annulée
-                                {% else %}{{ bon.status }}{% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}" 
-                                   class="btn btn-outline-success">
-                                    👁 Voir
-                                </a>
-
-                                <a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}" 
-                                   class="btn btn-outline-warning">
-                                    ✏ Modifier
-                                </a>
-
-                                {% if bon.status == 'livree' %}
-                                    {% set vente_existante = verifier_vente_existante(bon.id) %}
-                                    {% if vente_existante %}
-                                        <a href="{{ url_for('paiement_vente', vente_id=vente_existante.id) }}" 
-                                           class="btn btn-outline-info">
-                                            💰 Vente
-                                        </a>
-                                    {% else %}
-                                        <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}" 
-                                           class="btn btn-outline-primary">
-                                            💰 Créer Vente
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value">{{ total_bl }}</div>
+            <div class="stat-label">Total BL</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ bl_livrees }}</div>
+            <div class="stat-label">Livrées</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value">{{ bl_partielle }}</div>
+            <div class="stat-label">Partielles</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">❌</div>
+            <div class="stat-value">{{ bl_annule }}</div>
+            <div class="stat-label">Annulées</div>
         </div>
     </div>
-    
-    <!-- Bouton de suppression à l'intérieur du formulaire -->
-    <div class="mt-3 d-flex justify-content-end">
-        <button type="submit" class="btn btn-danger" id="deleteBtn">
-            🗑 Supprimer les bons sélectionnés
-        </button>
+
+    <!-- Formulaire de suppression -->
+    <form method="POST" action="{{ url_for('delete_bon_livraisons') }}" id="deleteForm" onsubmit="return confirmDelete()">
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="bi bi-list-ul"></i> Liste des bons de livraison
+                    <span class="badge bg-secondary ms-2">{{ total_bl }} BL</span>
+                </div>
+                <div class="export-buttons">
+                    <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
+                        <i class="bi bi-printer"></i> Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom" id="blTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="check_all" class="checkbox-custom"></th>
+                            <th>Date</th>
+                            <th>N° Bon</th>
+                            <th>Client</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bon in bons %}
+                        <tr>
+                            <td class="text-center">
+                                <input type="checkbox" name="bons_ids[]" value="{{ bon.id }}" class="checkbox-custom bl-checkbox">
+                            </td>
+                            <td class="text-center">{{ bon.date_creation.strftime('%d/%m/%y') }}</td>
+                            <td class="fw-bold text-center">{{ bon.numero }}</td>
+                            
+                            <!-- CLIENT AVEC TOOLTIP -->
+                            <td>
+                                <span class="badge-client" 
+                                      title="{{ bon.client.nom_client }}"
+                                      style="cursor: help;">
+                                    {{ bon.client.nom_client|truncate(25, true) }}
+                                </span>
+                            </td>
+                            
+                            <!-- STATUT AVEC TOOLTIP -->
+                            <td class="text-center">
+                                {% if bon.status == 'livree' %}
+                                    <span class="badge-status badge-livree" title="Bon de livraison entièrement livré">
+                                        <i class="bi bi-check-circle"></i> Livrée
+                                    </span>
+                                {% elif bon.status == 'partielle' %}
+                                    <span class="badge-status badge-partielle" title="Livraison partielle effectuée">
+                                        <i class="bi bi-exclamation-triangle"></i> Partielle
+                                    </span>
+                                {% elif bon.status == 'annule' %}
+                                    <span class="badge-status badge-annule" title="Bon de livraison annulé">
+                                        <i class="bi bi-x-circle"></i> Annulée
+                                    </span>
+                                {% else %}
+                                    <span class="badge-status badge-brouillon" title="Bon de livraison en brouillon">
+                                        <i class="bi bi-clock"></i> {{ bon.status|capitalize }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- ACTIONS -->
+                            <td class="text-center">
+                                <div class="action-group">
+                                    <a href="{{ url_for('detail_bon_livraison', id=bon.id) }}" 
+                                       class="btn btn-outline-success btn-sm" title="Voir les détails">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+
+                                    <a href="{{ url_for('modifier_bon_livraison', id=bon.id) }}" 
+                                       class="btn btn-outline-warning btn-sm" title="Modifier le bon">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+
+                                    {% if bon.status == 'livree' %}
+                                        {% set vente_existante = verifier_vente_existante(bon.id) %}
+                                        {% if vente_existante %}
+                                            <a href="{{ url_for('paiement_vente', vente_id=vente_existante.id) }}" 
+                                               class="btn btn-outline-info btn-sm" title="Paiement de la vente">
+                                                <i class="bi bi-cash-stack"></i> Paiement
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}" 
+                                               class="btn btn-outline-primary btn-sm" title="Créer une vente">
+                                                <i class="bi bi-cart-plus"></i> Créer Vente
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        <tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="5" class="text-end fw-bold">TOTAL BONS :</td>
+                            <td class="text-center fw-bold">{{ total_bl }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex gap-2">
+                <button type="button" onclick="selectAll()" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-check-all"></i> Tout sélectionner
+                </button>
+                <button type="button" onclick="deselectAll()" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Tout désélectionner
+                </button>
+            </div>
+            <button type="submit" class="btn btn-danger btn-sm" id="deleteBtn">
+                <i class="bi bi-trash"></i> Supprimer sélection
+            </button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="bi bi-exclamation-triangle"></i>
+        Aucun bon de livraison enregistré.
     </div>
-    
-</form>
-
-{% else %}
-
-<div class="alert alert-warning text-center">
-    <i class="fas fa-info-circle"></i> Aucun bon de livraison enregistré.
-</div>
-
-{% endif %}
-
+    {% endif %}
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Sélectionner/déselectionner tous les checkboxes
-    const checkAll = document.getElementById('check_all');
-    if (checkAll) {
-        checkAll.addEventListener('click', function() {
-            const checkboxes = document.querySelectorAll('input[name="bons_ids[]"]');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-    }
+// Sélectionner tous les checkboxes
+document.getElementById('check_all')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.bl-checkbox').forEach(cb => cb.checked = e.target.checked);
 });
-</script>
 
-<script>
-// Fonction de confirmation avant suppression
+// Fonction pour sélectionner tous
+function selectAll() {
+    document.querySelectorAll('.bl-checkbox').forEach(cb => cb.checked = true);
+    const checkAll = document.getElementById('check_all');
+    if (checkAll) checkAll.checked = true;
+}
+
+// Fonction pour désélectionner tous
+function deselectAll() {
+    document.querySelectorAll('.bl-checkbox').forEach(cb => cb.checked = false);
+    const checkAll = document.getElementById('check_all');
+    if (checkAll) checkAll.checked = false;
+}
+
+// Confirmation avant suppression
 function confirmDelete() {
-    const checkboxes = document.querySelectorAll('input[name="bons_ids[]"]:checked');
+    const checkboxes = document.querySelectorAll('.bl-checkbox:checked');
     const selectedIds = Array.from(checkboxes).map(cb => cb.value);
     
     if (selectedIds.length === 0) {
@@ -139,29 +467,51 @@ function confirmDelete() {
     
     return confirm(message);
 }
+
+// Export Excel
+function exportToExcel() {
+    let csv = [["Date", "N° Bon", "Client", "Statut"]];
+    
+    document.querySelectorAll('#blTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            csv.push([
+                cells[1]?.innerText,
+                cells[2]?.innerText,
+                cells[3]?.innerText,
+                cells[4]?.innerText
+            ]);
+        }
+    });
+    
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+                          { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'bons_livraison.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+// Mettre à jour le compteur de sélection
+function updateSelectionCount() {
+    const selected = document.querySelectorAll('.bl-checkbox:checked').length;
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (deleteBtn) {
+        if (selected > 0) {
+            deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Supprimer ${selected} BL sélectionné(s)`;
+        } else {
+            deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Supprimer sélection`;
+        }
+    }
+}
+
+// Écouter les changements de sélection
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.bl-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateSelectionCount);
+    });
+    updateSelectionCount();
+});
 </script>
-
-<style>
-.sticky-top {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.btn-group {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-}
-
-.table td {
-    vertical-align: middle;
-}
-
-.badge {
-    font-size: 0.75rem;
-    padding: 5px 10px;
-}
-</style>
-
 {% endblock %}

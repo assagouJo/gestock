@@ -1,64 +1,457 @@
 {% extends "base.html" %}
-{% block title %}Rapport Vendeur{% endblock %}
+{% block title %}Rapport Vendeur | Gestock{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .rapport-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* En-tête */
+    .rapport-header {
+        background: linear-gradient(135deg, var(--success-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .rapport-header h4 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .rapport-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+    }
+
+    /* Filtres */
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    /* Cartes statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--success-color);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 1.6rem;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+    }
+
+    /* Tableau - CORRECTION DE L'ALIGNEMENT */
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    /* En-tête fixe */
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 12px 15px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    /* Cellules du corps */
+    .table-custom tbody td {
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--light-color);
+        vertical-align: middle;
+    }
+
+    /* ALIGNEMENT CORRECT DES COLONNES */
+    /* Colonnes de texte (Date et Client) - alignées à gauche */
+    .table-custom th:first-child,
+    .table-custom td:first-child,
+    .table-custom th:nth-child(2),
+    .table-custom td:nth-child(2) {
+        text-align: left !important;
+    }
+
+    /* Colonnes de montants (Total, Payé, Reste) - alignées à droite */
+    .table-custom th:nth-child(3),
+    .table-custom td:nth-child(3),
+    .table-custom th:nth-child(4),
+    .table-custom td:nth-child(4),
+    .table-custom th:nth-child(5),
+    .table-custom td:nth-child(5) {
+        text-align: right !important;
+    }
+
+    /* Colonne Statut - alignée au centre */
+    .table-custom th:last-child,
+    .table-custom td:last-child {
+        text-align: center !important;
+    }
+
+    /* Police monospace pour les montants (meilleur alignement vertical) */
+    .montant {
+        font-family: 'Courier New', 'Monaco', monospace;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    /* Largeur fixe pour les colonnes de montants */
+    .table-custom th:nth-child(3),
+    .table-custom th:nth-child(4),
+    .table-custom th:nth-child(5) {
+        width: 140px;
+    }
+
+    .table-custom td:nth-child(3),
+    .table-custom td:nth-child(4),
+    .table-custom td:nth-child(5) {
+        width: 140px;
+    }
+
+    /* Pied de tableau */
+    .table-custom tfoot td {
+        padding: 12px 15px;
+        background: #f8f9fa;
+        font-weight: bold;
+        border-top: 2px solid #dee2e6;
+    }
+
+    /* Badges */
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .badge-solde {
+        background: rgba(46, 204, 113, 0.15);
+        color: var(--success-color);
+    }
+
+    .badge-partiel {
+        background: rgba(243, 156, 18, 0.15);
+        color: var(--warning-color);
+    }
+
+    .badge-non-solde {
+        background: rgba(231, 76, 60, 0.15);
+        color: var(--danger-color);
+    }
+
+    /* Boutons */
+    .btn-custom {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-success-custom {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .btn-success-custom:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+        }
+        
+        .table-custom th,
+        .table-custom td {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .table-custom th:nth-child(3),
+        .table-custom th:nth-child(4),
+        .table-custom th:nth-child(5) {
+            width: 100px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-
-    <h4>👨‍💼 Rapport Vendeur</h4>
-
-    <form method="GET" class="row g-3 mb-4">
-        <div class="col-md-6">
-            <select name="vendeur_id" class="form-select">
-                <option value="">-- Choisir Vendeur --</option>
-                {% for v in vendeurs %}
-                <option value="{{ v.id }}"
-                {% if request.args.get('vendeur_id') == v.id|string %}selected{% endif %}>
-                    {{ v.nom }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="col-md-6">
-            <button type="submit" class="btn btn-success w-100">
-                🔎 Filtrer
-            </button>
-        </div>
-    </form>
-
-    {% if ventes %}
-
-    <div class="card p-3 mb-3">
-        <strong>Total des ventes :</strong> {{ total | money}}
+<div class="rapport-container">
+    <!-- En-tête -->
+    <div class="rapport-header">
+        <h4>
+            <i class="bi bi-person-badge"></i> Rapport des Vendeurs
+        </h4>
+        <p>Analyse détaillée des performances commerciales</p>
     </div>
-    <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
-    <table class="table w-100 caption-top table-bordered px-1 align-middle
-                  table-responsive my-2">
-        <thead class="table-dark">
-            <tr>
-                <th>Date</th>
-                <th>Client</th>
-                <th>Total</th>
-                <th>Statut</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for v in ventes %}
-            <tr>
-                <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
-                <td>{{ v.client.nom_client }}</td>
-                <td>{{ v.total | money}}</td>
-                <td>{{ v.statut_paiement }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    <!-- Filtres -->
+    <div class="filters-card">
+        <form method="GET" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-person"></i> Sélectionner un vendeur
+                    </label>
+                    <select name="vendeur_id" class="form-select" id="vendeurSelect">
+                        <option value="">-- Tous les vendeurs --</option>
+                        {% for v in vendeurs %}
+                        <option value="{{ v.id }}"
+                        {% if request.args.get('vendeur_id') == v.id|string %}selected{% endif %}>
+                            {{ v.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn-custom btn-success-custom w-100">
+                        <i class="bi bi-search"></i> Voir les performances
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
-    {% elif request.args %}
+
+    {% if vendeur_selected and ventes %}
+    <!-- Informations vendeur -->
+    <div class="card p-3 mb-3 shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                        <i class="bi bi-person-circle fs-2 text-success"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">{{ vendeur_selected.nom }}</h5>
+                        <small class="text-muted">
+                            <i class="bi bi-envelope"></i> {{ vendeur_selected.email or 'Email non renseigné' }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <div class="bg-light p-3 rounded">
+                    <strong class="text-success">💰 Total des ventes :</strong>
+                    <span class="fs-4 fw-bold text-success">{{ total|money }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    {% set nb_ventes = ventes|length %}
+    {% set total_paye = ventes|sum(attribute='montant_paye') %}
+    {% set total_dettes = ventes|sum(attribute='reste_a_payer') %}
+    {% set moyenne = total / nb_ventes if nb_ventes > 0 else 0 %}
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">{{ nb_ventes }}</div>
+            <div class="stat-label">Nombre de ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ total|money }}</div>
+            <div class="stat-label">Total des ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ total_paye|money }}</div>
+            <div class="stat-label">Montant encaissé</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value">{{ total_dettes|money }}</div>
+            <div class="stat-label">Reste à encaisser</div>
+        </div>
+    </div>
+
+    <!-- Tableau des ventes -->
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Total (FCFA)</th>
+                        <th>Payé (FCFA)</th>
+                        <th>Reste (FCFA)</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in ventes %}
+                    <tr>
+                        <td>{{ v.date_vente.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <strong>{{ v.client.nom_client }}</strong>
+                            {% if v.client.telephone %}
+                            <br><small class="text-muted">{{ v.client.telephone }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="montant">{{ "{:,.0f}".format(v.total).replace(',', ' ') }}</td>
+                        <td class="montant">{{ "{:,.0f}".format(v.montant_paye).replace(',', ' ') }}</td>
+                        <td class="montant {% if v.reste_a_payer > 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ "{:,.0f}".format(v.reste_a_payer).replace(',', ' ') }}
+                        </td>
+                        <td>
+                            {% if v.reste_a_payer == 0 %}
+                                <span class="badge-status badge-solde">
+                                    <i class="bi bi-check-circle"></i> Soldé
+                                </span>
+                            {% elif v.montant_paye > 0 %}
+                                <span class="badge-status badge-partiel">
+                                    <i class="bi bi-exclamation-triangle"></i> Partiel
+                                </span>
+                            {% else %}
+                                <span class="badge-status badge-non-solde">
+                                    <i class="bi bi-x-circle"></i> Non soldé
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="text-end fw-bold">TOTAUX :</td>
+                        <td class="montant fw-bold">{{ "{:,.0f}".format(total).replace(',', ' ') }}</td>
+                        <td class="montant fw-bold">{{ "{:,.0f}".format(total_paye).replace(',', ' ') }}</td>
+                        <td class="montant fw-bold text-danger">{{ "{:,.0f}".format(total_dettes).replace(',', ' ') }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    {% elif vendeur_selected and not ventes %}
     <div class="alert alert-warning">
-        Aucun résultat trouvé.
+        <i class="bi bi-exclamation-triangle"></i>
+        Aucune vente trouvée pour ce vendeur.
+    </div>
+
+    {% elif request.args.get('vendeur_id') and not vendeur_selected %}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle"></i>
+        Le vendeur sélectionné n'existe pas.
+    </div>
+
+    {% elif not request.args.get('vendeur_id') %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Veuillez sélectionner un vendeur dans la liste ci-dessus pour voir ses performances.
     </div>
     {% endif %}
 
 </div>
+
+<script>
+    // Auto-submit au changement de vendeur
+    document.getElementById('vendeurSelect')?.addEventListener('change', function() {
+        if (this.value) {
+            document.getElementById('filterForm').submit();
+        }
+    });
+</script>
 {% endblock %}

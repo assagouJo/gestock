@@ -1,10 +1,203 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bon-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 8px 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Tableau */
+    .table-custom {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-custom thead th {
+        background: var(--dark-color);
+        color: white;
+        padding: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table-custom tbody td {
+        padding: 8px;
+        vertical-align: middle;
+    }
+
+    .table-custom tfoot td {
+        background: var(--light-color);
+        padding: 10px;
+    }
+
+    .produit-select, .conditionnement-select {
+        font-size: 0.8rem;
+    }
+
+    .quantite-input, .prix-input {
+        text-align: right;
+    }
+
+    .sous-total {
+        font-weight: bold;
+        color: var(--info-color);
+        text-align: right;
+        font-size: 0.85rem;
+    }
+
+    #totalDisplay {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    .btn-outline-primary {
+        border-radius: 10px;
+        padding: 8px 20px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        border-radius: 10px;
+        padding: 10px 25px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        background: #27ae60;
+    }
+
+    .btn-secondary {
+        border-radius: 10px;
+        padding: 10px 25px;
+    }
+
+    .badge-info {
+        background: var(--info-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+    }
+
+    /* Tooltip personnalisé */
+    [data-tooltip] {
+        position: relative;
+        cursor: help;
+    }
+
+    [data-tooltip]:before {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--dark-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        white-space: nowrap;
+        z-index: 1000;
+        display: none;
+    }
+
+    [data-tooltip]:hover:before {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 15px;
+        }
+        
+        .table-custom thead th {
+            font-size: 0.7rem;
+            padding: 5px;
+        }
+        
+        .table-custom tbody td {
+            padding: 5px;
+        }
+        
+        .produit-select, .conditionnement-select {
+            font-size: 0.7rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="bon-container">
     <div class="card">
         <div class="card-header">
-            <h4 class="mb-0">📦 Nouveau Bon de Commande</h4>
+            <h4>
+                <i class="bi bi-file-text"></i> Nouveau Bon de Commande
+            </h4>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('create_bon_commande') }}" id="bonCommandeForm">
@@ -12,31 +205,43 @@
                 <!-- SECTION: CLIENT, VENDEUR ET COMPAGNIE -->
                 <div class="row mb-4">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Client <span class="text-danger">*</span></label>
+                        <label class="form-label">
+                            <i class="bi bi-person"></i> Client <span class="text-danger">*</span>
+                        </label>
                         <select name="client_id" class="form-select" required>
                             <option value="">-- Sélectionner un client --</option>
                             {% for client in clients %}
-                                <option value="{{ client.id }}">{{ client.nom_client }}</option>
+                                <option value="{{ client.id }}" data-tooltip="{{ client.nom_client }}">
+                                    {{ client.nom_client|truncate(35, true) }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
                     
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Vendeur <span class="text-danger">*</span></label>
+                        <label class="form-label">
+                            <i class="bi bi-person-badge"></i> Vendeur <span class="text-danger">*</span>
+                        </label>
                         <select name="vendeur_id" class="form-select" required>
                             <option value="">-- Sélectionner un vendeur --</option>
                             {% for vendeur in vendeurs %}
-                                <option value="{{ vendeur.id }}">{{ vendeur.nom }}</option>
+                                <option value="{{ vendeur.id }}" data-tooltip="{{ vendeur.nom }}">
+                                    {{ vendeur.nom|truncate(30, true) }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
                     
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Compagnie <span class="text-danger">*</span></label>
+                        <label class="form-label">
+                            <i class="bi bi-building"></i> Compagnie <span class="text-danger">*</span>
+                        </label>
                         <select name="compagnie_id" class="form-select" required>
                             <option value="">-- Sélectionner une compagnie --</option>
                             {% for compagnie in compagnies %}
-                                <option value="{{ compagnie.id }}">{{ compagnie.nom }}</option>
+                                <option value="{{ compagnie.id }}" data-tooltip="{{ compagnie.nom }}">
+                                    {{ compagnie.nom|truncate(30, true) }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -44,38 +249,46 @@
                 
                 <!-- SECTION: LIGNES DE COMMANDE -->
                 <div class="mb-3">
-                    <label class="fw-bold">Produits commandés</label>
-                    <table class="table table-bordered" id="lignesTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Produit</th>
-                                <th>Conditionnement</th>
-                                <th>Quantité</th>
-                                <th>Prix unitaire (FCFA)</th>
-                                <th>Sous-total</th>
-                                <th width="50"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="lignesContainer">
-                            <!-- Une ligne sera ajoutée par défaut via JS -->
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" class="text-end fw-bold">TOTAL :</td>
-                                <td class="fw-bold" id="totalDisplay">0 FCFA</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                    <label class="form-label">
+                        <i class="bi bi-box"></i> Produits commandés
+                    </label>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-custom" id="lignesTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%">Produit</th>
+                                    <th style="width: 20%">Conditionnement</th>
+                                    <th style="width: 10%">Quantité</th>
+                                    <th style="width: 15%">Prix unitaire</th>
+                                    <th style="width: 15%">Sous-total</th>
+                                    <th style="width: 5%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lignesContainer">
+                                <!-- Les lignes seront ajoutées par JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">TOTAL :</td>
+                                    <td class="fw-bold" id="totalDisplay">0 FCFA</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                     
                     <button type="button" class="btn btn-outline-primary" id="ajouterLigne">
-                        ➕ Ajouter un produit
+                        <i class="bi bi-plus-circle"></i> Ajouter un produit
                     </button>
                 </div>
                 
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                    <a href="{{ url_for('liste_bons_commandes') }}" class="btn btn-secondary">Annuler</a>
-                    <button type="submit" class="btn btn-success">Créer le bon de commande</button>
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ url_for('liste_bons_commandes') }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success" id="submitBtn">
+                        <i class="bi bi-check-circle"></i> Créer le bon de commande
+                    </button>
                 </div>
             </form>
         </div>
@@ -83,7 +296,7 @@
 </div>
 
 <script>
-// Données des produits (déjà sérialisées)
+// Données des produits
 const produits = {{ produits | tojson }};
 
 // Ajouter une ligne
@@ -91,30 +304,41 @@ function ajouterLigne(produitId = '', quantite = 1, prix = '') {
     const container = document.getElementById('lignesContainer');
     const newRow = document.createElement('tr');
     
+    // Construire les options des produits avec tooltip
+    let produitOptions = '<option value="">-- Choisir un produit --</option>';
+    produits.forEach(p => {
+        const stockText = p.stock_disponible ? ` (Stock: ${p.stock_disponible})` : '';
+        const selected = p.id == produitId ? 'selected' : '';
+        produitOptions += `<option value="${p.id}" data-prix="${p.prix_par_defaut || 0}" data-model="${p.model || ''}" ${selected}>
+            ${p.nom_produit} - ${p.model || 'Modèle non défini'}${stockText}
+        </option>`;
+    });
+    
     newRow.innerHTML = `
         <td>
             <select name="produit_id[]" class="form-select produit-select" required>
-                <option value="">-- Choisir un produit --</option>
-                ${produits.map(p => `<option value="${p.id}" data-prix="${p.prix_par_defaut}" ${p.id == produitId ? 'selected' : ''}>${p.nom_produit} - ${p.model} (Stock: ${p.stock_disponible})</option>`).join('')}
+                ${produitOptions}
             </select>
-        </div>
+        </td>
         <td>
-            <select name="type_conditionnement[]" class="form-select" required>
+            <select name="type_conditionnement[]" class="form-select conditionnement-select" required>
                 <option value="">-- Conditionnement --</option>
-                <option value="carton">Carton</option>
-                <option value="paquet">Paquet</option>
-                <option value="unite">Unité</option>
+                <option value="carton">📦 Carton</option>
+                <option value="paquet">📦 Paquet</option>
+                <option value="unite">📄 Unité</option>
             </select>
-        </div>
+        </td>
         <td>
             <input type="number" name="quantite[]" class="form-control quantite-input" value="${quantite}" min="1" required>
-        </div>
+        </td>
         <td>
             <input type="number" name="prix_unitaire[]" class="form-control prix-input" value="${prix}" min="0" step="any" required>
-        </div>
-        <td class="sous-total">0 FCFA</td>
+        </td>
+        <td class="sous-total text-end">0 FCFA</td>
         <td class="text-center">
-            <button type="button" class="btn btn-danger btn-sm supprimer-ligne">✖</button>
+            <button type="button" class="btn btn-danger btn-sm supprimer-ligne" title="Supprimer la ligne">
+                <i class="bi bi-trash"></i>
+            </button>
         </td>
     `;
     
@@ -134,6 +358,7 @@ function ajouterLigne(produitId = '', quantite = 1, prix = '') {
         }
     }
     
+    // Événement changement produit
     produitSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const prixDefaut = selectedOption.getAttribute('data-prix');
@@ -143,15 +368,17 @@ function ajouterLigne(produitId = '', quantite = 1, prix = '') {
         calculerSousTotal(newRow);
     });
     
+    // Événements quantité et prix
     quantiteInput.addEventListener('input', () => calculerSousTotal(newRow));
     prixInput.addEventListener('input', () => calculerSousTotal(newRow));
     
+    // Suppression de ligne
     newRow.querySelector('.supprimer-ligne').addEventListener('click', function() {
         if (container.children.length > 1) {
             newRow.remove();
             calculerTotalGeneral();
         } else {
-            alert('Il doit y avoir au moins une ligne');
+            alert('Il doit y avoir au moins une ligne de produit');
         }
     });
     
@@ -178,36 +405,108 @@ function calculerTotalGeneral() {
         total += parseFloat(value) || 0;
     });
     
-    document.getElementById('totalDisplay').textContent = 
-        new Intl.NumberFormat('fr-FR').format(total) + ' FCFA';
+    const totalDisplay = document.getElementById('totalDisplay');
+    totalDisplay.textContent = new Intl.NumberFormat('fr-FR').format(total) + ' FCFA';
+    
+    // Changer la couleur selon le montant
+    if (total > 1000000) {
+        totalDisplay.style.color = 'var(--danger-color)';
+    } else if (total > 500000) {
+        totalDisplay.style.color = 'var(--warning-color)';
+    } else {
+        totalDisplay.style.color = 'var(--success-color)';
+    }
 }
 
-// Ajouter une ligne par défaut au chargement
+// Validation avant soumission
+function validateForm() {
+    const lignes = document.querySelectorAll('#lignesContainer tr');
+    let hasError = false;
+    let errorMessage = '';
+    
+    lignes.forEach((ligne, index) => {
+        const produit = ligne.querySelector('.produit-select').value;
+        const conditionnement = ligne.querySelector('.conditionnement-select').value;
+        const quantite = ligne.querySelector('.quantite-input').value;
+        const prix = ligne.querySelector('.prix-input').value;
+        
+        if (!produit) {
+            hasError = true;
+            errorMessage = `Ligne ${index + 1}: Veuillez sélectionner un produit`;
+        } else if (!conditionnement) {
+            hasError = true;
+            errorMessage = `Ligne ${index + 1}: Veuillez sélectionner un conditionnement`;
+        } else if (!quantite || quantite <= 0) {
+            hasError = true;
+            errorMessage = `Ligne ${index + 1}: Quantité invalide`;
+        } else if (!prix || prix <= 0) {
+            hasError = true;
+            errorMessage = `Ligne ${index + 1}: Prix unitaire invalide`;
+        }
+        
+        if (hasError) {
+            return;
+        }
+    });
+    
+    if (hasError) {
+        alert(errorMessage);
+        return false;
+    }
+    
+    // Vérifier le client
+    const client = document.querySelector('select[name="client_id"]').value;
+    if (!client) {
+        alert('Veuillez sélectionner un client');
+        return false;
+    }
+    
+    // Vérifier le vendeur
+    const vendeur = document.querySelector('select[name="vendeur_id"]').value;
+    if (!vendeur) {
+        alert('Veuillez sélectionner un vendeur');
+        return false;
+    }
+    
+    // Vérifier la compagnie
+    const compagnie = document.querySelector('select[name="compagnie_id"]').value;
+    if (!compagnie) {
+        alert('Veuillez sélectionner une compagnie');
+        return false;
+    }
+    
+    return true;
+}
+
+// Initialisation
 document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter une ligne par défaut
     ajouterLigne();
     
+    // Bouton ajouter ligne
     document.getElementById('ajouterLigne').addEventListener('click', () => ajouterLigne());
     
     // Validation avant soumission
     document.getElementById('bonCommandeForm').addEventListener('submit', function(e) {
-        const lignes = document.querySelectorAll('#lignesContainer tr');
-        let hasError = false;
-        
-        lignes.forEach((ligne, index) => {
-            const produit = ligne.querySelector('.produit-select').value;
-            const conditionnement = ligne.querySelector('select[name="type_conditionnement[]"]').value;
-            const quantite = ligne.querySelector('.quantite-input').value;
-            const prix = ligne.querySelector('.prix-input').value;
-            
-            if (!produit || !conditionnement || !quantite || !prix) {
-                hasError = true;
-                alert(`Veuillez remplir tous les champs de la ligne ${index + 1}`);
+        if (!validateForm()) {
+            e.preventDefault();
+        } else {
+            // Désactiver le bouton pour éviter double soumission
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Création en cours...';
+        }
+    });
+    
+    // Tooltips automatiques pour les selects
+    const selects = document.querySelectorAll('select[data-tooltip]');
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.getAttribute('data-tooltip')) {
+                this.setAttribute('data-tooltip', selectedOption.getAttribute('data-tooltip'));
             }
         });
-        
-        if (hasError) {
-            e.preventDefault();
-        }
     });
 });
 </script>
@@ -215,12 +514,37 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
     .sous-total {
         font-weight: bold;
-        color: #0d6efd;
+        color: var(--info-color);
+        text-align: right;
     }
+    
     #totalDisplay {
         font-size: 1.2rem;
-        color: #198754;
+        transition: color 0.3s ease;
+    }
+    
+    .quantite-input, .prix-input {
+        text-align: right;
+    }
+    
+    .produit-select, .conditionnement-select {
+        font-size: 0.85rem;
+    }
+    
+    /* Animation pour les nouvelles lignes */
+    .new-row {
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 </style>
-
 {% endblock %}
