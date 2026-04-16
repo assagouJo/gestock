@@ -10,95 +10,215 @@
     }
     
     body {
-        background: white;
-        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        background: #f0f2f5;
+        font-family: 'Segoe UI', 'Roboto', 'Inter', Arial, sans-serif;
         font-size: 12px;
-        color: #333;
+        color: #1a1a2e;
+        line-height: 1.5;
     }
     
+    /* Conteneur principal */
     .recap-wrapper {
-        max-width: 1000px;
-        margin: 0 auto;
+        max-width: 1100px;
+        margin: 30px auto;
         background: white;
-        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
     }
     
-    /* Header */
+    /* Contenu intérieur */
+    .recap-content {
+        padding: 35px 40px;
+    }
+    
+    /* ========== HEADER ========== */
     .header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        padding-bottom: 20px;
+        align-items: center;
+        padding-bottom: 25px;
         margin-bottom: 25px;
-        border-bottom: 2px solid #2c3e50;
+        border-bottom: 3px solid #e8ecef;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .logo-section {
+        flex-shrink: 0;
+    }
+    
+    .logo-placeholder {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    
+    .logo-placeholder i {
+        font-size: 32px;
     }
     
     .company-info {
         text-align: right;
-        font-size: 11px;
-        line-height: 1.5;
-        color: #555;
     }
     
     .company-name {
-        font-size: 14px;
-        font-weight: 600;
-        color: #2c3e50;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e3c72;
+        letter-spacing: 1px;
         margin-bottom: 5px;
     }
     
-    /* Titre */
+    .company-tagline {
+        font-size: 11px;
+        color: #e74c3c;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .company-details {
+        font-size: 10px;
+        color: #6c757d;
+        line-height: 1.4;
+    }
+    
+    .company-details p {
+        margin: 2px 0;
+    }
+    
+    /* ========== TITRE ========== */
     .doc-title {
         text-align: center;
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 30px 0 20px;
+        margin: 25px 0 30px;
+    }
+    
+    .doc-title h2 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e3c72;
         text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .doc-title h2:after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #e74c3c, #f39c12);
+        border-radius: 2px;
     }
     
     .doc-title small {
         font-size: 12px;
         color: #7f8c8d;
-        font-weight: normal;
         display: block;
-        margin-top: 8px;
+        margin-top: 18px;
     }
     
-    /* Infos */
-    .info-grid {
+    /* ========== CARTES D'INFORMATIONS ========== */
+    .info-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .info-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 18px 20px;
+        transition: all 0.2s ease;
+        border: 1px solid #eef2f6;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    
+    .info-card-header {
         display: flex;
-        justify-content: space-between;
-        background: #f8f9fa;
-        padding: 15px 20px;
-        margin: 20px 0;
-        border-left: 4px solid #2c3e50;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e0e7ed;
     }
     
-    .info-block {
-        flex: 1;
+    .info-card-header i {
+        font-size: 20px;
+        color: #e74c3c;
     }
     
-    .info-block h4 {
+    .info-card-header h4 {
         font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
-        color: #7f8c8d;
-        margin-bottom: 8px;
+        letter-spacing: 1px;
+        color: #64748b;
+        margin: 0;
     }
     
-    .info-block p {
-        margin: 5px 0;
+    .info-card-content p {
+        margin: 8px 0;
         font-size: 13px;
     }
     
-    .info-block strong {
-        color: #2c3e50;
+    .info-card-content strong {
+        color: #1e3c72;
+        font-size: 14px;
     }
     
-    /* Tableau */
+    .stat-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #1e3c72;
+        margin: 10px 0 5px;
+    }
+    
+    .stat-label {
+        font-size: 10px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* ========== TABLEAU ========== */
     .table-container {
-        margin: 25px 0;
-        overflow-x: auto;
+        margin: 30px 0;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #eef2f6;
+    }
+    
+    .section-header {
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+    }
+    
+    .section-header h3 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     
     .recap-table {
@@ -108,48 +228,63 @@
     }
     
     .recap-table th {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        padding: 10px 8px;
+        background: #f1f5f9;
+        padding: 14px 12px;
         text-align: center;
-        font-weight: 600;
-        color: #495057;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
     }
     
     .recap-table td {
-        border: 1px solid #dee2e6;
-        padding: 10px 8px;
+        padding: 12px;
+        border-bottom: 1px solid #eef2f6;
         vertical-align: middle;
+    }
+    
+    .recap-table tbody tr:hover {
+        background: #fafcff;
+    }
+    
+    .product-cell {
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    .badge-serie {
+        background: #eef2ff;
+        color: #4f46e5;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-family: monospace;
+        font-size: 10px;
+        font-weight: 500;
     }
     
     .text-center {
         text-align: center;
     }
     
-    /* Badges */
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
-        border-radius: 3px;
-    }
-    
-    .badge-success {
-        background: #28a745;
-        color: white;
-    }
-    
-    /* Liste BL */
+    /* ========== SECTION BL ========== */
     .bl-section {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 20px;
         margin: 25px 0;
-        padding: 15px;
-        background: #f8f9fa;
+        border: 1px solid #eef2f6;
     }
     
     .bl-section h4 {
         font-size: 12px;
-        color: #2c3e50;
-        margin-bottom: 12px;
+        font-weight: 700;
+        color: #1e3c72;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     
     .bl-list {
@@ -160,18 +295,53 @@
     
     .bl-card {
         background: white;
-        padding: 8px 15px;
-        border: 1px solid #dee2e6;
-        border-left: 3px solid #2c3e50;
+        padding: 10px 18px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        border-left: 3px solid #e74c3c;
         font-size: 11px;
+        transition: all 0.2s ease;
     }
     
-    /* Signatures */
+    .bl-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .bl-card strong {
+        color: #1e3c72;
+        font-size: 12px;
+    }
+    
+    /* ========== OBSERVATIONS ========== */
+    .observations-section {
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin: 25px 0;
+    }
+    
+    .observations-section h5 {
+        font-size: 11px;
+        font-weight: 700;
+        color: #d97706;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+    
+    .observations-section p {
+        font-size: 11px;
+        color: #78350f;
+        line-height: 1.5;
+    }
+    
+    /* ========== SIGNATURES ========== */
     .signatures {
         display: flex;
         justify-content: space-between;
         margin-top: 50px;
-        padding-top: 30px;
+        padding-top: 20px;
         gap: 40px;
     }
     
@@ -181,66 +351,138 @@
     }
     
     .signature-line {
-        border-top: 1px solid #adb5bd;
-        padding-top: 12px;
-        margin-top: 40px;
+        border-top: 2px dashed #cbd5e1;
+        padding-top: 15px;
+        margin-top: 35px;
         font-size: 10px;
-        color: #6c757d;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
     
+    /* ========== FOOTER ========== */
     .footer-note {
         margin-top: 30px;
+        padding-top: 20px;
         text-align: center;
-        font-size: 10px;
-        color: #adb5bd;
-        border-top: 1px solid #e9ecef;
-        padding-top: 15px;
+        font-size: 9px;
+        color: #94a3b8;
+        border-top: 1px solid #eef2f6;
     }
     
-    /* Boutons */
+    /* ========== BOUTONS ========== */
     .btn-container {
         margin-top: 30px;
         text-align: center;
         display: flex;
         justify-content: center;
-        gap: 12px;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 16px;
     }
     
     .btn {
-        padding: 8px 20px;
+        padding: 10px 24px;
         border: none;
-        border-radius: 4px;
+        border-radius: 40px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
     }
     
     .btn-secondary {
-        background: #6c757d;
+        background: #64748b;
         color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #475569;
+        transform: translateY(-2px);
     }
     
     .btn-primary {
-        background: #2c3e50;
+        background: #1e3c72;
         color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #2a5298;
+        transform: translateY(-2px);
     }
     
     .btn-success {
-        background: #28a745;
+        background: #10b981;
         color: white;
     }
     
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+    }
+    
+    /* ========== IMPRESSION ========== */
     @media print {
         body {
             background: white;
+            padding: 0;
+            margin: 0;
         }
         .recap-wrapper {
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .recap-content {
             padding: 20px;
         }
         .btn-container {
             display: none;
+        }
+        .info-card {
+            break-inside: avoid;
+        }
+        .recap-table th {
+            background: #e2e8f0 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+    
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+        .recap-content {
+            padding: 20px;
+        }
+        .info-cards {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        .header {
+            flex-direction: column;
+            text-align: center;
+        }
+        .company-info {
+            text-align: center;
+        }
+        .signatures {
+            flex-direction: column;
+            gap: 25px;
+        }
+        .btn-container {
+            flex-direction: column;
+            align-items: center;
+        }
+        .btn {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -249,118 +491,176 @@
 {% block content %}
 
 <div class="recap-wrapper">
-    
-    <!-- HEADER -->
-    <div class="header">
-        <div>
-            {% if compagnie and compagnie.logo %}
-                <img src="{{ compagnie.logo }}" height="60" alt="Logo">
-            {% else %}
-                <div style="width:60px; height:60px; background:#f8f9fa;"></div>
-            {% endif %}
-        </div>
-        <div class="company-info">
-            <div class="company-name">TIME INTERNATIONAL CO. LTD</div>
-            <div>I-MEDICAL - REPRESENTATION A ABIDJAN</div>
-            <div>MARCORY BOULEVARD VGE, COTE D'IVOIRE</div>
-            <div>📞 (225) 27 21 59 38 82 | ✉ info@imboe.com</div>
-        </div>
-    </div>
-    
-    <!-- TITRE -->
-    <div class="doc-title">
-        RÉCAPITULATIF DES LIVRAISONS
-        <small>Bon de commande n° {{ commande.numero }}</small>
-    </div>
-    
-    <!-- INFOS COMMANDE -->
-    <div class="info-grid">
-        <div class="info-block">
-            <h4>CLIENT</h4>
-            <p><strong>{{ commande.client.nom_client }}</strong></p>
-            {% if commande.client.telephone %}
-            <p>📞 {{ commande.client.telephone }}</p>
-            {% endif %}
-        </div>
-        <div class="info-block">
-            <h4>COMMANDE</h4>
-            <p>Date: {{ commande.date_creation.strftime('%d/%m/%Y') }}</p>
-            <p>Statut: <span class="badge badge-success">Livrée</span></p>
-        </div>
-        <div class="info-block">
-            <h4>LIVRAISONS</h4>
-            <p>{{ bons_livraison|length }} bon(s) de livraison</p>
-            <p>{{ total_quantite }} articles livrés</p>
-        </div>
-    </div>
-    
-    <!-- TABLEAU DES PRODUITS LIVRÉS -->
-    <div class="table-container">
-        <table class="recap-table">
-            <thead>
-                <tr>
-                    <th style="width: 35%">DÉSIGNATION</th>
-                    <th style="width: 15%">MODÈLE</th>
-                    <th style="width: 15%">MARQUE</th>
-                    <th style="width: 15%">QUANTITÉ</th>
-                    <th style="width: 20%">N° SÉRIE</th>
-                </thead>
-            <tbody>
-                {% for produit_id, data in recap_par_produit.items() %}
-                    {% for liv in data.livraisons %}
-                    <tr>
-                        <td>{{ data.produit.nom_produit }}</td>
-                        <td class="text-center">{{ data.produit.model or '-' }}</td>
-                        <td class="text-center">{{ data.produit.marque or '-' }}</td>
-                        <td class="text-center">{{ liv.quantite }}</td>
-                        <td class="text-center">{{ liv.numero_serie or '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- LISTE DES BONS DE LIVRAISON -->
-    <div class="bl-section">
-        <h4>BONS DE LIVRAISON ASSOCIÉS</h4>
-        <div class="bl-list">
-            {% for bl in bons_livraison %}
-            <div class="bl-card">
-                <strong>{{ bl.numero }}</strong><br>
-                <small>{{ bl.date_creation.strftime('%d/%m/%Y') }}</small>
+    <div class="recap-content">
+        
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo-section">
+                {% if compagnie and compagnie.logo %}
+                    <img src="{{ compagnie.logo }}" height="70" alt="Logo" style="border-radius: 12px;">
+                {% else %}
+                    <div class="logo-placeholder">
+                        <i class="fas fa-box"></i>
+                    </div>
+                {% endif %}
             </div>
-            {% endfor %}
+            <div class="company-info">
+                <div class="company-name">{% if compagnie %}{{ compagnie.nom }}{% else %}GESTOCK{% endif %}</div>
+                <div class="company-tagline">SERVICE APRÈS-VENTE & LOGISTIQUE</div>
+                <div class="company-details">
+                    {% if compagnie and compagnie.adresse %}
+                        <p>📍 {{ compagnie.adresse }}</p>
+                    {% endif %}
+                    {% if compagnie and compagnie.telephone %}
+                        <p>📞 {{ compagnie.telephone }}</p>
+                    {% endif %}
+                    {% if compagnie and compagnie.email %}
+                        <p>✉ {{ compagnie.email }}</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <!-- SIGNATURES -->
-    <div class="signatures">
-        <div class="signature-block">
-            <div class="signature-line">LE CLIENT (Cachet et signature)</div>
+        
+        <!-- TITRE -->
+        <div class="doc-title">
+            <h2>RÉCAPITULATIF DES LIVRAISONS</h2>
+            <small>Bon de commande n° {{ commande.numero }}</small>
         </div>
-        <div class="signature-block">
-            <div class="signature-line">SERVICE LIVRAISON</div>
+        
+        <!-- CARTES D'INFORMATIONS -->
+        <div class="info-cards">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-user"></i>
+                    <h4>INFORMATIONS CLIENT</h4>
+                </div>
+                <div class="info-card-content">
+                    <p><strong>{{ commande.client.nom_client }}</strong></p>
+                    {% if commande.client.telephone %}
+                        <p>📞 {{ commande.client.telephone }}</p>
+                    {% endif %}
+                    {% if commande.client.email %}
+                        <p>✉ {{ commande.client.email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>DÉTAILS COMMANDE</h4>
+                </div>
+                <div class="info-card-content">
+                    <p>📅 Date commande : <strong>{{ commande.date_creation.strftime('%d/%m/%Y') }}</strong></p>
+                    <p>📋 Statut : <span class="badge-success" style="background:#10b981; color:white; padding:2px 10px; border-radius:20px;">Livrée</span></p>
+                    <p>🏷️ Référence : {{ commande.numero }}</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-truck"></i>
+                    <h4>INFORMATIONS LIVRAISON</h4>
+                </div>
+                <div class="info-card-content">
+                    <div class="stat-value">{{ bons_livraison|length }}</div>
+                    <div class="stat-label">Bons de livraison</div>
+                    <p style="margin-top: 10px;">📦 {{ total_quantite }} articles livrés</p>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <!-- FOOTER -->
-    <div class="footer-note">
-        Document généré le {{ now.strftime('%d/%m/%Y à %H:%M') }}
+        
+        <!-- TABLEAU DES PRODUITS LIVRÉS -->
+        <div class="table-container">
+            <div class="section-header">
+                <h3><i class="fas fa-boxes"></i> Détail des produits livrés</h3>
+            </div>
+            <table class="recap-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%">DÉSIGNATION</th>
+                        <th style="width: 12%">MODÈLE</th>
+                        <th style="width: 12%">MARQUE</th>
+                        <th style="width: 10%">QTÉ</th>
+                        <th style="width: 31%">N° SÉRIE</th>
+                    </thead>
+                <tbody>
+                    {% for produit_id, data in recap_par_produit.items() %}
+                        {% for liv in data.livraisons %}
+                        <tr>
+                            <td class="product-cell">
+                                {{ data.produit.nom_produit }}
+                                {% if data.produit.code_produit %}
+                                    <br><small style="color:#94a3b8;">Code: {{ data.produit.code_produit }}</small>
+                                {% endif %}
+                            </div>
+                            <td class="text-center">{{ data.produit.model or '-' }}</div>
+                            <td class="text-center">{{ data.produit.marque or '-' }}</div>
+                            <td class="text-center">
+                                <span style="background:#eef2ff; padding:4px 12px; border-radius:20px; font-weight:600;">{{ liv.quantite }}</span>
+                            </div>
+                            <td class="text-center">
+                                {% if liv.numero_serie %}
+                                    <span class="badge-serie"><i class="fas fa-microchip"></i> {{ liv.numero_serie }}</span>
+                                {% else %}
+                                    <span style="color:#94a3b8;">—</span>
+                                {% endif %}
+                            </div>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- BONS DE LIVRAISON ASSOCIÉS -->
+        <div class="bl-section">
+            <h4><i class="fas fa-file-alt"></i> Bons de livraison associés</h4>
+            <div class="bl-list">
+                {% for bl in bons_livraison %}
+                <div class="bl-card">
+                    <strong>{{ bl.numero }}</strong>
+                    <br>
+                    <small>{{ bl.date_creation.strftime('%d/%m/%Y') }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- OBSERVATIONS (si présentes) -->
+        {% if commande.observations and commande.observations|trim %}
+        <div class="observations-section">
+            <h5><i class="fas fa-pen-alt"></i> Observations</h5>
+            <p>{{ commande.observations }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- SIGNATURES -->
+        <div class="signatures">
+            <div class="signature-block">
+                <div class="signature-line">LE CLIENT (Cachet et signature)</div>
+            </div>
+            <div class="signature-block">
+                <div class="signature-line">SERVICE COMMERCIAL</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- BOUTONS -->
+<!-- BOUTONS D'ACTION -->
 <div class="btn-container">
     <a href="{{ url_for('details_bon_commande', bon_id=commande.id) }}" class="btn btn-secondary">
-        ⬅ Retour
+        <i class="fas fa-arrow-left"></i> Retour
     </a>
     <a href="{{ url_for('recapitulatif_livraisons_pdf', commande_id=commande.id) }}" target="_blank" class="btn btn-primary">
-        📄 Exporter PDF
+        <i class="fas fa-file-pdf"></i> Exporter PDF
     </a>
     <button onclick="window.print()" class="btn btn-success">
-        🖨 Imprimer
+        <i class="fas fa-print"></i> Imprimer
     </button>
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 {% endblock %}

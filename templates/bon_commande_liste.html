@@ -95,7 +95,7 @@
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 15px;
         margin-bottom: 25px;
     }
@@ -360,11 +360,6 @@
     
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value">{{ "{:,.0f}".format(total_commandes).replace(',', ' ') }} F</div>
-            <div class="stat-label">Total commandes</div>
-        </div>
-        <div class="stat-card">
             <div class="stat-icon">⏳</div>
             <div class="stat-value">{{ en_attente }}</div>
             <div class="stat-label">En attente</div>
@@ -567,13 +562,6 @@
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot class="table-secondary">
-                        <tr>
-                            <td colspan="9" class="text-end fw-bold">TOTAL GÉNÉRAL :</div>
-                            <td class="montant fw-bold">{{ "{:,.0f}".format(total_commandes).replace(',', ' ') }} F</div>
-                            <td colspan="3"></div>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>

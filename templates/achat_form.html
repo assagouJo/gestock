@@ -67,7 +67,7 @@
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 20px;
         margin-bottom: 25px;
     }
@@ -398,21 +398,6 @@
             <div class="stat-value">{{ total_achats }}</div>
             <div class="stat-label">Total Achats</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value">{{ total_ht|money }}</div>
-            <div class="stat-label">Total HT</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-value">{{ total_taxe|money }}</div>
-            <div class="stat-label">Total Taxes</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-value">{{ total_ttc|money }}</div>
-            <div class="stat-label">Total TTC</div>
-        </div>
     </div>
 
     <!-- Tableau -->
@@ -490,15 +475,6 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot class="table-secondary fw-bold">
-                    <tr>
-                        <td colspan="5" class="text-end">TOTAUX :</td>
-                        <td>{{ total_ht|money }}</td>
-                        <td>{{ total_taxe|money }}</td>
-                        <td>{{ total_ttc|money }}</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </table>
         </div>
     </div>

@@ -129,6 +129,128 @@
         margin-top: 3px;
     }
 
+    /* FILTRES SIMPLIFIÉS - 2 SEULEMENTS */
+    .filters-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .filter-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: var(--dark-color);
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-search {
+        position: relative;
+    }
+
+    .filter-search i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+        font-size: 0.8rem;
+    }
+
+    .filter-search input {
+        width: 100%;
+        padding: 10px 12px 10px 35px;
+        border: 2px solid var(--light-color);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-search input:focus {
+        outline: none;
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+    }
+
+    .filter-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--light-color);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+    }
+
+    .btn-filter {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-filter-primary:hover {
+        background: #3451c9;
+        transform: translateY(-2px);
+    }
+
+    .btn-filter-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-filter-secondary:hover {
+        background: #7f8c8d;
+        transform: translateY(-2px);
+    }
+
     /* Tableau */
     .table-container {
         background: white;
@@ -167,7 +289,6 @@
         table-layout: fixed;
     }
 
-    /* Largeurs fixes des colonnes */
     .table-custom th:nth-child(1) { width: 35px; }
     .table-custom th:nth-child(2) { width: 80px; }
     .table-custom th:nth-child(3) { width: 100px; }
@@ -207,6 +328,10 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .table-custom tbody tr.hidden-row {
+        display: none;
     }
 
     /* Badges */
@@ -252,7 +377,6 @@
     .quantite-medium { color: var(--warning-color); font-weight: bold; }
     .quantite-low { color: var(--danger-color); font-weight: bold; }
 
-    /* Barre de progression */
     .stock-bar {
         width: 80px;
         height: 4px;
@@ -295,7 +419,6 @@
         margin-bottom: 3px;
     }
 
-    /* Responsive */
     @media (max-width: 992px) {
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -313,13 +436,29 @@
         .export-buttons {
             justify-content: center;
         }
+        
+        .filters-row {
+            flex-direction: column;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+        
+        .filter-actions {
+            justify-content: stretch;
+        }
+        
+        .btn-filter {
+            flex: 1;
+            text-align: center;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="stock-container">
-    <!-- En-tête -->
     <div class="stock-header">
         <h4>
             <i class="bi bi-box-seam"></i> État du Stock
@@ -340,7 +479,6 @@
     </div>
 
     {% if stocks %}
-    <!-- Statistiques -->
     {% set total_lots = stocks|length %}
     {% set quantite_totale = stocks|sum(attribute='quantite') %}
     {% set lots_rupture = stocks|selectattr('quantite', 'equalto', 0)|list|length %}
@@ -351,11 +489,6 @@
             <div class="stat-icon">🏷️</div>
             <div class="stat-value">{{ total_lots }}</div>
             <div class="stat-label">Total lots</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📦</div>
-            <div class="stat-value">{{ quantite_totale }}</div>
-            <div class="stat-label">Unités totales</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">⚠️</div>
@@ -369,13 +502,54 @@
         </div>
     </div>
 
-    <!-- Formulaire de suppression -->
+    <!-- FILTRES SIMPLIFIÉS : 2 SEULEMENTS -->
+    <div class="filters-card">
+        <div class="filter-title">
+            <i class="bi bi-funnel"></i> Filtrer
+        </div>
+        
+        <div class="filters-row">
+            <!-- Filtre 1 : Recherche globale (lot, magasin, produit, modèle) -->
+            <div class="filter-group">
+                <label><i class="bi bi-search"></i> Rechercher</label>
+                <div class="filter-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="Lot, magasin, produit, modèle...">
+                </div>
+            </div>
+            
+            <!-- Filtre 2 : Statut stock -->
+            <div class="filter-group">
+                <label><i class="bi bi-tag"></i> Statut stock</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">Tous les statuts</option>
+                    <option value="disponible">✅ Disponible</option>
+                    <option value="faible">⚠️ Stock faible</option>
+                    <option value="rupture">❌ En rupture</option>
+                </select>
+            </div>
+            
+            <!-- Boutons d'action -->
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <div class="filter-actions">
+                    <button class="btn-filter btn-filter-primary" id="applyFilters">
+                        <i class="bi bi-check-lg"></i> Filtrer
+                    </button>
+                    <button class="btn-filter btn-filter-secondary" id="resetFilters">
+                        <i class="bi bi-arrow-repeat"></i> Réinitialiser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form action="{{ url_for('delete_lot') }}" method="post" id="deleteForm">
         <div class="table-container">
             <div class="table-header">
                 <div class="table-title">
                     <i class="bi bi-list-ul"></i> Liste des stocks
-                    <span class="badge bg-secondary ms-2">{{ total_lots }} lot(s)</span>
+                    <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_lots }}</span>
                 </div>
                 <button type="button" onclick="selectAll()" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-check-all"></i> Tout
@@ -395,73 +569,35 @@
                             <th>Statut</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                         {% for s in stocks %}
                         <tr class="stock-row"
                             data-id="{{ s.id }}"
-                            data-magasin="{{ s.magasin.id }}"
-                            data-produit="{{ s.produit.id }}"
-                            data-quantite="{{ s.quantite }}"
-                            data-model="{{ s.produit.model or '' }}"
-                            data-conditionnement="{{ s.type_conditionnement.value }}"
-                            data-numero-lot="{{ s.numero_lot }}"
+                            data-numero-lot="{{ (s.numero_lot or 'N/A')|lower }}"
+                            data-magasin="{{ s.magasin.nom|lower }}"
+                            data-produit="{{ s.produit.nom_produit|lower }}"
+                            data-modele="{{ (s.produit.model or '')|lower }}"
+                            data-statut="
+                                {% if s.quantite == 0 %}rupture
+                                {% elif s.quantite < 5 %}faible
+                                {% else %}disponible{% endif %}"
                             style="cursor:pointer"
                             ondblclick="editStock(this)">
                             
                             <td class="text-center">
                                 <input type="checkbox" name="stock_ids[]" value="{{ s.id }}" class="checkbox-custom stock-checkbox">
                             </td>
-                            
-                            <!-- N° LOT - CORRECTION ICI !!! -->
                             <td class="text-center">
                                 {% if s.numero_lot %}
-                                    <span class="badge-lot" title="Lot n°{{ s.numero_lot }}">
-                                        {{ s.numero_lot|truncate(10, true) }}
-                                    </span>
+                                    <span class="badge-lot" title="Lot n°{{ s.numero_lot }}">{{ s.numero_lot|truncate(10, true) }}</span>
                                 {% else %}
-                                    <span class="badge-lot" title="Lot non défini">
-                                        N/A
-                                    </span>
+                                    <span class="badge-lot" title="Lot non défini">N/A</span>
                                 {% endif %}
                             </td>
-                            
-                            <!-- MAGASIN AVEC TOOLTIP -->
-                            <td>
-                                <span class="badge-magasin" 
-                                      title="{{ s.magasin.nom }}"
-                                      style="cursor: help;">
-                                    {{ s.magasin.nom|truncate(15, true) }}
-                                </span>
-                            </td>
-                            
-                            <!-- PRODUIT AVEC TOOLTIP -->
-                            <td>
-                                <span class="badge-produit" 
-                                      title="{{ s.produit.nom_produit }}"
-                                      style="cursor: help;">
-                                    {{ s.produit.nom_produit|truncate(20, true) }}
-                                </span>
-                            </td>
-                            
-                            <!-- MODÈLE - CORRECTION POUR None -->
-                            <td>
-                                {% if s.produit.model and s.produit.model != 'None' %}
-                                    <span title="Modèle: {{ s.produit.model }}" style="cursor: help;">
-                                        {{ s.produit.model|truncate(12, true) }}
-                                    </span>
-                                {% else %}
-                                    <span class="text-muted" title="Aucun modèle renseigné">—</span>
-                                {% endif %}
-                            </td>
-                            
-                            <!-- CONDITIONNEMENT -->
-                            <td class="text-center">
-                                <span class="badge bg-secondary" title="Conditionnement: {{ s.type_conditionnement.value }}">
-                                    {{ s.type_conditionnement.value|truncate(10, true) }}
-                                </span>
-                            </td>
-                            
-                            <!-- QUANTITÉ AVEC BARRE -->
+                            <td><span class="badge-magasin" title="{{ s.magasin.nom }}">{{ s.magasin.nom|truncate(15, true) }}</span></td>
+                            <td><span class="badge-produit" title="{{ s.produit.nom_produit }}">{{ s.produit.nom_produit|truncate(20, true) }}</span></td>
+                            <td>{% if s.produit.model and s.produit.model != 'None' %}<span title="Modèle: {{ s.produit.model }}">{{ s.produit.model|truncate(12, true) }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            <td class="text-center"><span class="badge bg-secondary" title="Conditionnement: {{ s.type_conditionnement.value }}">{{ s.type_conditionnement.value|truncate(10, true) }}</span></td>
                             <td class="text-center">
                                 <div class="d-flex flex-column align-items-center">
                                     <span class="fw-bold 
@@ -479,29 +615,19 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            </div>
-                            
-                            <!-- STATUT -->
+                            </td>
                             <td class="text-center">
                                 {% if s.quantite == 0 %}
-                                    <span class="badge-rupture" title="Stock épuisé, commandez rapidement">Rupture</span>
+                                    <span class="badge-rupture">Rupture</span>
                                 {% elif s.quantite < s.seuil_alerte %}
-                                    <span class="badge-faible" title="Stock faible, pensez à réapprovisionner">Faible</span>
+                                    <span class="badge-faible">Faible</span>
                                 {% else %}
-                                    <span class="badge-disponible" title="Stock disponible">Disponible</span>
+                                    <span class="badge-disponible">Disponible</span>
                                 {% endif %}
-                              </div>
-                          </div>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot class="table-secondary">
-                        <tr>
-                            <td colspan="6" class="text-end fw-bold">TOTAL UNITÉS :</div>
-                            <td class="text-center fw-bold">{{ quantite_totale }}</div>
-                            <td></div>
-                          </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
@@ -529,9 +655,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-plus-circle"></i> Nouvelle Entrée de Stock
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Nouvelle Entrée de Stock</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -539,70 +663,37 @@
                     <div class="table-responsive">
                         <table class="table table-bordered table-sm">
                             <thead class="table-dark text-center">
-                                <tr>
-                                    <th>N° Lot</th>
-                                    <th>Magasin</th>
-                                    <th>Produit</th>
-                                    <th>Conditionnement</th>
-                                    <th>Quantité</th>
-                                    <th width="30"></th>
-                                </tr>
+                                <tr><th>N° Lot</th><th>Magasin</th><th>Produit</th><th>Conditionnement</th><th>Quantité</th><th width="30"></th></tr>
                             </thead>
                             <tbody id="lignesStock">
                                 <tr class="ligne-stock">
-                                    <td>
-                                        <input type="text" name="numero_lot[]" class="form-control form-control-sm numero-lot" placeholder="Auto" readonly>
-                                    </div>
+                                    <td><input type="text" name="numero_lot[]" class="form-control form-control-sm numero-lot" placeholder="Auto" readonly></td>
                                     <td>
                                         <select name="magasin_id[]" class="form-select form-select-sm" required>
                                             <option value="">-- Magasin --</option>
-                                            {% for magasin in magasins %}
-                                                <option value="{{ magasin.id }}">{{ magasin.nom }}</option>
-                                            {% endfor %}
+                                            {% for magasin in magasins %}<option value="{{ magasin.id }}">{{ magasin.nom }}</option>{% endfor %}
                                         </select>
                                         <input type="text" name="nouveau_magasin[]" class="form-control form-control-sm mt-1" placeholder="Nouveau magasin">
-                                    </div>
+                                    </td>
                                     <td>
                                         <select name="produit_id[]" class="form-select form-select-sm produit-select" required>
                                             <option value="">-- Produit --</option>
-                                            {% for p in produits_all %}
-                                                <option value="{{ p.id }}" data-model="{{ p.model or '' }}">{{ p.nom_produit }} - {{ p.model or 'Modèle non défini' }}</option>
-                                            {% endfor %}
+                                            {% for p in produits_all %}<option value="{{ p.id }}" data-model="{{ p.model or '' }}">{{ p.nom_produit }} - {{ p.model or 'Modèle non défini' }}</option>{% endfor %}
                                         </select>
                                         <input type="hidden" name="model_nom[]" class="model-nom-input" value="">
-                                    </div>
-                                    <td>
-                                        <select name="type_conditionnement[]" class="form-select form-select-sm" required>
-                                            <option value="">-- Cond. --</option>
-                                            <option value="carton">Carton</option>
-                                            <option value="paquet">Paquet</option>
-                                            <option value="unite">Unité</option>
-                                        </select>
-                                    </div>
-                                    <td>
-                                        <input type="number" name="quantite[]" class="form-control form-control-sm text-center" min="1" required>
-                                    </div>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-outline-danger btn-sm supprimer">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
+                                    </td>
+                                    <td><select name="type_conditionnement[]" class="form-select form-select-sm" required><option value="">-- Cond. --</option><option value="carton">Carton</option><option value="paquet">Paquet</option><option value="unite">Unité</option></select></td>
+                                    <td><input type="number" name="quantite[]" class="form-control form-control-sm text-center" min="1" required></td>
+                                    <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm supprimer"><i class="bi bi-trash"></i></button></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-
                     <div class="d-flex justify-content-between mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="ajouterLigne">
-                            <i class="bi bi-plus-circle"></i> Ajouter ligne
-                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="ajouterLigne"><i class="bi bi-plus-circle"></i> Ajouter ligne</button>
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-sm btn-primary">
-                                <i class="bi bi-save"></i> Enregistrer
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle"></i> Annuler
-                            </button>
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-save"></i> Enregistrer</button>
+                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Annuler</button>
                         </div>
                     </div>
                 </form>
@@ -612,35 +703,30 @@
 </div>
 
 <script>
-function genererNumeroLot() {
-    return Math.floor(10000 + Math.random() * 90000).toString();
-}
+function genererNumeroLot() { return Math.floor(10000 + Math.random() * 90000).toString(); }
 
 function updateModelHidden(selectProduit) {
     const row = selectProduit.closest("tr");
     const hiddenModelInput = row.querySelector(".model-nom-input");
     const selectedOption = selectProduit.options[selectProduit.selectedIndex];
-    const modelValue = selectedOption.value ? (selectedOption.getAttribute("data-model") || "") : "";
-    hiddenModelInput.value = modelValue;
+    hiddenModelInput.value = selectedOption.value ? (selectedOption.getAttribute("data-model") || "") : "";
 }
 
 function initializeNewRow(row) {
     const numeroLotInput = row.querySelector(".numero-lot");
     if (numeroLotInput) numeroLotInput.value = genererNumeroLot();
-    
     row.querySelectorAll("input, select").forEach(input => {
         if (!input.classList.contains("numero-lot") && input.type !== "hidden") {
             input.value = "";
         }
         if (input.tagName === "SELECT") input.selectedIndex = 0;
     });
-    
     const hiddenInput = row.querySelector(".model-nom-input");
     if (hiddenInput) hiddenInput.value = "";
 }
 
 function selectAll() {
-    const checkboxes = document.querySelectorAll('.stock-checkbox');
+    const checkboxes = document.querySelectorAll('.stock-checkbox:not(.hidden-row)');
     const selectAllCheckbox = document.getElementById('select-all');
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
     checkboxes.forEach(cb => cb.checked = !allChecked);
@@ -649,10 +735,7 @@ function selectAll() {
 
 function confirmDelete() {
     const checkboxes = document.querySelectorAll('.stock-checkbox:checked');
-    if (checkboxes.length === 0) {
-        alert('Veuillez sélectionner au moins un lot à supprimer');
-        return false;
-    }
+    if (checkboxes.length === 0) { alert('Veuillez sélectionner au moins un lot à supprimer'); return false; }
     return confirm(`⚠️ Supprimer ${checkboxes.length} lot(s) ? Cette action est irréversible.`);
 }
 
@@ -670,22 +753,75 @@ function editStock(row) {
     tbody.innerHTML = '';
     tbody.appendChild(templateRow);
     
-    const selectProduit = templateRow.querySelector('[name="produit_id[]"]');
-    const selectMagasin = templateRow.querySelector('[name="magasin_id[]"]');
-    const selectCond = templateRow.querySelector('[name="type_conditionnement[]"]');
-    const inputQuantite = templateRow.querySelector('[name="quantite[]"]');
-    const inputNumeroLot = templateRow.querySelector('.numero-lot');
+    templateRow.querySelector('[name="produit_id[]"]').value = row.dataset.produit;
+    templateRow.querySelector('[name="magasin_id[]"]').value = row.dataset.magasin;
+    templateRow.querySelector('[name="type_conditionnement[]"]').value = row.dataset.conditionnement;
+    templateRow.querySelector('[name="quantite[]"]').value = row.dataset.quantite;
+    templateRow.querySelector('.numero-lot').value = row.dataset.numeroLot || genererNumeroLot();
     
-    selectProduit.value = row.dataset.produit;
-    selectMagasin.value = row.dataset.magasin;
-    selectCond.value = row.dataset.conditionnement;
-    inputQuantite.value = row.dataset.quantite;
-    inputNumeroLot.value = row.dataset.numeroLot || genererNumeroLot();
-    
-    updateModelHidden(selectProduit);
+    updateModelHidden(templateRow.querySelector('[name="produit_id[]"]'));
     btnAjouter.style.display = 'none';
     modal.show();
 }
+
+// Filtrage avec seulement 2 critères
+function filterStock() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('#tableBody .stock-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        // Filtre 1 : Recherche globale (lot, magasin, produit, modèle)
+        if (searchTerm !== '') {
+            const numeroLot = row.dataset.numeroLot || '';
+            const magasin = row.dataset.magasin || '';
+            const produit = row.dataset.produit || '';
+            const modele = row.dataset.modele || '';
+            
+            if (!numeroLot.includes(searchTerm) && !magasin.includes(searchTerm) && !produit.includes(searchTerm) && !modele.includes(searchTerm)) {
+                show = false;
+            }
+        }
+        
+        // Filtre 2 : Statut
+        if (show && statusFilter !== 'all') {
+            const statut = row.dataset.statut || '';
+            if (statut !== statusFilter) show = false;
+        }
+        
+        if (show) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    document.getElementById('badgeCount').innerText = visibleCount;
+}
+
+// Appliquer les filtres
+document.getElementById('applyFilters')?.addEventListener('click', function() { filterStock(); });
+
+// Réinitialiser les filtres
+document.getElementById('resetFilters')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    filterStock();
+});
+
+// Filtrage auto au changement de statut
+document.getElementById('statusFilter')?.addEventListener('change', function() { filterStock(); });
+
+// Filtrage auto au changement de recherche (debounce)
+let searchTimeout;
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => { filterStock(); }, 300);
+});
 
 document.addEventListener("DOMContentLoaded", function() {
     const tbody = document.getElementById("lignesStock");
@@ -694,12 +830,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("stockForm");
     const title = modalEl.querySelector(".modal-title");
     
-    // Sélectionner tous
     document.getElementById('select-all')?.addEventListener('change', function(e) {
-        document.querySelectorAll('.stock-checkbox').forEach(cb => cb.checked = e.target.checked);
+        document.querySelectorAll('.stock-checkbox:not(.hidden-row)').forEach(cb => cb.checked = e.target.checked);
     });
     
-    // Ajouter ligne
     if (btnAjouter) {
         btnAjouter.addEventListener("click", () => {
             const ligne = tbody.querySelector(".ligne-stock").cloneNode(true);
@@ -708,25 +842,17 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // Supprimer ligne
     tbody.addEventListener("click", e => {
         if (e.target.closest(".supprimer")) {
-            if (tbody.children.length > 1) {
-                e.target.closest("tr").remove();
-            } else {
-                alert("Gardez au moins une ligne");
-            }
+            if (tbody.children.length > 1) e.target.closest("tr").remove();
+            else alert("Gardez au moins une ligne");
         }
     });
     
-    // Mise à jour modèle
     tbody.addEventListener("change", e => {
-        if (e.target.classList.contains("produit-select")) {
-            updateModelHidden(e.target);
-        }
+        if (e.target.classList.contains("produit-select")) updateModelHidden(e.target);
     });
     
-    // Reset modal
     modalEl.addEventListener("hidden.bs.modal", function() {
         title.innerHTML = '<i class="bi bi-plus-circle"></i> Nouvelle Entrée de Stock';
         form.action = "{{ url_for('ajouter_stock') }}";
@@ -744,12 +870,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // Initialiser première ligne
     const firstRow = tbody.querySelector(".ligne-stock");
     if (firstRow) {
         const numeroLotInput = firstRow.querySelector(".numero-lot");
         if (numeroLotInput) numeroLotInput.value = genererNumeroLot();
     }
+    
+    filterStock();
 });
 </script>
 {% endblock %}

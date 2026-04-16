@@ -95,7 +95,7 @@
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 15px;
         margin-bottom: 25px;
     }
@@ -368,16 +368,6 @@
             <div class="stat-value">{{ total_kits }}</div>
             <div class="stat-label">Total Kits</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value">{{ "{:,.0f}".format(total_prix).replace(',', ' ') }} F</div>
-            <div class="stat-label">Valeur totale</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-value">{{ "{:,.0f}".format(moyenne_prix).replace(',', ' ') }} F</div>
-            <div class="stat-label">Moyenne par kit</div>
-        </div>
     </div>
 
     <!-- Barre de recherche -->
@@ -472,13 +462,6 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot class="table-secondary">
-                    <tr>
-                        <td colspan="4" class="text-end fw-bold">TOTAL :</div>
-                        <td class="text-center fw-bold">{{ "{:,.0f}".format(total_prix).replace(',', ' ') }} F</div>
-                        <td></div>
-                    </tr>
-                </tfoot>
             </table>
         </div>
     </div>

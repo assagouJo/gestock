@@ -13,23 +13,15 @@
         --light-color: #ecf0f1;
     }
 
-    /* Animation */
     @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .ventes-container {
         animation: fadeInUp 0.5s ease-out;
     }
 
-    /* En-tête */
     .ventes-header {
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
         color: white;
@@ -64,10 +56,9 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
-    /* Cartes statistiques */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 15px;
         margin-bottom: 25px;
     }
@@ -101,6 +92,128 @@
         font-size: 0.7rem;
         color: #7f8c8d;
         margin-top: 3px;
+    }
+
+    /* Filtres simplifiés */
+    .filters-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .filter-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: var(--dark-color);
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-search {
+        position: relative;
+    }
+
+    .filter-search i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+        font-size: 0.8rem;
+    }
+
+    .filter-search input {
+        width: 100%;
+        padding: 10px 12px 10px 35px;
+        border: 2px solid var(--light-color);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-search input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .filter-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--light-color);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+    }
+
+    .btn-filter {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-filter-primary:hover {
+        background: #3451c9;
+        transform: translateY(-2px);
+    }
+
+    .btn-filter-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-filter-secondary:hover {
+        background: #7f8c8d;
+        transform: translateY(-2px);
     }
 
     /* Tableau */
@@ -168,7 +281,6 @@
         table-layout: fixed;
     }
 
-    /* Largeurs fixes des colonnes */
     .table-custom th:nth-child(1) { width: 35px; }
     .table-custom th:nth-child(2) { width: 85px; }
     .table-custom th:nth-child(3) { width: 100px; }
@@ -214,7 +326,10 @@
         text-overflow: ellipsis;
     }
 
-    /* Badges compacts avec tooltip */
+    .table-custom tbody tr.hidden-row {
+        display: none;
+    }
+
     .badge-client, .badge-vendeur, .badge-compagnie {
         display: inline-block;
         padding: 3px 8px;
@@ -231,13 +346,6 @@
     .badge-client { background: var(--primary-color); color: white; }
     .badge-vendeur { background: var(--success-color); color: white; }
     .badge-compagnie { background: var(--info-color); color: white; }
-
-    /* Tooltip personnalisé pour les badges */
-    .badge-client:hover,
-    .badge-vendeur:hover,
-    .badge-compagnie:hover {
-        position: relative;
-    }
 
     .badge-paye { background: var(--success-color); color: white; }
     .badge-partiel { background: var(--warning-color); color: #856404; }
@@ -289,11 +397,6 @@
         font-weight: 500;
     }
 
-    @media (max-width: 1200px) {
-        .table-custom th:nth-child(6) { width: 80px; }
-        .table-custom th:nth-child(7) { width: 70px; }
-    }
-
     @media (max-width: 992px) {
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -311,6 +414,23 @@
         .export-buttons {
             width: 100%;
             justify-content: center;
+        }
+        
+        .filters-row {
+            flex-direction: column;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+        
+        .filter-actions {
+            justify-content: stretch;
+        }
+        
+        .btn-filter {
+            flex: 1;
+            text-align: center;
         }
     }
 </style>
@@ -330,8 +450,6 @@
     {% if ventes %}
     {% set total_ventes = ventes|length %}
     {% set total_montant = ventes|sum(attribute='total') %}
-    {% set total_paye = ventes|sum(attribute='montant_paye') %}
-    {% set total_dettes = ventes|sum(attribute='reste_a_payer') %}
     
     <div class="stats-grid">
         <div class="stat-card">
@@ -339,20 +457,47 @@
             <div class="stat-value">{{ total_ventes }}</div>
             <div class="stat-label">Total Ventes</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value">{{ "{:,.0f}".format(total_montant).replace(',', ' ') }} F</div>
-            <div class="stat-label">Total Ventes</div>
+    </div>
+
+    <!-- FILTRES SIMPLIFIÉS : 2 SEULEMENTS -->
+    <div class="filters-card">
+        <div class="filter-title">
+            <i class="bi bi-funnel"></i> Filtrer
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-value">{{ "{:,.0f}".format(total_paye).replace(',', ' ') }} F</div>
-            <div class="stat-label">Encaissé</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">⚠️</div>
-            <div class="stat-value">{{ "{:,.0f}".format(total_dettes).replace(',', ' ') }} F</div>
-            <div class="stat-label">Reste</div>
+        
+        <div class="filters-row">
+            <!-- Filtre 1 : Recherche globale (client, vendeur, produit) -->
+            <div class="filter-group">
+                <label><i class="bi bi-search"></i> Rechercher</label>
+                <div class="filter-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="Client, vendeur ou produit...">
+                </div>
+            </div>
+            
+            <!-- Filtre 2 : Statut paiement -->
+            <div class="filter-group">
+                <label><i class="bi bi-tag"></i> Statut paiement</label>
+                <select id="statutFilter" class="filter-select">
+                    <option value="all">Tous les statuts</option>
+                    <option value="paye">Payée</option>
+                    <option value="partiel">Paiement partiel</option>
+                    <option value="impaye">Impayée</option>
+                </select>
+            </div>
+            
+            <!-- Boutons d'action -->
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <div class="filter-actions">
+                    <button class="btn-filter btn-filter-primary" id="applyFilters">
+                        <i class="bi bi-check-lg"></i> Filtrer
+                    </button>
+                    <button class="btn-filter btn-filter-secondary" id="resetFilters">
+                        <i class="bi bi-arrow-repeat"></i> Réinitialiser
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -361,7 +506,7 @@
             <div class="table-header">
                 <div class="table-title">
                     <i class="bi bi-list-ul"></i> Historique des ventes
-                    <span class="badge bg-secondary ms-2">{{ total_ventes }}</span>
+                    <span class="badge bg-secondary ms-2" id="badgeCount">{{ total_ventes }}</span>
                 </div>
                 <div class="export-buttons">
                     <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
@@ -389,109 +534,49 @@
                             <th colspan="2">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                         {% for vente in ventes %}
-                        <tr ondblclick="ouvrirEdition(this)" data-id="{{ vente.id }}">
+                        <tr class="vente-row" 
+                            ondblclick="ouvrirEdition(this)" 
+                            data-id="{{ vente.id }}"
+                            data-client="{{ vente.client.nom_client|lower }}"
+                            data-vendeur="{{ vente.vendeur.nom|lower }}"
+                            data-produits="{% for ligne in vente.lignes %}{{ ligne.stock.produit.nom_produit|lower }} {% endfor %}"
+                            data-statut="{{ vente.statut_paiement|lower }}">
                             <td class="text-center">
                                 <input type="checkbox" name="vente_ids" value="{{ vente.id }}" class="checkbox-custom vente-checkbox">
                             </td>
-                            <td class="text-center">{{ vente.date_vente.strftime('%d/%m/%y') }}</td>
-                            
-                            <!-- CLIENT AVEC TOOLTIP - Affiche le nom complet au survol -->
-                            <td>
-                                <span class="badge-client" 
-                                      title="{{ vente.client.nom_client }}"
-                                      style="cursor: help;">
-                                    {{ vente.client.nom_client|truncate(18, true) }}
-                                </span>
-                            </td>
-                            
-                            <!-- VENDEUR AVEC TOOLTIP -->
-                            <td>
-                                <span class="badge-vendeur" 
-                                      title="{{ vente.vendeur.nom }}"
-                                      style="cursor: help;">
-                                    {{ vente.vendeur.nom|truncate(15, true) }}
-                                </span>
-                            </td>
-                            
-                            <!-- COMPAGNIE AVEC TOOLTIP -->
-                            <td>
-                                <span class="badge-compagnie" 
-                                      title="{{ vente.compagnie.nom }}"
-                                      style="cursor: help;">
-                                    {{ vente.compagnie.nom|truncate(15, true) }}
-                                </span>
-                            </td>
-                            
+                            <td class="text-center">{{ vente.date_vente.strftime('%d/%m/%y') }}</div>
+                            <td><span class="badge-client" title="{{ vente.client.nom_client }}">{{ vente.client.nom_client|truncate(18, true) }}</span></div>
+                            <td><span class="badge-vendeur" title="{{ vente.vendeur.nom }}">{{ vente.vendeur.nom|truncate(15, true) }}</span></div>
+                            <td><span class="badge-compagnie" title="{{ vente.compagnie.nom }}">{{ vente.compagnie.nom|truncate(15, true) }}</span></div>
                             <td class="cell-divided">
                                 {% for ligne in vente.lignes[:3] %}
                                     {% if ligne.stock and ligne.stock.produit %}
-                                        <div title="{{ ligne.stock.produit.nom_produit }}">
-                                            {{ ligne.stock.produit.nom_produit|truncate(20, true) }}
-                                        </div>
+                                        <div>{{ ligne.stock.produit.nom_produit|truncate(20, true) }}</div>
                                     {% endif %}
                                 {% endfor %}
                                 {% if vente.lignes|length > 3 %}
-                                    <div class="text-muted" title="{{ vente.lignes|length - 3 }} autres produit(s)">
-                                        +{{ vente.lignes|length - 3 }} autre(s)
-                                    </div>
+                                    <div class="text-muted">+{{ vente.lignes|length - 3 }} autre(s)</div>
                                 {% endif %}
-                            </td>
-                            
-                            <td class="cell-divided">
-                                {% for ligne in vente.lignes[:3] %}
-                                    <div class="montant">{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }}</div>
-                                {% endfor %}
-                            </td>
-                            
-                            <td class="cell-divided">
-                                {% for ligne in vente.lignes[:3] %}
-                                    <div>{{ ligne.quantite }}</div>
-                                {% endfor %}
-                            </td>
-                            
-                            <td class="cell-divided">
-                                {% for ligne in vente.lignes[:3] %}
-                                    <div class="montant">{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire).replace(',', ' ') }}</div>
-                                {% endfor %}
-                            </td>
-                            
+                            </div>
+                            <td class="cell-divided">{% for ligne in vente.lignes[:3] %}<div class="montant">{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }}</div>{% endfor %}</div>
+                            <td class="cell-divided">{% for ligne in vente.lignes[:3] %}<div>{{ ligne.quantite }}</div>{% endfor %}</div>
+                            <td class="cell-divided">{% for ligne in vente.lignes[:3] %}<div class="montant">{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire).replace(',', ' ') }}</div>{% endfor %}</div>
                             <td class="text-center">
                                 {% if vente.statut_paiement == "paye" %}
-                                    <span class="badge-paye" title="Vente entièrement payée">Payée</span>
+                                    <span class="badge-paye">Payée</span>
                                 {% elif vente.statut_paiement == "partiel" %}
-                                    <span class="badge-partiel" title="Paiement partiel effectué">Partiel</span>
+                                    <span class="badge-partiel">Partiel</span>
                                 {% else %}
-                                    <span class="badge-impaye" title="Aucun paiement effectué">Impayée</span>
+                                    <span class="badge-impaye">Impayée</span>
                                 {% endif %}
-                            </td>
-                            
-                            <td class="text-center">
-                                <a href="{{ url_for('paiement_vente', vente_id=vente.id) }}"
-                                   class="btn btn-sm btn-primary" 
-                                   title="Enregistrer un paiement pour cette vente">
-                                    <i class="bi bi-cash-stack"></i>
-                                </a>
-                            </td>
-                            
-                            <td class="text-center">
-                                <a href="{{ url_for('voir_facture', vente_id=vente.id) }}"
-                                   class="btn btn-sm btn-outline-secondary" 
-                                   title="Voir la facture" 
-                                   target="_blank">
-                                    <i class="bi bi-file-text"></i>
-                                </a>
-                            </td>
+                            </div>
+                            <td class="text-center"><a href="{{ url_for('paiement_vente', vente_id=vente.id) }}" class="btn btn-sm btn-primary"><i class="bi bi-cash-stack"></i></a></div>
+                            <td class="text-center"><a href="{{ url_for('voir_facture', vente_id=vente.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-file-text"></i></a></div>
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot class="table-secondary">
-                        <tr>
-                            <td colspan="8" class="text-end fw-bold">TOTAL GÉNÉRAL :</td>
-                            <td colspan="3" class="montant fw-bold">{{ "{:,.0f}".format(total_montant).replace(',', ' ') }} F</td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
@@ -518,9 +603,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-plus-circle"></i> Nouvelle Vente
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Nouvelle Vente</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -534,27 +617,21 @@
                             <label class="form-label small fw-bold">Client</label>
                             <select name="client_id" class="form-select form-select-sm" required>
                                 <option value="">-- Client --</option>
-                                {% for c in clients %}
-                                    <option value="{{ c.id }}">{{ c.nom_client }}</option>
-                                {% endfor %}
+                                {% for c in clients %}<option value="{{ c.id }}">{{ c.nom_client }}</option>{% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small fw-bold">Vendeur</label>
                             <select name="vendeur_id" class="form-select form-select-sm" required>
                                 <option value="">-- Vendeur --</option>
-                                {% for v in vendeurs %}
-                                    <option value="{{ v.id }}">{{ v.nom }}</option>
-                                {% endfor %}
+                                {% for v in vendeurs %}<option value="{{ v.id }}">{{ v.nom }}</option>{% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small fw-bold">Compagnie</label>
                             <select name="compagnie_id" class="form-select form-select-sm" required>
                                 <option value="">-- Compagnie --</option>
-                                {% for c in compagnies %}
-                                    <option value="{{ c.id }}">{{ c.nom }}</option>
-                                {% endfor %}
+                                {% for c in compagnies %}<option value="{{ c.id }}">{{ c.nom }}</option>{% endfor %}
                             </select>
                         </div>
                     </div>
@@ -563,14 +640,7 @@
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
-                                <tr>
-                                    <th>Produit</th>
-                                    <th>Conditionnement</th>
-                                    <th>Lot</th>
-                                    <th width="80">Qté</th>
-                                    <th width="100">Prix</th>
-                                    <th width="30"></th>
-                                </tr>
+                                <tr><th>Produit</th><th>Conditionnement</th><th>Lot</th><th width="80">Qté</th><th width="100">Prix</th><th width="30"></th></tr>
                             </thead>
                             <tbody id="lignesVente">
                                 <tr class="ligne-vente">
@@ -615,7 +685,7 @@ function confirmSuppression() {
 }
 
 function selectAllVentes() {
-    const checkboxes = document.querySelectorAll('.vente-checkbox');
+    const checkboxes = document.querySelectorAll('.vente-checkbox:visible');
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
     checkboxes.forEach(cb => cb.checked = !allChecked);
     const selectAll = document.getElementById('selectAll');
@@ -623,12 +693,12 @@ function selectAllVentes() {
 }
 
 document.getElementById('selectAll')?.addEventListener('change', function() {
-    document.querySelectorAll('.vente-checkbox').forEach(cb => cb.checked = this.checked);
+    document.querySelectorAll('.vente-checkbox:visible').forEach(cb => cb.checked = this.checked);
 });
 
 function exportToExcel() {
     let csv = [["Date", "Client", "Vendeur", "Compagnie", "Total", "Statut"]];
-    document.querySelectorAll('.table-custom tbody tr').forEach(row => {
+    document.querySelectorAll('#tableBody .vente-row:visible').forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 10) {
             csv.push([cells[1]?.innerText, cells[2]?.innerText, cells[3]?.innerText, cells[4]?.innerText, cells[8]?.innerText, cells[9]?.innerText]);
@@ -642,7 +712,74 @@ function exportToExcel() {
     URL.revokeObjectURL(link.href);
 }
 
+// Filtrage avec seulement 2 critères
+function filterVentes() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statutFilter = document.getElementById('statutFilter').value;
+    
+    const rows = document.querySelectorAll('#tableBody .vente-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        // Filtre 1 : Recherche globale (client, vendeur, produit)
+        if (searchTerm !== '') {
+            const client = row.dataset.client || '';
+            const vendeur = row.dataset.vendeur || '';
+            const produits = row.dataset.produits || '';
+            
+            if (!client.includes(searchTerm) && !vendeur.includes(searchTerm) && !produits.includes(searchTerm)) {
+                show = false;
+            }
+        }
+        
+        // Filtre 2 : Statut
+        if (show && statutFilter !== 'all') {
+            const statut = row.dataset.statut || '';
+            if (statut !== statutFilter) show = false;
+        }
+        
+        if (show) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    document.getElementById('badgeCount').innerText = visibleCount;
+}
+
+// Appliquer les filtres
+document.getElementById('applyFilters')?.addEventListener('click', function() {
+    filterVentes();
+});
+
+// Réinitialiser les filtres
+document.getElementById('resetFilters')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statutFilter').value = 'all';
+    filterVentes();
+});
+
+// Filtrage auto au changement de statut
+document.getElementById('statutFilter')?.addEventListener('change', function() {
+    filterVentes();
+});
+
+// Filtrage auto au changement de recherche (debounce)
+let searchTimeout;
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        filterVentes();
+    }, 300);
+});
+
 document.addEventListener("DOMContentLoaded", () => {
+    filterVentes();
+    
     const tbody = document.getElementById("lignesVente");
     const btnAjouter = document.getElementById("ajouterLigneVente");
 
