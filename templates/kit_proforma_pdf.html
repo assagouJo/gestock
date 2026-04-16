@@ -451,19 +451,19 @@
                             {% endif %}
                             
                             {% if produit_principal.produit.description and produit_principal.produit.description != 'None' %}
-                                <div class="detail-item">
-                                    <span class="detail-label desc">Description :</span>
-                                    <div style="margin-top: 5px;">
-                                        {% set description = produit_principal.produit.description %}
-                                        {# Remplacer les points suivis d'un espace par des séparateurs de lignes #}
-                                        {% set lines = description.replace('. ', '||').split('||') %}
-                                        
-                                        {% for line in lines %}
-                                            {% if ',' in line %}
-                                                {# Si la ligne contient des virgules, créer une liste à puces #}
+                            <div class="detail-item">
+                                <span class="detail-label desc">Description :</span>
+                                <div style="margin-top: 5px;">
+                                    {% set description = produit_principal.produit.description %}
+                                    {# Remplacer les deux points (:) par des séparateurs de lignes #}
+                                    {% set sections = description.split(':') %}
+                                    
+                                    {% for section in sections %}
+                                        {% if section.strip() %}
+                                            {% if ',' in section %}
+                                                {# Si la section contient des virgules, créer une liste à puces #}
                                                 <ul style="margin: 5px 0 5px 20px; padding-left: 0; list-style-type: disc;">
-                                                    {% set items = line.split(',') %}
-                                                    {% for item in items %}
+                                                    {% for item in section.split(',') %}
                                                         {% if item.strip() %}
                                                         <li style="font-size: 12px; margin-bottom: 3px;">{{ item.strip() }}</li>
                                                         {% endif %}
@@ -471,14 +471,15 @@
                                                 </ul>
                                             {% else %}
                                                 {# Sinon, afficher la ligne normalement #}
-                                                {% if line.strip() %}
-                                                    <div style="margin: 5px 0;">{{ line.strip() }}</div>
+                                                {% if section.strip() %}
+                                                    <div style="margin: 5px 0; font-weight: 500;">{{ section.strip() }}</div>
                                                 {% endif %}
                                             {% endif %}
-                                        {% endfor %}
-                                    </div>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
-                                {% endif %}
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </td>
@@ -537,19 +538,28 @@
                                     <span class="detail-label">Description :</span>
                                     <div class="detail-value" style="margin-top: 5px;">
                                         {% set description = ligne.produit.description %}
-                                        {% set lines = description.replace('. ', '||').split('||') %}
-                                        {% for line in lines %}
-                                            {% if line.strip() %}
-                                                {% if ',' in line %}
-                                                    <ul style="margin: 5px 0 5px 20px; padding-left: 0; list-style-type: disc;">
-                                                        {% for item in line.split(',') %}
-                                                            {% if item.strip() %}
-                                                            <li style="font-size: 12px; margin-bottom: 3px;">{{ item.strip() }}</li>
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                    </ul>
+                                        
+                                        {# Découper par les deux points #}
+                                        {% set parties = description.split(':') %}
+                                        
+                                        {% for partie in parties %}
+                                            {% if partie.strip() %}
+                                                {# Si c'est la première partie (titre) #}
+                                                {% if loop.index == 1 %}
+                                                    <strong style="display: block; margin: 5px 0;">{{ partie.strip() }}</strong>
                                                 {% else %}
-                                                    <div style="margin: 3px 0;">{{ line.strip() }}</div>
+                                                    {# Pour le contenu après les deux points #}
+                                                    {% if ',' in partie %}
+                                                        <ul style="margin: 5px 0 10px 20px; padding-left: 0; list-style-type: disc;">
+                                                            {% for item in partie.split(',') %}
+                                                                {% if item.strip() %}
+                                                                <li style="margin: 3px 0;">{{ item.strip() }}</li>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </ul>
+                                                    {% else %}
+                                                        <div style="margin: 5px 0;">{{ partie.strip() }}</div>
+                                                    {% endif %}
                                                 {% endif %}
                                             {% endif %}
                                         {% endfor %}

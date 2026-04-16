@@ -513,21 +513,29 @@
                         {% if ligne.produit.description and ligne.produit.description != 'None' %}
                         <div class="detail-item">
                             <span class="detail-label desc">Description :</span>
-                            <div style="margin-top: 5px;">
+                            <div style="margin-top: 8px; line-height: 1.5;">
                                 {% set description = ligne.produit.description %}
-                                {% set lines = description.replace('. ', '||').split('||') %}
-                                {% for line in lines %}
-                                    {% if line.strip() %}
-                                        {% if ',' in line %}
+                                
+                                {# 1. Remplacer les deux points (:) par des séparateurs de ligne #}
+                                {% set avec_sauts = description|replace(':', '||') %}
+                                
+                                {# 2. Séparer le texte par les || #}
+                                {% set parties = avec_sauts.split('||') %}
+                                
+                                {% for partie in parties %}
+                                    {% if partie.strip() %}
+                                        {# 3. Si la partie contient des virgules, créer une liste #}
+                                        {% if ',' in partie %}
                                             <ul style="margin: 5px 0 5px 20px; padding-left: 0; list-style-type: disc;">
-                                                {% for item in line.split(',') %}
-                                                    {% if item.strip() %}
-                                                    <li style="font-size: 12px; margin-bottom: 3px;">{{ item.strip() }}</li>
+                                                {% for element in partie.split(',') %}
+                                                    {% if element.strip() %}
+                                                    <li style="margin: 3px 0;">{{ element.strip() }}</li>
                                                     {% endif %}
                                                 {% endfor %}
                                             </ul>
                                         {% else %}
-                                            <div style="margin: 3px 0;">{{ line.strip() }}</div>
+                                            {# 4. Sinon, afficher une ligne normale #}
+                                            <div style="margin: 5px 0; font-weight: 500;">{{ partie.strip() }}</div>
                                         {% endif %}
                                     {% endif %}
                                 {% endfor %}
