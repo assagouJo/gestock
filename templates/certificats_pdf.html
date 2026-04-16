@@ -248,7 +248,7 @@
         
         /* Signatures */
         .signature-section {
-            margin: 25px 0 10px;
+            margin: 45px 0 75px;
             display: flex;
             justify-content: space-between;
         }
@@ -332,7 +332,7 @@
             <!-- En-tête -->
             <div class="header">
                 <div class="company-name">IMEDICAL</div>
-                <div class="company-slogan">SERVICE APRÈS-VENTE - MAINTENANCE ÉQUIPEMENTS MÉDICAUX</div>
+                <div class="company-slogan">SERVICE TECHNIQUE - MAINTENANCE ÉQUIPEMENTS MÉDICAUX</div>
                 <div class="title">CERTIFICAT DE RÉPARATION</div>
                 <div class="certificat-number">N° {{ certificat.numero_certificat }}</div>
                 <div class="date-info">
@@ -370,7 +370,7 @@
                     <div class="section-title">INFORMATIONS CLIENT</div>
                     <div class="info-card">
                         <div class="info-item">
-                            <span class="info-label">Client :</span>
+                            <span class="info-label">Client : </span>
                             <span class="info-value">{{ certificat.client.nom_client if certificat.client else '-' }}</span>
                         </div>
                         {% if certificat.client and certificat.client.attn %}
@@ -462,15 +462,7 @@
                     <div class="signature-line"></div>
                     <div class="signature-label">Le Service Technique</div>
                 </div>
-            </div>
-            
-            <!-- Footer -->
-            <div class="footer">
-                <div>Ce document atteste que les réparations décrites ci-dessus ont été effectuées conformément aux normes en vigueur.</div>
-                <div style="margin-top: 5px;">
-                    I-MEDICAL - Service Après-Vente | Tél: +237 6XX XXX XXX | Email: sav@gestock.com
-                </div>
-            </div>
+            </div>            
         </div>
     </div>
 </body>

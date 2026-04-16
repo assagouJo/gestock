@@ -1,114 +1,630 @@
-{% extends "base_print.html" %}
-{% block title %}Certificat d'installation{% endblock %}
+<!-- templates/certificats/creer.html -->
+{% extends "base.html" %}
+
 {% block styles %}
- <link rel="stylesheet" href="{{ url_for('static', filename='style/detail_bon_livraison.css') }}">
-{% endblock %}
-{% block content %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --dark-color: #2c3e50;
+        --light-color: #ecf0f1;
+    }
 
-<div class="bon-wrapper ">    
-    <!-- Header -->
-    <div class=" first-header d-flex justify-content-between align-items-center">
-        <div class="img-style">
-            {% if compagnie and compagnie.logo %}
-                <img src="{{ compagnie.logo }}" height="70" width="70">
-            {% endif %}
-        </div>
-        <div class="info-style">
-            <p><span class="text-danger fw-bold">TIME INTERNATIONAL CO. LTD</span></p>
-            <p class="fw-bold">REPRESENTATION A ABIDJAN</span><br></p>
-            <p><span class="text-danger fw-bold">I - MEDICAL</span></p>
-            <p class="">Tel : (225) 27 21 59 38 82</p>
-            <p class="">E-MAIL : info@imboe.com</p>
-            <p class="">MARCORY BOULEVARD VGE</p>
-            <p class="">FACEBOOK: IMBOE I-MEDICAL</p>
-            <p class="">REPUBLIQUE DE COTE D'IVOIRE</p>
-        </div>
-    </div>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-    <div class="bon-title">CERTIFICAT D'INSTALLATION</div>
+    .certificat-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
 
-    <div class="bon-header">
+    .certificat-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+    }
+
+    .certificat-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .certificat-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+        font-size: 0.85rem;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid var(--light-color);
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .reparation-item {
+        background: white;
+        border: 1px solid var(--light-color);
+        border-radius: 12px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .reparation-item:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--info-color);
+    }
+
+    .reparation-header {
+        background: var(--light-color);
+        padding: 10px 15px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .reparation-title {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .reparation-body {
+        padding: 20px;
+    }
+
+    .badge-info {
+        background: var(--info-color);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+    }
+
+    .alert-custom {
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger-custom {
+        background: rgba(231, 76, 60, 0.1);
+        border-left: 4px solid var(--danger-color);
+        color: #c0392b;
+    }
+
+    .btn-add {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-cancel {
+        background: #95a5a6;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #7f8c8d;
+        transform: translateY(-2px);
+    }
+
+    .btn-remove {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 6px 15px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-remove:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .reparation-body {
+            padding: 15px;
+        }
         
-        <div class="text-end">
-            <strong>Date : </strong>
-            {{ bon.date_creation.strftime('%d/%m/%Y') }}
-        </div>
-        <div class="bon-subtitle">N° {{ numero_ci }}</div>
+        .btn-submit, .btn-cancel {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="certificat-container">
+    <div class="certificat-header">
+        <h3>
+            <i class="fas fa-tools"></i> Créer un certificat de réparation
+        </h3>
+        <p>Enregistrez les réparations effectuées pour vos clients</p>
     </div>
-    
-    <!-- Infos -->
-    <div class="bon-info-box ">
-            <div>
-                <strong>Client :</strong>
-                <span class="text-danger fw-bold nom-client">{{ bon.client.nom_client }}</span>
-            </div>
-            <div>
-                <strong>ATTN :</strong>
-                <span class="text-danger fw-bold">{{ bon.client.attn }}</span>
-            </div>
-            <div>
-                <strong>Tel :</strong>
-                <span class="text-danger fw-bold">{{ bon.client.telephone }}</span>
-            </div>
-            <div>
-                <strong>Adresse :</strong>
-                <span class="text-danger fw-bold">{{ bon.client.adresse }}</span>
-            </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-file-alt"></i> Formulaire de réparation
+            </h3>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger-custom alert-custom">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Erreurs de validation:</strong>
+                    <ul class="mt-2 mb-0">
+                        {% for field, errors in form.errors.items() %}
+                            {% for error in errors %}
+                                <li><strong>{{ field }}</strong>: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <form method="POST" id="certificatForm" action="{{ url_for('creer_certificat') }}">
+                {{ form.hidden_tag() }}
+                
+                <!-- Informations générales -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-hashtag"></i> Numéro de certificat
+                            </label>
+                            {{ form.numero_certificat(class="form-control", readonly=true) }}
+                            <small class="text-muted">Généré automatiquement</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-alt"></i> Date de réparation
+                            </label>
+                            {{ form.date_reparation(class="form-control", type="date", required=true) }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i> Client
+                            </label>
+                            {{ form.client_id(class="form-select", required=true) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user-cog"></i> Technicien
+                            </label>
+                            {{ form.technicien(class="form-control", placeholder="Nom du technicien") }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Produits réparés -->
+                <div class="mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-tools"></i> Produits réparés
+                        <span class="badge-info" id="produitsCount">{{ form.reparations|length }} produit(s)</span>
+                    </div>
+                    
+                    <div id="reparations-container">
+                        {% for reparation in form.reparations %}
+                        <div class="reparation-item" data-index="{{ loop.index0 }}">
+                            <div class="reparation-header">
+                                <span class="reparation-title">
+                                    <i class="fas fa-box"></i> Produit #{{ loop.index }}
+                                </span>
+                                <button type="button" class="btn-remove remove-reparation">
+                                    <i class="fas fa-trash-alt"></i> Supprimer
+                                </button>
+                            </div>
+                            <div class="reparation-body">
+                                <!-- CRITIQUE: Champ CSRF obligatoire pour chaque ligne -->
+                                {{ reparation.csrf_token }}
+                                
+                                {% if reparation.id %}
+                                    {{ reparation.id }}
+                                {% endif %}
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-box"></i> Produit
+                                            </label>
+                                            {{ reparation.produit_id(class="form-select produit-select", required=true) }}
+                                            {% if reparation.produit_id.errors %}
+                                                <small class="text-danger">{{ reparation.produit_id.errors[0] }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-barcode"></i> Numéro de série
+                                            </label>
+                                            {{ reparation.numero_serie(class="form-control numero-serie", required=true, placeholder="Ex: SN-2024-001") }}
+                                            {% if reparation.numero_serie.errors %}
+                                                <small class="text-danger">{{ reparation.numero_serie.errors[0] }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 mt-2">
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-list-check"></i> Tâches effectuées
+                                            </label>
+                                            {{ reparation.taches_effectuees(class="form-control taches-textarea", rows=3, required=true, placeholder="Décrivez les réparations effectuées...") }}
+                                            {% if reparation.taches_effectuees.errors %}
+                                                <small class="text-danger">{{ reparation.taches_effectuees.errors[0] }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-euro-sign"></i> Coût de réparation (€)
+                                            </label>
+                                            {{ reparation.cout_reparation(class="form-control cout-reparation", type="number", step="0.01", value="0") }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-shield-alt"></i> Garantie (mois)
+                                            </label>
+                                            {{ reparation.garantie_mois(class="form-control", type="number", value="3") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="button" class="btn-add" id="add-reparation">
+                        <i class="fas fa-plus-circle"></i> Ajouter un produit
+                    </button>
+                </div>
+                
+                <!-- Observations -->
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Observations générales
+                        </label>
+                        {{ form.observations(class="form-control", rows=3, placeholder="Notes supplémentaires, remarques, etc.") }}
+                    </div>
+                </div>
+                
+                <!-- Boutons -->
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{{ url_for('liste_certificats') }}" class="btn-cancel">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-save"></i> Créer le certificat
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let reparationCount = {{ form.reparations|length }};
     
-    <!-- Table -->
-    <table class="bon-table">
-        <thead>
-            <tr>
-                <th>S/N</th>
-                <th>Designatio</th>
-                <th>Quantité</th>
-                <th>Marque</th>
-                <th>Model</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ligne in bon.lignes %}
-            <tr>
-                <td>{{ ligne.numero_serie }}</td>
-                <td>{{ ligne.produit.nom_produit }}</td>
-                <td>{{ ligne.quantite }}</td>
-                <td>{{ ligne.produit.marque }}</td>
-                <td>{{ ligne.produit.model }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table><br>
-    <p class="mention"><strong>NOUS CERTIFIONS QUE LE MATERIEL CI-DESSUS  CITE A ETE INSTALLE ET EST EN ETAT DE BON FONCTIONNEMENT.</strong></p>
-    <div class="footer-prof">
-    <div class="footer-left">
-            <h5>
-                LU ET APPROUVE
-            </h5>
-        </div>
-
-        <div class="footer-right">
-            <h5>
-                SERVICE TECHNIQUE
-            </h5>
-
-        </div>
-</div>
+    // Récupérer le template d'une ligne de réparation
+    function getReparationTemplate(index, itemNumber) {
+        return `
+            <div class="reparation-item" data-index="${index}">
+                <div class="reparation-header">
+                    <span class="reparation-title">
+                        <i class="fas fa-box"></i> Produit #${itemNumber}
+                    </span>
+                    <button type="button" class="btn-remove remove-reparation">
+                        <i class="fas fa-trash-alt"></i> Supprimer
+                    </button>
+                </div>
+                <div class="reparation-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Produit</label>
+                                <select class="form-select produit-select" name="reparations-${index}-produit_id" required>
+                                    <option value="">Choisir un produit</option>
+                                    {% for produit in produits %}
+                                    <option value="{{ produit.id }}">
+                                        {{ produit.marque or '' }} {{ produit.model or '' }} - {{ produit.nom_produit }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Numéro de série</label>
+                                <input type="text" class="form-control numero-serie" 
+                                       name="reparations-${index}-numero_serie" required 
+                                       placeholder="Ex: SN-2024-001">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Tâches effectuées</label>
+                                <textarea class="form-control taches-textarea" 
+                                          name="reparations-${index}-taches_effectuees" 
+                                          rows="3" required 
+                                          placeholder="Décrivez les réparations effectuées..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Coût de réparation (€)</label>
+                                <input type="number" step="0.01" class="form-control cout-reparation" 
+                                       name="reparations-${index}-cout_reparation" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Garantie (mois)</label>
+                                <input type="number" class="form-control" 
+                                       name="reparations-${index}-garantie_mois" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     
-</div>
-{% if not pdf_mode %}
-<div class=" p-2">
-    <a href="{{ url_for('liste_bons_livraison') }}" 
-       class="btn btn-outline-secondary">
-        ⬅ Retour
-    </a>
-
-    <a href="{{ url_for('certificat_installation_pdf', id=bon.id) }}"
-   target="_blank"
-   class="btn btn-success">
-    🖨 Imprimer PDF
-</a>
-</div>
-{% endif %}
-
+    // Mettre à jour le compteur de produits
+    function updateProduitsCount() {
+        const count = document.querySelectorAll('.reparation-item').length;
+        const countSpan = document.getElementById('produitsCount');
+        if (countSpan) {
+            countSpan.textContent = `${count} produit${count > 1 ? 's' : ''}`;
+        }
+    }
+    
+    // Supprimer un produit
+    function removeReparation(button) {
+        const item = button.closest('.reparation-item');
+        const container = document.getElementById('reparations-container');
+        
+        if (container.children.length === 1) {
+            alert('Vous devez avoir au moins un produit à réparer');
+            return false;
+        }
+        
+        item.remove();
+        updateProduitsCount();
+        
+        // Renuméroter les titres
+        document.querySelectorAll('.reparation-item').forEach((item, idx) => {
+            const title = item.querySelector('.reparation-title');
+            if (title) {
+                title.innerHTML = `<i class="fas fa-box"></i> Produit #${idx + 1}`;
+            }
+        });
+        
+        return true;
+    }
+    
+    // Ajouter un nouveau produit
+    const addButton = document.getElementById('add-reparation');
+    if (addButton) {
+        addButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const container = document.getElementById('reparations-container');
+            const index = reparationCount++;
+            const newItemNumber = document.querySelectorAll('.reparation-item').length + 1;
+            
+            const newRow = getReparationTemplate(index, newItemNumber);
+            container.insertAdjacentHTML('beforeend', newRow);
+            
+            // Attacher l'événement de suppression à la nouvelle ligne
+            const newItem = container.lastElementChild;
+            const removeBtn = newItem.querySelector('.remove-reparation');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    removeReparation(this);
+                });
+            }
+            
+            updateProduitsCount();
+        });
+    }
+    
+    // Initialiser les boutons de suppression existants
+    document.querySelectorAll('.remove-reparation').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            removeReparation(this);
+        });
+    });
+    
+    // Validation du formulaire
+    const form = document.getElementById('certificatForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Vérifier qu'au moins un produit est sélectionné
+            const produits = document.querySelectorAll('.produit-select');
+            let hasValidProduct = false;
+            
+            for (let i = 0; i < produits.length; i++) {
+                if (produits[i].value && produits[i].value !== '') {
+                    hasValidProduct = true;
+                    break;
+                }
+            }
+            
+            if (!hasValidProduct) {
+                e.preventDefault();
+                alert('Veuillez sélectionner au moins un produit à réparer');
+                return false;
+            }
+            
+            // Vérifier que chaque produit a un numéro de série
+            const numerosSerie = document.querySelectorAll('.numero-serie');
+            for (let i = 0; i < numerosSerie.length; i++) {
+                if (numerosSerie[i].value.trim() === '') {
+                    e.preventDefault();
+                    alert('Veuillez saisir le numéro de série pour chaque produit');
+                    numerosSerie[i].focus();
+                    return false;
+                }
+            }
+            
+            // Vérifier que chaque produit a des tâches effectuées
+            const taches = document.querySelectorAll('.taches-textarea');
+            for (let i = 0; i < taches.length; i++) {
+                if (taches[i].value.trim() === '') {
+                    e.preventDefault();
+                    alert('Veuillez décrire les tâches effectuées pour chaque produit');
+                    taches[i].focus();
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    }
+    
+    // Initialiser le compteur
+    updateProduitsCount();
+});
+</script>
 {% endblock %}

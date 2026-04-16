@@ -278,6 +278,7 @@ class CertificatReparationForm(FlaskForm):
         
         if certificat:
             raise ValidationError('Ce numéro de certificat existe déjà')
+        
 
 class RechercheProduitForm(FlaskForm):
     """Formulaire de recherche de produit"""

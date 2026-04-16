@@ -22,7 +22,6 @@
         animation: fadeInUp 0.5s ease-out;
     }
 
-    /* En-tête */
     .certificat-header {
         background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
         color: white;
@@ -43,7 +42,6 @@
         font-size: 0.85rem;
     }
 
-    /* Cartes */
     .card {
         border: none;
         border-radius: 15px;
@@ -64,7 +62,6 @@
         font-weight: 600;
     }
 
-    /* Formulaires */
     .form-group {
         margin-bottom: 1rem;
     }
@@ -95,7 +92,6 @@
         resize: vertical;
     }
 
-    /* Section produits */
     .section-title {
         font-size: 1.1rem;
         font-weight: 600;
@@ -140,7 +136,6 @@
         padding: 20px;
     }
 
-    /* Badges */
     .badge-info {
         background: var(--info-color);
         color: white;
@@ -149,7 +144,6 @@
         font-size: 0.7rem;
     }
 
-    /* Alertes */
     .alert-custom {
         border-radius: 10px;
         padding: 15px 20px;
@@ -162,7 +156,6 @@
         color: #c0392b;
     }
 
-    /* Boutons */
     .btn-add {
         background: var(--success-color);
         color: white;
@@ -229,25 +222,6 @@
         transform: translateY(-2px);
     }
 
-    /* Input group */
-    .input-group-custom {
-        position: relative;
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #95a5a6;
-        z-index: 10;
-    }
-
-    .input-with-icon {
-        padding-left: 40px;
-    }
-
-    /* Responsive */
     @media (max-width: 768px) {
         .reparation-body {
             padding: 15px;
@@ -263,7 +237,6 @@
 
 {% block content %}
 <div class="certificat-container">
-    <!-- En-tête -->
     <div class="certificat-header">
         <h3>
             <i class="fas fa-tools"></i> Créer un certificat de réparation
@@ -278,7 +251,6 @@
             </h3>
         </div>
         <div class="card-body">
-            <!-- Affichage des erreurs flash -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -291,7 +263,6 @@
                 {% endif %}
             {% endwith %}
             
-            <!-- Affichage des erreurs de formulaire -->
             {% if form.errors %}
                 <div class="alert alert-danger-custom alert-custom">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -353,7 +324,7 @@
                 <div class="mb-4">
                     <div class="section-title">
                         <i class="fas fa-tools"></i> Produits réparés
-                        <span class="badge-info" id="produitsCount">0 produit(s)</span>
+                        <span class="badge-info" id="produitsCount">{{ form.reparations|length }} produit(s)</span>
                     </div>
                     
                     <div id="reparations-container">
@@ -368,6 +339,8 @@
                                 </button>
                             </div>
                             <div class="reparation-body">
+                                {{ reparation.csrf_token }}
+                                
                                 {% if reparation.id %}
                                     {{ reparation.id }}
                                 {% endif %}
@@ -378,7 +351,17 @@
                                             <label class="form-label">
                                                 <i class="fas fa-box"></i> Produit
                                             </label>
-                                            {{ reparation.produit_id(class="form-select produit-select", required=true) }}
+                                            <select name="reparations-{{ loop.index0 }}-produit_id" class="form-select produit-select" required>
+                                                {% for choice in produits_choices %}
+                                                    {% if choice[0] == 0 %}
+                                                        <option value="0" {% if reparation.produit_id.data == 0 or not reparation.produit_id.data %}selected{% endif %} disabled>-- Choisir un produit --</option>
+                                                    {% else %}
+                                                        <option value="{{ choice[0] }}" {% if reparation.produit_id.data == choice[0] %}selected{% endif %}>
+                                                            {{ choice[1] }}
+                                                        </option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
                                             {% if reparation.produit_id.errors %}
                                                 <small class="text-danger">{{ reparation.produit_id.errors[0] }}</small>
                                             {% endif %}
@@ -445,7 +428,7 @@
                         <label class="form-label">
                             <i class="fas fa-comment"></i> Observations générales
                         </label>
-                        {{ form.observations(class="form-control", rows=3, placeholder="Notes supplémentaires, remarques, etc.") }}
+                        {{ form.observations(class="form-control", rows="3", placeholder="Notes supplémentaires, remarques, etc.") }}
                     </div>
                 </div>
                 
@@ -466,6 +449,97 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let reparationCount = {{ form.reparations|length }};
+    
+    // Récupérer les données des produits depuis le backend
+    const produitsChoices = [
+        {% for choice in produits_choices %}
+            {% if choice[0] != 0 %}
+            { id: {{ choice[0] }}, label: "{{ choice[1]|replace('"', '\\"')|safe }}" }{% if not loop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ];
+    
+    // Récupérer le token CSRF global
+    let globalCsrfToken = '';
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    if (csrfInput) {
+        globalCsrfToken = csrfInput.value;
+    }
+    
+    // Générer les options des produits
+    function getProduitsOptions(selectedId = null) {
+        let options = '<option value="0" disabled>-- Choisir un produit --</option>';
+        produitsChoices.forEach(produit => {
+            const selected = (selectedId && produit.id === selectedId) ? 'selected' : '';
+            options += `<option value="${produit.id}" ${selected}>${produit.label}</option>`;
+        });
+        return options;
+    }
+    
+    // Fonction pour obtenir le template d'une nouvelle ligne
+    function getReparationTemplate(index, itemNumber) {
+        return `
+            <div class="reparation-item" data-index="${index}">
+                <div class="reparation-header">
+                    <span class="reparation-title">
+                        <i class="fas fa-box"></i> Produit #${itemNumber}
+                    </span>
+                    <button type="button" class="btn-remove remove-reparation">
+                        <i class="fas fa-trash-alt"></i> Supprimer
+                    </button>
+                </div>
+                <div class="reparation-body">
+                    <input type="hidden" name="reparations-${index}-csrf_token" value="${globalCsrfToken}">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Produit</label>
+                                <select class="form-select produit-select" name="reparations-${index}-produit_id" required>
+                                    ${getProduitsOptions()}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Numéro de série</label>
+                                <input type="text" class="form-control numero-serie" 
+                                       name="reparations-${index}-numero_serie" required 
+                                       placeholder="Ex: SN-2024-001">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Tâches effectuées</label>
+                                <textarea class="form-control taches-textarea" 
+                                          name="reparations-${index}-taches_effectuees" 
+                                          rows="3" required 
+                                          placeholder="Décrivez les réparations effectuées..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Coût de réparation (€)</label>
+                                <input type="number" step="0.01" class="form-control cout-reparation" 
+                                       name="reparations-${index}-cout_reparation" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Garantie (mois)</label>
+                                <input type="number" class="form-control" 
+                                       name="reparations-${index}-garantie_mois" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     
     // Mettre à jour le compteur de produits
     function updateProduitsCount() {
@@ -508,80 +582,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const container = document.getElementById('reparations-container');
             const index = reparationCount++;
-            const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+            const newItemNumber = document.querySelectorAll('.reparation-item').length + 1;
             
-            const options = `
-                <option value="">Choisir un produit</option>
-                {% for produit in produits %}
-                <option value="{{ produit.id }}">
-                    {{ produit.marque or '' }} {{ produit.model or '' }} - {{ produit.nom_produit }}
-                </option>
-                {% endfor %}
-            `;
+            const newRow = getReparationTemplate(index, newItemNumber);
+            container.insertAdjacentHTML('beforeend', newRow);
             
-            const template = `
-                <div class="reparation-item" data-index="${index}">
-                    <div class="reparation-header">
-                        <span class="reparation-title">
-                            <i class="fas fa-box"></i> Produit #${document.querySelectorAll('.reparation-item').length + 1}
-                        </span>
-                        <button type="button" class="btn-remove remove-reparation">
-                            <i class="fas fa-trash-alt"></i> Supprimer
-                        </button>
-                    </div>
-                    <div class="reparation-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Produit</label>
-                                    <select class="form-select produit-select" name="reparations-${index}-produit_id" required>
-                                        ${options}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Numéro de série</label>
-                                    <input type="text" class="form-control numero-serie" 
-                                           name="reparations-${index}-numero_serie" required 
-                                           placeholder="Ex: SN-2024-001">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3 mt-2">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label class="form-label">Tâches effectuées</label>
-                                    <textarea class="form-control taches-textarea" 
-                                              name="reparations-${index}-taches_effectuees" 
-                                              rows="3" required 
-                                              placeholder="Décrivez les réparations effectuées..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Coût de réparation (€)</label>
-                                    <input type="number" step="0.01" class="form-control cout-reparation" 
-                                           name="reparations-${index}-cout_reparation" value="0">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Garantie (mois)</label>
-                                    <input type="number" class="form-control" 
-                                           name="reparations-${index}-garantie_mois" value="3">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            container.insertAdjacentHTML('beforeend', template);
-            
-            // Attacher l'événement de suppression à la nouvelle ligne
             const newItem = container.lastElementChild;
             const removeBtn = newItem.querySelector('.remove-reparation');
             if (removeBtn) {
@@ -606,12 +611,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('certificatForm');
     if (form) {
         form.addEventListener('submit', function(e) {
-            // Vérifier qu'au moins un produit est sélectionné
             const produits = document.querySelectorAll('.produit-select');
             let hasValidProduct = false;
             
             for (let i = 0; i < produits.length; i++) {
-                if (produits[i].value && produits[i].value !== '') {
+                const value = produits[i].value;
+                if (value && value !== '0' && value !== '') {
                     hasValidProduct = true;
                     break;
                 }
@@ -623,7 +628,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
             
-            // Vérifier que chaque produit a un numéro de série
             const numerosSerie = document.querySelectorAll('.numero-serie');
             for (let i = 0; i < numerosSerie.length; i++) {
                 if (numerosSerie[i].value.trim() === '') {
@@ -634,7 +638,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Vérifier que chaque produit a des tâches effectuées
             const taches = document.querySelectorAll('.taches-textarea');
             for (let i = 0; i < taches.length; i++) {
                 if (taches[i].value.trim() === '') {
@@ -649,7 +652,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialiser le compteur
     updateProduitsCount();
 });
 </script>

@@ -575,8 +575,7 @@
                 {% if compagnie.telephone %}<p>📞 {{ compagnie.telephone }}</p>{% endif %}
                 {% if compagnie.email %}<p>✉ {{ compagnie.email }}</p>{% endif %}
             {% else %}
-                <p>📍 Douala, Cameroun</p>
-                <p>📞 +237 6XX XXX XXX</p>
+                -
             {% endif %}
         </div>
     </div>
@@ -736,31 +735,9 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-    
-    <!-- RÉSUMÉ -->
-    <div class="summary-section">
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="summary-icon">📦</div>
-                <div class="summary-label">Total produits</div>
-                <div class="summary-value">{{ bon.lignes|length }}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">🔢</div>
-                <div class="summary-label">Quantité totale</div>
-                <div class="summary-value">{{ bon.lignes|sum(attribute='quantite') }}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">🏷️</div>
-                <div class="summary-label">Numéros série</div>
-                <div class="summary-value">{{ bon.lignes|selectattr('numero_serie')|list|length }}</div>
-            </div>
-        </div>
-    </div>
-    
+    </div>        
     <!-- NOTES COMPLÉMENTAIRES -->
-    {% if bon.nota_bene and bon.nota_bene|trim %}
+        {% if bon.nota_bene and bon.nota_bene != 'None' and bon.nota_bene|trim %}
     <div class="notes-section">
         <div class="notes-title">
             <i class="fas fa-pen-alt"></i> NOTE COMPLÉMENTAIRE
@@ -774,18 +751,12 @@
     <!-- SIGNATURES -->
     <div class="signatures">
         <div class="signature-block">
-            <div class="signature-line">LE CLIENT (Cachet et signature)</div>
+            <div class="signature-line">LE CLIENT</div>
         </div>
         <div class="signature-block">
             <div class="signature-line">SERVICE COMMERCIAL</div>
         </div>
     </div>
-    
-    <!-- FOOTER -->
-    <div class="footer-note">
-        <p>Ce document atteste que les marchandises désignées ci-dessus ont été livrées dans leur intégralité.</p>
-    </div>
-
 <!-- BOUTONS D'ACTION -->
 {% if not pdf_mode %}
 <div class="action-buttons">

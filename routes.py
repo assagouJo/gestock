@@ -4713,10 +4713,12 @@ def creer_certificat():
                 print(f"Field {field}: {errors}")
             flash('Veuillez corriger les erreurs dans le formulaire', 'danger')
     
-    return render_template('certificats_creer.html', 
+    return render_template('creer_certificat_reparation.html', 
                          form=form, 
                          produits=produits,
                          produits_choices=produits_choices)
+
+
 
 @app.route('/certificats/<int:id>')
 def voir_certificat(id):
