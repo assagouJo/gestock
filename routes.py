@@ -29,6 +29,41 @@ from collections import defaultdict
 
 
 
+@app.template_filter('format_description')
+def format_description(text):
+    """Formatte la description : 
+       - Les points (.) créent des retours à la ligne
+       - Les virgules (,) créent des listes à puces
+    """
+    if not text or text == 'None':
+        return ''
+    
+    # Remplacer les points par des sauts de ligne
+    text = text.replace('. ', '.<br>')
+    text = text.replace('.\n', '.<br>')
+    
+    # Remplacer les virgules par des puces
+    lines = text.split('<br>')
+    formatted_lines = []
+    
+    for line in lines:
+        if ',' in line:
+            # Créer une liste à puces
+            items = line.split(',')
+            bullet_list = '<ul style="margin: 5px 0 5px 20px; padding-left: 0;">'
+            for item in items:
+                item = item.strip()
+                if item:
+                    bullet_list += f'<li style="margin: 2px 0;">{item}</li>'
+            bullet_list += '</ul>'
+            formatted_lines.append(bullet_list)
+        else:
+            formatted_lines.append(line)
+    
+    return ''.join(formatted_lines)
+
+
+
 def generer_numero_certificat():
     """Génère un numéro de certificat automatique format: CERT-YYYY-XXXX"""
     annee = datetime.now().year
