@@ -2,7 +2,13 @@
 {% block title %}Bon de Livraison - {{ bon.numero }}{% endblock %}
 
 {% block styles %}
+
 <style>
+
+     @page {
+        margin: 5mm 6mm 8mm 6mm;
+    }
+
     * {
         margin: 0;
         padding: 0;
@@ -52,7 +58,7 @@
     
     .img-style img {
         border-radius: 12px;
-        max-height: 90px;
+        height: 110px;
         width: auto;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
@@ -60,27 +66,7 @@
     .company-info {
         text-align: right;
         line-height: 1.5;
-    }
-    
-    .company-info .company-name {
-        font-size: 16px;
-        font-weight: 700;
-        color: #c0392b;
-        letter-spacing: 1.5px;
-        margin-bottom: 5px;
-    }
-    
-    .company-info .subtitle {
-        font-size: 11px;
-        color: #e67e22;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-    
-    .company-info p {
-        margin: 3px 0;
-        font-size: 10px;
-        color: #5d6d7e;
+        font-size: 9px;
     }
     
     /* ========== TITRE ========== */
@@ -163,10 +149,9 @@
     
     /* ========== BLOCS INFO ========== */
     .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-        margin-bottom: 35px;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
     }
     
     .info-card {
@@ -229,7 +214,7 @@
         font-weight: 700;
     }
     
-    /* ========== TABLEAU PRINCIPAL ========== */
+    /* ========== TABLEAU PRINCIPAL (CORRIGÉ) ========== */
     .table-container {
         overflow-x: auto;
         margin: 30px 0;
@@ -240,25 +225,33 @@
     .bon-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 12px;
+        font-size: 11px; /* Légèrement réduit pour gagner de la place */
+        
+        /* CORRECTION CRITIQUE POUR LE PDF */
+        table-layout: fixed;      /* Force les colonnes à respecter strictement les largeurs définies */
+        word-wrap: break-word;    /* Coupe les mots longs */
+        overflow-wrap: break-word;
     }
     
     .bon-table th {
         background: #2c3e50;
         color: white;
-        padding: 14px 10px;
+        padding: 12px 5px;        /* Padding réduit pour gagner de l'espace horizontal */
         text-align: center;
         font-weight: 700;
-        font-size: 11px;
+        font-size: 10px;          /* Taille réduite */
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.5px;
+        white-space: nowrap;      /* Empêche le titre de passer sur 2 lignes */
     }
     
     .bon-table td {
-        padding: 12px 10px;
+        padding: 10px 5px;        /* Padding réduit */
         text-align: center;
         border-bottom: 1px solid #eef2f6;
         vertical-align: middle;
+        overflow: hidden;         /* Gère les débordements */
+        text-overflow: ellipsis;  /* Ajoute "..." si texte trop long (optionnel) */
     }
     
     .bon-table tbody tr:hover td {
@@ -268,45 +261,72 @@
     .product-name {
         text-align: left;
         font-weight: 600;
+        white-space: normal;      /* Permet le retour à la ligne */
+        word-break: break-word;
     }
     
     .product-code {
         font-family: 'Courier New', monospace;
-        font-size: 10px;
+        font-size: 9px;
         color: #7f8c8d;
         margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .badge-quantity {
         display: inline-block;
         background: #e3f2fd;
         color: #1565c0;
-        padding: 5px 14px;
+        padding: 4px 8px;         /* Padding réduit */
         border-radius: 25px;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 11px;
+        white-space: nowrap;
     }
     
     .badge-lot {
         display: inline-block;
         background: #f3e5f5;
         color: #6a1b9a;
-        padding: 4px 12px;
+        padding: 3px 6px;         /* Padding réduit */
         border-radius: 20px;
         font-weight: 600;
-        font-size: 10px;
+        font-size: 9px;
         font-family: monospace;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
     }
     
     .badge-serie {
         font-family: monospace;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 600;
         color: #2c3e50;
         background: #f8f9fa;
-        padding: 4px 10px;
+        padding: 3px 6px;
         border-radius: 6px;
         display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    /* Style pour les marques et modèles */
+    .marque-model {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .text-muted {
+        color: #95a5a6;
+        font-style: italic;
     }
     
     /* ========== RÉSUMÉ ========== */
@@ -382,17 +402,16 @@
     .signatures {
         display: flex;
         justify-content: space-between;
-        margin-top: 50px;
-        gap: 40px;
+        margin: 80px 30px 5px 30px;
+        /* gap: 40px; */
     }
     
-    .signature-block {
+    /* .signature-block {
         flex: 1;
         text-align: center;
-    }
+    } */
     
 
-    
     /* ========== FOOTER ========== */
     .footer-note {
         margin-top: 30px;
@@ -508,6 +527,11 @@
             box-shadow: none;
             border: 1px solid #e0e0e0;
         }
+        /* Assurer que tout est visible à l'impression */
+        .badge-lot, .badge-serie, .badge-quantity {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
     }
     
     /* ========== RESPONSIVE ========== */
@@ -542,6 +566,14 @@
             width: 100%;
             justify-content: center;
         }
+        /* Sur mobile, on autorise le scroll horizontal */
+        .table-container {
+            overflow-x: auto;
+        }
+        .bon-table {
+            table-layout: auto; /* Sur mobile, on revient en auto pour le scroll */
+            min-width: 800px;   /* Largeur minimale pour forcer le scroll */
+        }
     }
 </style>
 {% endblock %}
@@ -554,21 +586,20 @@
     <div class="first-header">
         <div class="img-style">
             {% if compagnie and compagnie.logo %}
-                <img src="{{ compagnie.logo }}" alt="Logo" height="80">
+                <img src="{{ compagnie.logo }}" alt="Logo" height="90">
             {% else %}
                 <div style="width:80px; height:80px; background:linear-gradient(135deg, #c0392b, #e74c3c); border-radius:12px; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:bold;">G</div>
             {% endif %}
         </div>
         <div class="company-info">
-            <div class="company-name">{% if compagnie %}{{ compagnie.nom }}{% else %}GESTOCK{% endif %}</div>
-            <div class="subtitle">SERVICE APRÈS-VENTE & MAINTENANCE</div>
-            {% if compagnie %}
-                {% if compagnie.adresse %}<p>📍 {{ compagnie.adresse }}</p>{% endif %}
-                {% if compagnie.telephone %}<p>📞 {{ compagnie.telephone }}</p>{% endif %}
-                {% if compagnie.email %}<p>✉ {{ compagnie.email }}</p>{% endif %}
-            {% else %}
-                -
-            {% endif %}
+            <strong style="color: red;">TIME INTERNATIONAL CO. LTD</strong><br>
+            REPRESENTATION A ABIDJAN <br>
+            <strong style="color: red;">I - MEDICAL</strong><br>
+            Tel : (225) 27 21 59 38 82 <br>
+            E-MAIL : info@imboe.com <br>
+            MARCORY BOULEVARD VGE <br>
+            FACEBOOK: IMBOE I-MEDICAL <br>
+            REPUBLIQUE DE COTE D'IVOIRE
         </div>
     </div>
 
@@ -654,12 +685,6 @@
                         {% endif %}
                     </div>
                 </div>
-                {% if bon.commande and bon.commande.numero %}
-                <div class="info-row">
-                    <div class="info-label">Commande liée :</div>
-                    <div class="info-value">N° {{ bon.commande.numero }}</div>
-                </div>
-                {% endif %}
                 {% if bon.mode_livraison and bon.mode_livraison|trim %}
                 <div class="info-row">
                     <div class="info-label">Mode livraison :</div>
@@ -670,17 +695,18 @@
         </div>
     </div>
     
-    <!-- TABLEAU DES PRODUITS -->
+    <!-- TABLEAU DES PRODUITS (CORRIGÉ) -->
     <div class="table-container">
         <table class="bon-table">
             <thead>
                 <tr>
-                    <th style="width: 35%">DÉSIGNATION</th>
-                    <th style="width: 12%">LOT</th>
-                    <th style="width: 12%">QTÉ</th>
+                    <!-- Largeurs optimisées pour garantir l'affichage de MARQUE et MODÈLE -->
+                    <th style="width: 26%">DÉSIGNATION</th>
+                    <th style="width: 14%">LOT</th>
+                    <th style="width: 10%">QTÉ</th>
                     <th style="width: 18%">N° SÉRIE</th>
-                    <th style="width: 12%">MARQUE</th>
-                    <th style="width: 11%">MODÈLE</th>
+                    <th style="width: 16%">MARQUE</th>
+                    <th style="width: 16%">MODÈLE</th>
                 </tr>
             </thead>
             <tbody>
@@ -689,36 +715,36 @@
                     <td class="product-name">
                         <strong>{{ ligne.produit.nom_produit }}</strong>
                         {% if ligne.produit.code_produit %}
-                        <div class="product-code">Code: {{ ligne.produit.code_produit }}</div>
+                        <div class="product-code" title="{{ ligne.produit.code_produit }}">Code: {{ ligne.produit.code_produit }}</div>
                         {% endif %}
                     </td>
                     <td class="text-center">
                         {% if ligne.stock and ligne.stock.numero_lot and ligne.stock.numero_lot|trim %}
-                            <span class="badge-lot">📦 {{ ligne.stock.numero_lot }}</span>
+                            <span class="badge-lot" title="{{ ligne.stock.numero_lot }}">📦 {{ ligne.stock.numero_lot }}</span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
                     </td>
                     <td class="text-center">
-                        <span class="badge-quantity">{{ ligne.quantite }} pièce(s)</span>
+                        <span class="badge-quantity">{{ ligne.quantite }}</span>
                     </td>
                     <td class="text-center">
                         {% if ligne.numero_serie and ligne.numero_serie|trim %}
-                            <span class="badge-serie">{{ ligne.numero_serie }}</span>
+                            <span class="badge-serie" title="{{ ligne.numero_serie }}">{{ ligne.numero_serie }}</span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td class="text-center">
+                    <td class="text-center marque-model">
                         {% if ligne.produit.marque and ligne.produit.marque|trim %}
-                            {{ ligne.produit.marque }}
+                            <span title="{{ ligne.produit.marque }}">{{ ligne.produit.marque }}</span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td class="text-center">
+                    <td class="text-center marque-model">
                         {% if ligne.produit.model and ligne.produit.model|trim %}
-                            {{ ligne.produit.model }}
+                            <span title="{{ ligne.produit.model }}">{{ ligne.produit.model }}</span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
@@ -727,9 +753,23 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>        
+    </div>
+    
+    <!-- RÉSUMÉ QUANTITÉS (Optionnel - à activer si nécessaire) -->
+    {# 
+    <div class="summary-section">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-icon">📦</div>
+                <div class="summary-label">Total Articles</div>
+                <div class="summary-value">{{ bon.lignes|sum(attribute='quantite') }}</div>
+            </div>
+        </div>
+    </div>
+    #}
+        
     <!-- NOTES COMPLÉMENTAIRES -->
-        {% if bon.nota_bene and bon.nota_bene != 'None' and bon.nota_bene|trim %}
+    {% if bon.nota_bene and bon.nota_bene != 'None' and bon.nota_bene|trim %}
     <div class="notes-section">
         <div class="notes-title">
             <i class="fas fa-pen-alt"></i> NOTE COMPLÉMENTAIRE
@@ -746,33 +786,36 @@
             <div class="signature-line">LE CLIENT</div>
         </div>
         <div class="signature-block">
-            <div class="signature-line">SERVICE COMMERCIAL</div>
+            <div class="signature-line">SERVICE TECHNIQUE</div>
         </div>
     </div>
-<!-- BOUTONS D'ACTION -->
-{% if not pdf_mode %}
-<div class="action-buttons">
-    <a href="{{ url_for('liste_bons_livraison') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Retour à la liste
-    </a>   
-    <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}" target="_blank" class="btn btn-success">
-        <i class="fas fa-file-pdf"></i> Exporter en PDF
-    </a>
-    {% if bon.status == 'partielle' and bon.commande %}
-    <a href="{{ url_for('livraison_partielle', commande_id=bon.commande.id) }}" class="btn btn-warning">
-        <i class="fas fa-plus-circle"></i> Compléter la livraison
-    </a>
+
+    <!-- BOUTONS D'ACTION -->
+    {% if not pdf_mode %}
+    <div class="action-buttons">
+        <a href="{{ url_for('liste_bons_livraison') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>   
+        <a href="{{ url_for('bon_livraison_pdf', id=bon.id) }}" target="_blank" class="btn btn-success">
+            <i class="fas fa-file-pdf"></i> Exporter en PDF
+        </a>
+        {% if bon.status == 'partielle' and bon.commande %}
+        <a href="{{ url_for('livraison_partielle', commande_id=bon.commande.id) }}" class="btn btn-warning">
+            <i class="fas fa-plus-circle"></i> Compléter la livraison
+        </a>
+        {% endif %}
+        {% if bon.status == 'livree' %}
+        <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}" class="btn btn-primary">
+            <i class="fas fa-cash-register"></i> Créer une vente
+        </a>
+        {% endif %}
+        <button onclick="window.print()" class="btn btn-info">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+    </div>
     {% endif %}
-    {% if bon.status == 'livree' %}
-    <a href="{{ url_for('creer_vente_depuis_bon', bon_id=bon.id) }}" class="btn btn-primary">
-        <i class="fas fa-cash-register"></i> Créer une vente
-    </a>
-    {% endif %}
-    <button onclick="window.print()" class="btn btn-info">
-        <i class="fas fa-print"></i> Imprimer
-    </button>
+
 </div>
-{% endif %}
 
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
