@@ -214,7 +214,7 @@
         font-weight: 700;
     }
     
-    /* ========== TABLEAU PRINCIPAL (CORRIGÉ) ========== */
+    /* ========== TABLEAU PRINCIPAL ========== */
     .table-container {
         overflow-x: auto;
         margin: 30px 0;
@@ -225,33 +225,32 @@
     .bon-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 11px; /* Légèrement réduit pour gagner de la place */
-        
-        /* CORRECTION CRITIQUE POUR LE PDF */
-        table-layout: fixed;      /* Force les colonnes à respecter strictement les largeurs définies */
-        word-wrap: break-word;    /* Coupe les mots longs */
+        font-size: 11px;
+        table-layout: fixed;
+        word-wrap: break-word;
         overflow-wrap: break-word;
     }
     
     .bon-table th {
         background: #2c3e50;
         color: white;
-        padding: 12px 5px;        /* Padding réduit pour gagner de l'espace horizontal */
+        padding: 12px 5px;
         text-align: center;
         font-weight: 700;
-        font-size: 10px;          /* Taille réduite */
+        font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        white-space: nowrap;      /* Empêche le titre de passer sur 2 lignes */
+        white-space: nowrap;
     }
     
     .bon-table td {
-        padding: 10px 5px;        /* Padding réduit */
+        padding: 10px 5px;
         text-align: center;
         border-bottom: 1px solid #eef2f6;
         vertical-align: middle;
-        overflow: hidden;         /* Gère les débordements */
-        text-overflow: ellipsis;  /* Ajoute "..." si texte trop long (optionnel) */
+        /* MODIFICATION : On enlève overflow:hidden et text-overflow:ellipsis */
+        overflow: visible;
+        text-overflow: clip;
     }
     
     .bon-table tbody tr:hover td {
@@ -261,7 +260,7 @@
     .product-name {
         text-align: left;
         font-weight: 600;
-        white-space: normal;      /* Permet le retour à la ligne */
+        white-space: normal;
         word-break: break-word;
     }
     
@@ -279,7 +278,7 @@
         display: inline-block;
         background: #e3f2fd;
         color: #1565c0;
-        padding: 4px 8px;         /* Padding réduit */
+        padding: 4px 8px;
         border-radius: 25px;
         font-weight: 700;
         font-size: 11px;
@@ -290,7 +289,7 @@
         display: inline-block;
         background: #f3e5f5;
         color: #6a1b9a;
-        padding: 3px 6px;         /* Padding réduit */
+        padding: 3px 6px;
         border-radius: 20px;
         font-weight: 600;
         font-size: 9px;
@@ -301,19 +300,29 @@
         max-width: 100%;
     }
     
+    /* ========== CORRECTION POUR NUMÉRO DE SÉRIE LONG ========== */
+    /* La cellule s'agrandit en hauteur pour afficher tout le numéro */
     .badge-serie {
-        font-family: monospace;
+        display: inline-block;
+        font-family: 'Courier New', monospace;
         font-size: 10px;
         font-weight: 600;
         color: #2c3e50;
         background: #f8f9fa;
-        padding: 3px 6px;
+        padding: 6px 8px;
         border-radius: 6px;
-        display: inline-block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+        
+        /* MODIFICATIONS PRINCIPALES */
+        white-space: normal;           /* Permet le retour à la ligne */
+        word-break: break-all;         /* Coupe le texte n'importe où si nécessaire */
+        overflow-wrap: break-word;     /* Coupe les mots longs */
+        max-width: 100%;              /* Prend toute la largeur disponible */
+        line-height: 1.5;             /* Espacement vertical pour la lisibilité */
+        text-align: center;
+        
+        /* Suppression des limitations */
+        overflow: visible;
+        text-overflow: clip;
     }
     
     /* Style pour les marques et modèles */
@@ -403,14 +412,17 @@
         display: flex;
         justify-content: space-between;
         margin: 80px 30px 5px 30px;
-        /* gap: 40px; */
     }
     
-    /* .signature-block {
-        flex: 1;
-        text-align: center;
-    } */
-    
+    .signature-line {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #bdc3c7;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #7f8c8d;
+    }
 
     /* ========== FOOTER ========== */
     .footer-note {
@@ -527,10 +539,27 @@
             box-shadow: none;
             border: 1px solid #e0e0e0;
         }
-        /* Assurer que tout est visible à l'impression */
         .badge-lot, .badge-serie, .badge-quantity {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+        }
+        
+        /* GARANTIE QUE LES NUMÉROS DE SÉRIE S'AFFICHENT EN ENTIER À L'IMPRESSION */
+        .badge-serie {
+            white-space: normal !important;
+            word-break: break-all !important;
+            overflow-wrap: break-word !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: 100% !important;
+            font-size: 9pt;
+            line-height: 1.4;
+            border: 1px solid #ddd;
+        }
+        
+        .bon-table td {
+            overflow: visible !important;
+            text-overflow: clip !important;
         }
     }
     
@@ -566,13 +595,12 @@
             width: 100%;
             justify-content: center;
         }
-        /* Sur mobile, on autorise le scroll horizontal */
         .table-container {
             overflow-x: auto;
         }
         .bon-table {
-            table-layout: auto; /* Sur mobile, on revient en auto pour le scroll */
-            min-width: 800px;   /* Largeur minimale pour forcer le scroll */
+            table-layout: auto;
+            min-width: 800px;
         }
     }
 </style>
@@ -695,12 +723,11 @@
         </div>
     </div>
     
-    <!-- TABLEAU DES PRODUITS (CORRIGÉ) -->
+    <!-- TABLEAU DES PRODUITS -->
     <div class="table-container">
         <table class="bon-table">
             <thead>
                 <tr>
-                    <!-- Largeurs optimisées pour garantir l'affichage de MARQUE et MODÈLE -->
                     <th style="width: 26%">DÉSIGNATION</th>
                     <th style="width: 14%">LOT</th>
                     <th style="width: 10%">QTÉ</th>
@@ -754,19 +781,6 @@
             </tbody>
         </table>
     </div>
-    
-    <!-- RÉSUMÉ QUANTITÉS (Optionnel - à activer si nécessaire) -->
-    {# 
-    <div class="summary-section">
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="summary-icon">📦</div>
-                <div class="summary-label">Total Articles</div>
-                <div class="summary-value">{{ bon.lignes|sum(attribute='quantite') }}</div>
-            </div>
-        </div>
-    </div>
-    #}
         
     <!-- NOTES COMPLÉMENTAIRES -->
     {% if bon.nota_bene and bon.nota_bene != 'None' and bon.nota_bene|trim %}
