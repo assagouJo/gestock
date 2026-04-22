@@ -597,11 +597,11 @@
                             <div class="action-group">
                                 <a href="{{ url_for('details_proforma', proforma_id=p.id) }}" 
                                    class="btn btn-sm btn-info" title="Voir les détails">
-                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline">Voir</span>
+                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline"></span>
                                 </a>
                                 <a href="{{ url_for('modifier_proforma', proforma_id=p.id) }}" 
                                    class="btn btn-sm btn-warning" title="Modifier">
-                                    <i class="fas fa-edit"></i> <span class="d-none d-md-inline">Modifier</span>
+                                    <i class="fas fa-edit"></i> <span class="d-none d-md-inline"></span>
                                 </a>
                                 <a href="{{ url_for('proforma_pdf', proforma_id=p.id) }}"
                                    target="_blank"
@@ -613,13 +613,13 @@
                                         class="btn btn-sm btn-success"
                                         onclick="dupliquerProforma({{ p.id }}, '{{ p.numero }}')"
                                         title="Dupliquer">
-                                    <i class="fas fa-copy"></i> <span class="d-none d-md-inline">Dupliquer</span>
+                                    <i class="fas fa-copy"></i> <span class="d-none d-md-inline"></span>
                                 </button>
                                 <button type="button"
                                         class="btn btn-sm btn-danger"
                                         onclick="confirmerSuppression({{ p.id }}, '{{ p.numero }}')"
                                         title="Supprimer">
-                                    <i class="fas fa-trash-alt"></i> <span class="d-none d-md-inline">Supprimer</span>
+                                    <i class="fas fa-trash-alt"></i> <span class="d-none d-md-inline"></span>
                                 </button>
                             </div>
                         </td>
