@@ -20,25 +20,26 @@
 
     .proformas-container {
         animation: fadeInUp 0.5s ease-out;
+        padding: 10px;
     }
 
-    /* En-tête */
+    /* En-tête - Version responsive */
     .proformas-header {
         background: linear-gradient(135deg, var(--success-color) 0%, var(--dark-color) 100%);
         color: white;
-        padding: 20px 25px;
-        border-radius: 15px;
-        margin-bottom: 25px;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 12px;
     }
 
     .proformas-header h4 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
         font-weight: 600;
     }
 
@@ -46,14 +47,16 @@
         background: white;
         color: var(--success-color);
         border: none;
-        padding: 10px 20px;
-        border-radius: 10px;
+        padding: 8px 16px;
+        border-radius: 8px;
         font-weight: 600;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         text-decoration: none;
+        font-size: clamp(0.85rem, 3vw, 1rem);
+        white-space: nowrap;
     }
 
     .btn-add:hover {
@@ -62,66 +65,67 @@
         color: var(--success-color);
     }
 
-    /* Cartes statistiques */
+    /* Cartes statistiques - Grid responsive */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 15px;
-        margin-bottom: 25px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
     }
 
     .stat-card {
         background: white;
-        border-radius: 12px;
-        padding: 15px;
+        border-radius: 10px;
+        padding: 12px;
         text-align: center;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
         cursor: pointer;
     }
 
     .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
 
     .stat-icon {
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
         margin-bottom: 5px;
     }
 
     .stat-value {
-        font-size: 1.3rem;
+        font-size: clamp(1.1rem, 4vw, 1.3rem);
         font-weight: bold;
         color: var(--success-color);
     }
 
     .stat-label {
-        font-size: 0.7rem;
+        font-size: clamp(0.65rem, 2.5vw, 0.75rem);
         color: #7f8c8d;
         margin-top: 3px;
     }
 
-    /* Barre de recherche */
+    /* Barre de recherche - Responsive */
     .search-card {
         background: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .search-input-group {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
     }
 
     .search-input {
         flex: 1;
-        padding: 12px 15px;
+        min-width: 200px;
+        padding: 10px 12px;
         border: 2px solid var(--light-color);
-        border-radius: 10px;
+        border-radius: 8px;
         font-size: 0.9rem;
         transition: all 0.3s ease;
     }
@@ -132,12 +136,18 @@
         box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
     }
 
-    /* Tableau */
+    #clearSearch {
+        white-space: nowrap;
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    /* Tableau - Version responsive avec scroll horizontal */
     .table-container {
         background: white;
-        border-radius: 12px;
+        border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .table-header {
@@ -154,24 +164,25 @@
     .table-title {
         font-weight: 600;
         color: var(--dark-color);
-        font-size: 0.9rem;
+        font-size: clamp(0.85rem, 3vw, 0.95rem);
     }
 
     .export-buttons {
         display: flex;
-        gap: 8px;
+        gap: 6px;
     }
 
     .btn-sm-custom {
-        padding: 5px 12px;
-        font-size: 0.75rem;
+        padding: 6px 10px;
+        font-size: clamp(0.7rem, 2.5vw, 0.8rem);
         border-radius: 6px;
         border: none;
         cursor: pointer;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
+        white-space: nowrap;
     }
 
     .btn-excel {
@@ -184,35 +195,31 @@
         color: white;
     }
 
+    /* Table wrapper avec scroll horizontal pour mobile */
     .table-wrapper {
         overflow-x: auto;
-        max-height: 500px;
         overflow-y: auto;
+        max-height: 500px;
+        -webkit-overflow-scrolling: touch;
     }
 
     .table-custom {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.85rem;
-        table-layout: fixed;
+        font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+        min-width: 800px; /* Force le scroll horizontal sur mobile */
     }
-
-    /* Largeurs fixes des colonnes */
-    .table-custom th:nth-child(1) { width: 15%; }
-    .table-custom th:nth-child(2) { width: 30%; }
-    .table-custom th:nth-child(3) { width: 12%; }
-    .table-custom th:nth-child(4) { width: 15%; }
-    .table-custom th:nth-child(5) { width: 28%; }
 
     .table-custom thead th {
         background: var(--dark-color);
         color: white;
-        padding: 12px 10px;
+        padding: 10px 8px;
         font-weight: 600;
         position: sticky;
         top: 0;
         z-index: 10;
         text-align: left;
+        white-space: nowrap;
     }
 
     .table-custom tbody tr {
@@ -222,69 +229,85 @@
 
     .table-custom tbody tr:hover {
         background: #f8f9fa;
-        transform: scale(1.01);
     }
 
     .table-custom td {
-        padding: 10px;
+        padding: 10px 8px;
         border-bottom: 1px solid var(--light-color);
         vertical-align: middle;
     }
 
     .table-custom td:nth-child(4) {
         text-align: right;
+        white-space: nowrap;
     }
 
-    /* Badges */
+    /* Badges - Responsive */
     .badge-numero {
         background: var(--primary-color);
         color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 15px;
+        font-size: clamp(0.7rem, 2.5vw, 0.8rem);
         font-weight: 600;
         display: inline-block;
+        white-space: nowrap;
     }
 
     .badge-client {
         background: var(--info-color);
         color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 15px;
+        font-size: clamp(0.7rem, 2.5vw, 0.8rem);
         display: inline-block;
         cursor: help;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* Montant */
     .montant {
         font-weight: bold;
         color: var(--success-color);
+        white-space: nowrap;
     }
 
-    /* Boutons action */
+    /* Boutons action - Version responsive */
     .action-group {
         display: flex;
-        gap: 5px;
+        gap: 4px;
         flex-wrap: wrap;
-        justify-content: center;
     }
 
     .action-group .btn {
-        padding: 4px 8px;
-        font-size: 0.7rem;
-        border-radius: 6px;
+        padding: 4px 6px;
+        font-size: clamp(0.65rem, 2.2vw, 0.75rem);
+        border-radius: 4px;
+        white-space: nowrap;
     }
 
-    /* Modal */
+    /* Modal - Responsive */
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    @media (min-width: 576px) {
+        .modal-dialog {
+            margin: 1.75rem auto;
+        }
+    }
+
     .modal-content {
-        border-radius: 15px;
+        border-radius: 12px;
         border: none;
         overflow: hidden;
     }
 
     .modal-header {
-        padding: 15px 20px;
+        padding: 12px 16px;
         border: none;
     }
 
@@ -300,38 +323,165 @@
         filter: brightness(0) invert(1);
     }
 
-    /* Responsive */
-    @media (max-width: 992px) {
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+    .modal-body {
+        padding: 16px;
+        font-size: clamp(0.9rem, 3vw, 1rem);
+    }
+
+    .modal-footer {
+        padding: 12px 16px;
+        gap: 8px;
+    }
+
+    .modal-footer .btn {
+        padding: 8px 16px;
+        font-size: clamp(0.85rem, 3vw, 0.95rem);
+    }
+
+    /* Alertes - Responsive */
+    .alert {
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        font-size: clamp(0.85rem, 3vw, 0.95rem);
+    }
+
+    /* Media Queries spécifiques */
+    @media (max-width: 768px) {
+        .proformas-container {
+            padding: 5px;
         }
-        
+
         .proformas-header {
+            padding: 12px 15px;
             flex-direction: column;
             text-align: center;
         }
-        
-        .table-header {
-            flex-direction: column;
-        }
-        
-        .export-buttons {
+
+        .btn-add {
             width: 100%;
             justify-content: center;
         }
-        
-        .action-group {
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .search-card {
+            padding: 12px;
+        }
+
+        .search-input-group {
+            flex-direction: column;
+        }
+
+        .search-input {
+            width: 100%;
+        }
+
+        #clearSearch {
+            width: 100%;
+        }
+
+        .table-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .export-buttons {
+            justify-content: space-between;
+        }
+
+        .btn-sm-custom {
+            flex: 1;
             justify-content: center;
         }
-        
-        .table-custom {
-            font-size: 0.75rem;
+
+        .action-group {
+            justify-content: flex-start;
         }
-        
-        .table-custom th,
-        .table-custom td {
-            padding: 8px;
+
+        .action-group .btn {
+            padding: 6px 8px;
         }
+
+        /* Indication de scroll horizontal */
+        .table-wrapper {
+            position: relative;
+        }
+
+        .table-wrapper::after {
+            content: "← Faites glisser →";
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .table-wrapper::after {
+                opacity: 1;
+            }
+        }
+    }
+
+    @media (max-width: 480px) {
+        .proformas-header h4 {
+            font-size: 1.1rem;
+        }
+
+        .stat-card {
+            padding: 10px;
+        }
+
+        .badge-client {
+            max-width: 120px;
+        }
+
+        .action-group .btn span {
+            display: none; /* Cache le texte des boutons */
+        }
+
+        .action-group .btn i {
+            margin: 0;
+        }
+
+        .modal-footer {
+            flex-direction: column;
+        }
+
+        .modal-footer .btn {
+            width: 100%;
+            margin: 0;
+        }
+    }
+
+    /* Amélioration de l'accessibilité tactile */
+    @media (hover: none) and (pointer: coarse) {
+        .btn, .btn-add, .btn-sm-custom, .stat-card {
+            min-height: 44px; /* Taille minimale pour le tactile */
+        }
+
+        .action-group .btn {
+            min-height: 36px;
+            min-width: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    /* Correction des balises non fermées dans votre code original */
+    .proforma-row td {
+        /* Assure que les cellules sont bien structurées */
     }
 </style>
 {% endblock %}
@@ -344,7 +494,7 @@
             <i class="fas fa-file-invoice"></i> Liste des Proformas
         </h4>
         <a href="{{ url_for('nouvelle_proforma') }}" class="btn-add">
-            <i class="fas fa-plus-circle"></i> Nouvelle Proforma
+            <i class="fas fa-plus-circle"></i> <span>Nouvelle Proforma</span>
         </a>
     </div>
 
@@ -372,6 +522,11 @@
             <div class="stat-value">{{ total_proformas }}</div>
             <div class="stat-label">Total Proformas</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_montant).replace(',', ' ') }}</div>
+            <div class="stat-label">Total FCFA</div>
+        </div>
     </div>
 
     <!-- Barre de recherche -->
@@ -380,7 +535,7 @@
             <input type="text" id="searchInput" class="search-input" 
                    placeholder="Rechercher par numéro, client...">
             <button type="button" id="clearSearch" class="btn btn-secondary">
-                <i class="fas fa-times"></i> Effacer
+                <i class="fas fa-times"></i> <span>Effacer</span>
             </button>
         </div>
         <div class="mt-2">
@@ -400,10 +555,10 @@
             </div>
             <div class="export-buttons">
                 <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
-                    <i class="fas fa-file-excel"></i> Excel
+                    <i class="fas fa-file-excel"></i> <span>Excel</span>
                 </button>
                 <button type="button" onclick="window.print()" class="btn-sm-custom btn-print">
-                    <i class="fas fa-print"></i> Imprimer
+                    <i class="fas fa-print"></i> <span>Imprimer</span>
                 </button>
             </div>
         </div>
@@ -433,41 +588,41 @@
                             <span class="badge-client" title="{{ p.client.nom_client if p.client and p.client.nom_client else p.attn }}">
                                 {{ p.client.nom_client if p.client and p.client.nom_client else p.attn }}
                             </span>
-                        </div>
-                        <td>{{ p.date.strftime("%d/%m/%Y") if p.date else '-' }}</div>
+                        </td>
+                        <td>{{ p.date.strftime("%d/%m/%Y") if p.date else '-' }}</td>
                         <td>
                             <span class="montant">{{ "{:,.0f}".format(p.total).replace(',', ' ') }} FCFA</span>
-                        </div>
+                        </td>
                         <td>
                             <div class="action-group">
                                 <a href="{{ url_for('details_proforma', proforma_id=p.id) }}" 
                                    class="btn btn-sm btn-info" title="Voir les détails">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline">Voir</span>
                                 </a>
                                 <a href="{{ url_for('modifier_proforma', proforma_id=p.id) }}" 
                                    class="btn btn-sm btn-warning" title="Modifier">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fas fa-edit"></i> <span class="d-none d-md-inline">Modifier</span>
                                 </a>
                                 <a href="{{ url_for('proforma_pdf', proforma_id=p.id) }}"
                                    target="_blank"
                                    class="btn btn-sm btn-secondary"
                                    title="Télécharger PDF">
-                                    <i class="fas fa-file-pdf"></i>
+                                    <i class="fas fa-file-pdf"></i> <span class="d-none d-md-inline">PDF</span>
                                 </a>
                                 <button type="button"
                                         class="btn btn-sm btn-success"
                                         onclick="dupliquerProforma({{ p.id }}, '{{ p.numero }}')"
                                         title="Dupliquer">
-                                    <i class="fas fa-copy"></i>
+                                    <i class="fas fa-copy"></i> <span class="d-none d-md-inline">Dupliquer</span>
                                 </button>
                                 <button type="button"
                                         class="btn btn-sm btn-danger"
                                         onclick="confirmerSuppression({{ p.id }}, '{{ p.numero }}')"
                                         title="Supprimer">
-                                    <i class="fas fa-trash-alt"></i>
+                                    <i class="fas fa-trash-alt"></i> <span class="d-none d-md-inline">Supprimer</span>
                                 </button>
                             </div>
-                        </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -485,13 +640,14 @@
     {% endif %}
 </div>
 
+<!-- Modals (inchangés, juste quelques ajustements de classes) -->
 <!-- Modal de confirmation pour la suppression -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                    <i class="fas fa-exclamation-triangle"></i> Confirmation
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -521,7 +677,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="duplicateModalLabel">
-                    <i class="fas fa-copy"></i> Confirmation de duplication
+                    <i class="fas fa-copy"></i> Confirmation
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -547,7 +703,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-// Filtrage en temps réel
+// Le JavaScript reste identique, il est déjà bien optimisé
 function filterProformas() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     const rows = document.querySelectorAll('#tableBody .proforma-row');
@@ -567,23 +723,17 @@ function filterProformas() {
         }
     });
     
-    // Mettre à jour les compteurs
     document.getElementById('visibleCount').innerText = visibleCount;
     document.getElementById('badgeCount').innerText = visibleCount;
 }
 
-// Effacer la recherche
 document.getElementById('clearSearch')?.addEventListener('click', function() {
     document.getElementById('searchInput').value = '';
     filterProformas();
 });
 
-// Écouter les changements dans la recherche
-document.getElementById('searchInput')?.addEventListener('input', function() {
-    filterProformas();
-});
+document.getElementById('searchInput')?.addEventListener('input', filterProformas);
 
-// Confirmation de suppression
 function confirmerSuppression(proformaId, proformaNumero) {
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     document.getElementById('proformaNumero').textContent = proformaNumero;
@@ -592,7 +742,6 @@ function confirmerSuppression(proformaId, proformaNumero) {
     modal.show();
 }
 
-// Confirmation de duplication
 function dupliquerProforma(proformaId, proformaNumero) {
     const modal = new bootstrap.Modal(document.getElementById('duplicateModal'));
     document.getElementById('duplicateProformaNumero').textContent = proformaNumero;
@@ -601,7 +750,6 @@ function dupliquerProforma(proformaId, proformaNumero) {
     modal.show();
 }
 
-// Double-clic sur une ligne pour modifier
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".proforma-row").forEach(row => {
         row.addEventListener("dblclick", function() {
@@ -611,23 +759,22 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-// Export Excel
 function exportToExcel() {
     let csv = [["Numéro", "Client", "Date", "Total"]];
     
-    document.querySelectorAll('#tableBody .proforma-row:visible').forEach(row => {
+    document.querySelectorAll('#tableBody .proforma-row[style=""]').forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 4) {
             csv.push([
-                cells[0]?.innerText,
-                cells[1]?.innerText,
-                cells[2]?.innerText,
-                cells[3]?.innerText
+                cells[0]?.innerText.trim(),
+                cells[1]?.innerText.trim(),
+                cells[2]?.innerText.trim(),
+                cells[3]?.innerText.trim()
             ]);
         }
     });
     
-    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
+    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(';')).join('\n')], 
                           { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
