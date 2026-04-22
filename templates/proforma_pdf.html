@@ -456,6 +456,12 @@
     </table>
 </div>
 {% endif %}
+{% if proforma.proforma_comment %}
+<div class="comment-box">
+    <strong><i class="fas fa-comment"></i> Commentaire :</strong>
+    <p>{{ proforma.proforma_comment }}</p>
+</div>
+{% endif %}
 
 <!-- TABLEAU DES PRODUITS AVEC PHOTO -->
 <table class="table-produits">
@@ -586,12 +592,6 @@
 </div>
 
 <!-- COMMENTAIRE OPTIONNEL -->
-{% if proforma.proforma_comment %}
-<div class="comment-box">
-    <strong><i class="fas fa-comment"></i> Commentaire :</strong>
-    <p>{{ proforma.proforma_comment }}</p>
-</div>
-{% endif %}
 
 <!-- SIGNATURES -->
 <div class="footer">
