@@ -267,15 +267,11 @@
         border-radius: 4px;
     }
     
-    .comment-box strong {
-        color: #17a2b8;
-        display: block;
-        margin-bottom: 5px;
-    }
     
     .comment-box p {
         margin: 0;
-        font-size: 12px;
+        font-size: 14px;
+        font-weight: 800;
         line-height: 1.5;
     }
     
@@ -458,7 +454,6 @@
 {% endif %}
 {% if proforma.proforma_comment %}
 <div class="comment-box">
-    <strong><i class="fas fa-comment"></i> Commentaire :</strong>
     <p>{{ proforma.proforma_comment }}</p>
 </div>
 {% endif %}
