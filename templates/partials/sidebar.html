@@ -1,18 +1,21 @@
 {# templates/partials/sidebar.html #}
 <ul class="nav flex-column p-2">
-    {# Dashboard #}
-    {% if current_user.role in ['admin', 'superadmin'] %}
-        <li class="nav-item-custom {% if is_active('dashboard') %}active{% endif %}">
-            <a class="nav-link-custom" href="{{ url_for('dashboard') }}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-    {% endif %}
     
-    {# Paramètres #}
-    {% if current_user.role in ['superadmin', 'admin', 'operateur', 'finance'] %}
-        <li class="nav-item">
+    {# ============================================================ #}
+    {# DASHBOARD - Visible pour TOUS les rôles #}
+    {# ============================================================ #}
+    <li class="nav-item-custom {% if is_active('dashboard') %}active{% endif %}">
+        <a class="nav-link-custom" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Tableau de bord</span>
+        </a>
+    </li>
+    
+    {# ============================================================ #}
+    {# PARAMÈTRES - Selon les rôles #}
+    {# ============================================================ #}
+    {% if has_role('superadmin', 'admin', 'operateur', 'finance') %}
+        <li class="nav-item-custom">
             <a class="nav-link-custom" data-bs-toggle="collapse" href="#paramMenu" role="button" aria-expanded="false">
                 <i class="bi bi-gear"></i>
                 <span>Paramètres</span>
@@ -20,32 +23,32 @@
             </a>
             <div class="collapse" id="paramMenu">
                 <ul class="nav flex-column ms-3">
-                    {% if current_user.role in ['superadmin', 'admin', 'operateur'] %}
-                        <li class="nav-item-custom">
+                    {% if has_role('superadmin', 'admin', 'operateur') %}
+                        <li class="nav-item-custom {% if is_active('fournisseur') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('fournisseur') }}">
                                 <i class="bi bi-truck"></i> Fournisseurs
                             </a>
                         </li>
-                        <li class="nav-item-custom">
+                        <li class="nav-item-custom {% if is_active('produit') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('produit') }}">
                                 <i class="bi bi-box"></i> Produits
                             </a>
                         </li>
-                        <li class="nav-item-custom">
+                        <li class="nav-item-custom {% if is_active('magasin') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('magasin') }}">
                                 <i class="bi bi-shop"></i> Magasins
                             </a>
                         </li>
                     {% endif %}
-                    {% if current_user.role in ['superadmin', 'admin', 'finance', 'operateur'] %}
-                        <li class="nav-item-custom">
+                    {% if has_role('superadmin', 'admin', 'finance', 'operateur') %}
+                        <li class="nav-item-custom {% if is_active('client') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('client') }}">
                                 <i class="bi bi-people"></i> Clients
                             </a>
                         </li>
                     {% endif %}
-                    {% if current_user.role in ['superadmin', 'admin', 'finance'] %}
-                        <li class="nav-item-custom">
+                    {% if has_role('superadmin', 'admin', 'finance') %}
+                        <li class="nav-item-custom {% if is_active('liste_vendeurs') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('liste_vendeurs') }}">
                                 <i class="bi bi-person-badge"></i> Vendeurs
                             </a>
@@ -56,8 +59,10 @@
         </li>
     {% endif %}
     
-    {# Achats #}
-    {% if current_user.role in ['admin', 'superadmin', 'operateur'] %}
+    {# ============================================================ #}
+    {# ACHATS / ENTRÉE STOCK - Admin, Superadmin, Operateur #}
+    {# ============================================================ #}
+    {% if has_role('admin', 'superadmin', 'operateur') %}
         <li class="nav-item-custom {% if is_active('etat_stock') %}active{% endif %}">
             <a class="nav-link-custom" href="{{ url_for('etat_stock') }}">
                 <i class="bi bi-box-seam"></i>
@@ -72,8 +77,10 @@
         </li>
     {% endif %}
     
-    {# Ventes #}
-    {% if current_user.role in ['admin', 'superadmin', 'finance'] %}
+    {# ============================================================ #}
+    {# VENTES - Admin, Superadmin, Finance #}
+    {# ============================================================ #}
+    {% if has_role('admin', 'superadmin', 'finance') %}
         <li class="nav-item-custom {% if is_active('nouvelle_vente') %}active{% endif %}">
             <a class="nav-link-custom" href="{{ url_for('nouvelle_vente') }}">
                 <i class="bi bi-cash-stack"></i>
@@ -82,8 +89,10 @@
         </li>
     {% endif %}
     
-    {# Documents #}
-    <li class="nav-item">
+    {# ============================================================ #}
+    {# DOCUMENTS - Visible pour TOUS #}
+    {# ============================================================ #}
+    <li class="nav-item-custom">
         <a class="nav-link-custom" data-bs-toggle="collapse" href="#documentsMenu" role="button" aria-expanded="false">
             <i class="bi bi-file-text"></i>
             <span>Documents</span>
@@ -91,27 +100,27 @@
         </a>
         <div class="collapse" id="documentsMenu">
             <ul class="nav flex-column ms-3">
-                <li class="nav-item-custom">
+                <li class="nav-item-custom {% if is_active('liste_bons_livraison') %}active{% endif %}">
                     <a class="nav-link-custom" href="{{ url_for('liste_bons_livraison') }}">
                         <i class="bi bi-truck"></i> Bons de Livraison
                     </a>
                 </li>
-                <li class="nav-item-custom">
+                <li class="nav-item-custom {% if is_active('creer_certificat') %}active{% endif %}">
                     <a class="nav-link-custom" href="{{ url_for('creer_certificat') }}">
                         <i class="bi bi-wrench"></i> Réparations
                     </a>
                 </li>
-                <li class="nav-item-custom">
+                <li class="nav-item-custom {% if is_active('liste_proformas') %}active{% endif %}">
                     <a class="nav-link-custom" href="{{ url_for('liste_proformas') }}">
                         <i class="bi bi-file-earmark-text"></i> Proformas
                     </a>
                 </li>
-                <li class="nav-item-custom">
+                <li class="nav-item-custom {% if is_active('list_kit_proforma') %}active{% endif %}">
                     <a class="nav-link-custom" href="{{ url_for('list_kit_proforma') }}">
                         <i class="bi bi-files"></i> Kits Proforma
                     </a>
                 </li>
-                <li class="nav-item-custom">
+                <li class="nav-item-custom {% if is_active('liste_bons_commandes') %}active{% endif %}">
                     <a class="nav-link-custom" href="{{ url_for('liste_bons_commandes') }}">
                         <i class="bi bi-cart-check"></i> Bons de Commande
                     </a>
@@ -120,9 +129,11 @@
         </div>
     </li>
     
-    {# Rapports #}
-    {% if current_user.role in ['admin', 'superadmin', 'finance'] %}
-        <li class="nav-item">
+    {# ============================================================ #}
+    {# RAPPORTS - Admin, Superadmin, Finance #}
+    {# ============================================================ #}
+    {% if has_role('admin', 'superadmin', 'finance') %}
+        <li class="nav-item-custom">
             <a class="nav-link-custom" data-bs-toggle="collapse" href="#rapportsMenu" role="button" aria-expanded="false">
                 <i class="bi bi-graph-up"></i>
                 <span>Rapports</span>
@@ -130,30 +141,30 @@
             </a>
             <div class="collapse" id="rapportsMenu">
                 <ul class="nav flex-column ms-3">
-                    {% if current_user.role in ['admin', 'superadmin'] %}
-                        <li class="nav-item-custom">
+                    {% if has_role('admin', 'superadmin') %}
+                        <li class="nav-item-custom {% if is_active('rapport_stock') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('rapport_stock') }}">
                                 <i class="bi bi-pie-chart"></i> Rapport Stock
                             </a>
                         </li>
-                        <li class="nav-item-custom">
+                        <li class="nav-item-custom {% if is_active('rapport_vendeur') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('rapport_vendeur') }}">
                                 <i class="bi bi-bar-chart"></i> Rapport Vendeurs
                             </a>
                         </li>
                     {% endif %}
-                    <li class="nav-item-custom">
+                    <li class="nav-item-custom {% if is_active('rapport_client') %}active{% endif %}">
                         <a class="nav-link-custom" href="{{ url_for('rapport_client') }}">
                             <i class="bi bi-people-chart"></i> Rapport Clients
                         </a>
                     </li>
-                    <li class="nav-item-custom">
+                    <li class="nav-item-custom {% if is_active('etat_propositions') %}active{% endif %}">
                         <a class="nav-link-custom" href="{{ url_for('etat_propositions') }}">
                             <i class="bi bi-clipboard-data"></i> État Propositions
                         </a>
                     </li>
-                    {% if current_user.role in ['admin', 'superadmin'] %}
-                        <li class="nav-item-custom">
+                    {% if has_role('admin', 'superadmin') %}
+                        <li class="nav-item-custom {% if is_active('logs') %}active{% endif %}">
                             <a class="nav-link-custom" href="{{ url_for('logs') }}">
                                 <i class="bi bi-archive"></i> Logs Système
                             </a>
@@ -164,8 +175,10 @@
         </li>
     {% endif %}
     
-    {# Utilisateurs #}
-    {% if current_user.role in ['admin', 'superadmin'] %}
+    {# ============================================================ #}
+    {# UTILISATEURS - Admin, Superadmin uniquement #}
+    {# ============================================================ #}
+    {% if has_role('admin', 'superadmin') %}
         <li class="nav-item-custom {% if is_active('user') %}active{% endif %}">
             <a class="nav-link-custom" href="{{ url_for('user') }}">
                 <i class="bi bi-people"></i>
@@ -174,8 +187,10 @@
         </li>
     {% endif %}
     
-    {# Ma Compagnie #}
-    {% if current_user.role in ['admin', 'superadmin', 'finance', 'operateur'] %}
+    {# ============================================================ #}
+    {# MA COMPAGNIE - Tous les rôles authentifiés #}
+    {# ============================================================ #}
+    {% if has_role('admin', 'superadmin', 'finance', 'operateur') %}
         <li class="nav-item-custom {% if is_active('compagnie') %}active{% endif %}">
             <a class="nav-link-custom" href="{{ url_for('compagnie') }}">
                 <i class="bi bi-building"></i>

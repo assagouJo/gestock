@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord - {{ current_user.role|capitalize }}{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primary-color: {% if current_user.role == 'finance' %}#16a085{% elif current_user.role == 'operateur' %}#d35400{% else %}#3498db{% endif %};
+        --secondary-color: #2c3e50;
+        --background-light: #f8f9fa;
+        --border-color: #e9ecef;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        background: #f5f7fa;
+        color: #2c3e50;
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* ========== HEADER ========== */
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 16px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .welcome-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .welcome-text h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .welcome-text p {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .user-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.15);
+        padding: 10px 18px;
+        border-radius: 40px;
+        backdrop-filter: blur(10px);
+    }
+
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .user-info {
+        line-height: 1.4;
+    }
+
+    .user-name {
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .user-role {
+        font-size: 11px;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* ========== QUICK ACTIONS ========== */
+    .quick-actions {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 14px 24px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--secondary-color);
+        text-decoration: none;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .action-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .action-btn i {
+        font-size: 18px;
+    }
+
+    /* ========== INFO MESSAGE ========== */
+    .info-message {
+        background: var(--background-light);
+        border-left: 4px solid var(--primary-color);
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .info-message i {
+        color: var(--primary-color);
+        font-size: 20px;
+    }
+
+    .info-message p {
+        color: var(--secondary-color);
+        font-size: 14px;
+    }
+
+    /* ========== CARD ========== */
+    .card {
+        background: white;
+        border-radius: 14px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: var(--primary-color);
+    }
+
+    .view-all {
+        font-size: 13px;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .view-all:hover {
+        text-decoration: underline;
+    }
+
+    /* ========== TABLE ========== */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .data-table th {
+        text-align: left;
+        padding: 12px 10px;
+        background: var(--background-light);
+        color: var(--secondary-color);
+        font-weight: 600;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .data-table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table tbody tr:hover {
+        background: var(--background-light);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-info {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    /* ========== ACTIVITY LIST ========== */
+    .activity-list {
+        list-style: none;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--background-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-bottom: 4px;
+    }
+
+    .activity-desc {
+        font-size: 13px;
+        color: #7f8c8d;
+        margin-bottom: 4px;
+    }
+
+    .activity-time {
+        font-size: 11px;
+        color: #95a5a6;
+    }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #95a5a6;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* ========== FOOTER ========== */
+    .dashboard-footer {
+        text-align: center;
+        padding: 20px;
+        color: #95a5a6;
+        font-size: 12px;
+        border-top: 1px solid var(--border-color);
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <div class="welcome-section">
+            <div class="welcome-text">
+                <h1>
+                    {% if current_user.role == 'finance' %}
+                        💰 Espace Finance
+                    {% elif current_user.role == 'operateur' %}
+                        ⚙️ Espace Opérateur
+                    {% endif %}
+                </h1>
+                <p>Bonjour {{ current_user.username }} ! Bienvenue sur votre espace de travail</p>
+            </div>
+            <div class="user-badge">
+                <div class="user-avatar">
+                    {{ current_user.username[:1].upper() }}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">{{ current_user.username }}</div>
+                    <div class="user-role">{{ current_user.role }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIONS RAPIDES -->
+    <div class="quick-actions">
+        {% if current_user.role == 'finance' %}
+        <a href="{{ url_for('ventes') }}" class="action-btn">
+            <i class="fas fa-file-invoice"></i> Factures
+        </a>
+        <a href="{{ url_for('clients') }}" class="action-btn">
+            <i class="fas fa-users"></i> Clients
+        </a>
+        <a href="{{ url_for('paiements') }}" class="action-btn">
+            <i class="fas fa-money-bill-wave"></i> Paiements
+        </a>
+        {% elif current_user.role == 'operateur' %}
+        <a href="{{ url_for('liste_bons_livraison') }}" class="action-btn">
+            <i class="fas fa-truck"></i> Livraisons
+        </a>
+        <a href="{{ url_for('gerer_stock') }}" class="action-btn">
+            <i class="fas fa-boxes"></i> Stock
+        </a>
+        <a href="{{ url_for('commandes') }}" class="action-btn">
+            <i class="fas fa-shopping-cart"></i> Commandes
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- MESSAGE D'INFORMATION -->
+    <div class="info-message">
+        <i class="fas fa-info-circle"></i>
+        <p>
+            {% if current_user.role == 'finance' %}
+                Accédez rapidement aux factures, clients et paiements depuis cet espace.
+            {% elif current_user.role == 'operateur' %}
+                Gérez les livraisons, le stock et les commandes depuis cet espace.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- ACTIVITÉ RÉCENTE -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-clock"></i>
+                Activité récente
+            </div>
+        </div>
+        
+        {% if activites %}
+        <ul class="activity-list">
+            {% for activite in activites %}
+            <li class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-{{ activite.icon|default('circle') }}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">{{ activite.titre }}</div>
+                    <div class="activity-desc">{{ activite.description }}</div>
+                    <div class="activity-time">{{ activite.date }}</div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <p>Aucune activité récente</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- TABLEAU SPÉCIFIQUE -->
+    {% if current_user.role == 'finance' %}
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-file-invoice"></i>
+                Dernières factures
+            </div>
+            <a href="{{ url_for('ventes') }}" class="view-all">Toutes les factures <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>N° Facture</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for facture in dernieres_factures %}
+                    <tr>
+                        <td><strong>{{ facture.numero }}</strong></td>
+                        <td>{{ facture.client }}</td>
+                        <td>{{ facture.date }}</td>
+                        <td>{{ facture.montant }} FCFA</td>
+                        <td>
+                            {% if facture.statut == 'payee' %}
+                                <span class="badge badge-success">Payée</span>
+                            {% else %}
+                                <span class="badge badge-warning">En attente</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-file-invoice"></i>
+                                <p>Aucune facture récente</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% elif current_user.role == 'operateur' %}
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-tasks"></i>
+                Livraisons en cours
+            </div>
+            <a href="{{ url_for('liste_bons_livraison') }}" class="view-all">Toutes les livraisons <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Livraison</th>
+                        <th>Lieu</th>
+                        <th>Priorité</th>
+                        <th>Échéance</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tache in taches_en_cours %}
+                    <tr>
+                        <td><strong>{{ tache.nom }}</strong></td>
+                        <td>{{ tache.machine }}</td>
+                        <td><span class="badge badge-warning">{{ tache.priorite }}</span></td>
+                        <td>{{ tache.echeance }}</td>
+                        <td><span class="badge badge-info">{{ tache.statut }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                                <p>Aucune livraison en cours</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- FOOTER -->
+    <div class="dashboard-footer">
+        © {{ now.year|default('2024') }} - GESTOCK | Dernière connexion : aujourd'hui
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

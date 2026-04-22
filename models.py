@@ -535,12 +535,12 @@ class LigneKitProforma(db.Model):
 
 class Proforma(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    proforma_title = db.Column(db.String(400))
-    proforma_comment = db.Column(db.String(400))
-    condition_paiement = db.Column(db.String(200))
-    delai_livraison = db.Column(db.String(200))
-    garantie = db.Column(db.String(200))
-    attn = db.Column(db.String(100))
+    proforma_title = db.Column(db.String(500))
+    proforma_comment = db.Column(db.String(500))
+    condition_paiement = db.Column(db.String(500))
+    delai_livraison = db.Column(db.String(500))
+    garantie = db.Column(db.String(500))
+    attn = db.Column(db.String(400))
     numero = db.Column(db.String(50), unique=True, nullable=False)
 
     client_id = db.Column(
