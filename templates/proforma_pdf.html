@@ -52,7 +52,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 5px 0;
+        padding: 5px 5px;
     }
     
     .left img {
@@ -68,7 +68,8 @@
     
     .entete {
         text-align: center;
-        margin: 10px 0;
+        margin: 5px 0;
+        padding: 5px 5px;
     }
     
     .entete h3 {
@@ -101,8 +102,10 @@
         display: flex;
         justify-content: space-between;
         background: #f2f2f2;
-        padding: 5px;
+        padding: 5px 5px;
         margin-bottom: 8px;
+        margin-left: 5px;
+        margin-right: 5px;
         border-radius: 4px;
     }
     
@@ -110,8 +113,8 @@
         display: flex;
         justify-content: space-between;
         border: 1px solid #999;
-        padding: 5px;
-        margin-bottom: 8px;
+        padding: 5px 5px;
+        margin: 5px;
         border-radius: 4px;
     }
     
@@ -126,6 +129,8 @@
     .conditions-table {
         width: 100%;
         border-collapse: collapse;
+        margin-left: 5px;
+        margin-right: 5px;
     }
     
     .conditions-table td {
@@ -143,7 +148,7 @@
     .table-produits {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         table-layout: fixed;
     }
     
@@ -157,7 +162,7 @@
     }
     
     .table-produits td {
-        padding: 10px 8px;
+        padding: 5px 5px;
         border-bottom: 1px solid #ddd;
         vertical-align: top;
     }
@@ -173,17 +178,17 @@
     }
     
     .col-photo {
-        width: 15%;
-        text-align: left;
+        width: 20%;
+        text-align: center;
     }
 
     .col-photo img{
         height: 120px;
-        width: 80px;
+        width: 100px;
     }
     
     .col-produit {
-        width: 50%;
+        width: 51%;
     }
     
     .col-quantite {
@@ -192,7 +197,7 @@
     }
     
     .col-soustotal, .col-prix {
-        width: 15%;
+        width: 12%;
         text-align: right;
         font-size: 12px;
     }
@@ -423,10 +428,10 @@
     </div>
     <div>
         {% if proforma.client and proforma.client.telephone %}
-        <span style="font-size: 14px;">Tél : {{ proforma.client.telephone if proforma.client else '' }} </span><br>
+        <span style="font-size: 12px;">Tél : {{ proforma.client.telephone if proforma.client else '' }} </span><br>
         {% endif %}
         {% if proforma.client and proforma.client.adresse %}
-        <span style="font-size: 14px;">Ville : {{ proforma.client.adresse if proforma.client else '' }} </span>
+        <span style="font-size: 12px;">Ville : {{ proforma.client.adresse if proforma.client else '' }} </span>
         {% endif %}
     </div>
 </div>
