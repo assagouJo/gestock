@@ -4,13 +4,14 @@
     {# ============================================================ #}
     {# DASHBOARD - Visible pour TOUS les rôles #}
     {# ============================================================ #}
+    {% if current_user.role == 'admin' %}
     <li class="nav-item-custom {% if is_active('dashboard') %}active{% endif %}">
         <a class="nav-link-custom" href="{{ url_for('dashboard') }}">
             <i class="bi bi-speedometer2"></i>
             <span>Tableau de bord</span>
         </a>
     </li>
-    
+    {% endif %}
     {# ============================================================ #}
     {# PARAMÈTRES - Selon les rôles #}
     {# ============================================================ #}

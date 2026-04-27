@@ -59,9 +59,11 @@ class ClientForm(FlaskForm):
 
 
 class FournisseurForm(FlaskForm):
+    compagnie = StringField("Compagnie")
     nom_fournisseur = StringField("Nom client", validators=[DataRequired()])
     telephone = StringField("Telephone")
     adresse = StringField("Adresse")
+    email = StringField("Email",validators=[Optional(), Email()])
     submit = SubmitField("Enregistrer")
 
 

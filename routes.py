@@ -346,237 +346,272 @@ from flask_login import login_required, current_user
 from models import Vente, Achat, Vendeur, Client, LigneVente, Produit, Stock
 from sqlalchemy.orm import joinedload
 
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    if current_user.role != 'admin':
+        flash("Accès refusé. Le tableau de bord est réservé à l'administrateur.", "danger")
+        return redirect(url_for('index'))
     
     # ============================================================
-    # 🔹 REDIRECTION SELON LE RÔLE DE L'UTILISATEUR
+    # 🔹 PARAMÈTRES DE FILTRAGE
     # ============================================================
+    # Par défaut : tous les mois (mois=0), année en cours
+    mois_filtre = request.args.get('mois', type=int, default=0)
+    annee_filtre = request.args.get('annee', type=int, default=datetime.now().year)
     
-    # Dashboard Admin (existant)
-    if current_user.role == 'admin':
-        from models import LigneVente, Produit, Stock
-        from sqlalchemy.orm import joinedload
-        
-        # =========================
-        # 🔹 CHARGEMENT DES DONNÉES AVEC OPTIMISATION
-        # =========================
-        ventes = Vente.query.options(
-            joinedload(Vente.client),
-            joinedload(Vente.lignes).joinedload(LigneVente.stock).joinedload(Stock.produit),
-            joinedload(Vente.vendeur)
-        ).all()
-        
-        achats = Achat.query.all()
-        vendeurs = Vendeur.query.all()
-        clients = Client.query.all()
-
-        # =========================
-        # 🔹 STATISTIQUES GÉNÉRALES
-        # =========================
-        
-        # Calcul des totaux
-        total_ventes = sum(float(v.total or 0) for v in ventes)
-        total_achats = sum(float(a.total_ttc or 0) for a in achats)
-        total_dettes = sum(sum(float(v.reste_a_payer or 0) for v in client.ventes) for client in clients)
-        nb_vendeurs = len(vendeurs)
-        
-        # Moyenne des ventes par vendeur
-        moyenne_ventes_vendeur = total_ventes / nb_vendeurs if nb_vendeurs > 0 else 0
-        
-        # Calcul des tendances (comparaison avec mois précédent)
-        maintenant = datetime.now()
-        mois_courant = maintenant.month
-        mois_precedent = mois_courant - 1 if mois_courant > 1 else 12
-        
-        ventes_mois_courant = sum(float(v.total or 0) for v in ventes if v.date_vente and v.date_vente.month == mois_courant)
-        ventes_mois_precedent = sum(float(v.total or 0) for v in ventes if v.date_vente and v.date_vente.month == mois_precedent)
-        
-        achats_mois_courant = sum(float(a.total_ttc or 0) for a in achats if a.date_achat and a.date_achat.month == mois_courant)
-        achats_mois_precedent = sum(float(a.total_ttc or 0) for a in achats if a.date_achat and a.date_achat.month == mois_precedent)
-        
-        trend_ventes = ((ventes_mois_courant - ventes_mois_precedent) / ventes_mois_precedent * 100) if ventes_mois_precedent > 0 else 0
-        trend_achats = ((achats_mois_courant - achats_mois_precedent) / achats_mois_precedent * 100) if achats_mois_precedent > 0 else 0
-        
-        # Taux de recouvrement
-        total_creances = total_ventes
-        taux_recouvrement = ((total_creances - total_dettes) / total_creances * 100) if total_creances > 0 else 0
-
-        # =========================
-        # 🔹 VENTES & ACHATS PAR MOIS
-        # =========================
-        ventes_mois = defaultdict(float)
-        achats_mois = defaultdict(float)
-
-        for v in ventes:
-            if v.date_vente:
-                mois = month_name[v.date_vente.month]
-                ventes_mois[mois] += float(v.total or 0)
-
-        for a in achats:
-            if a.date_achat:
-                mois = month_name[a.date_achat.month]
-                achats_mois[mois] += float(a.total_ttc or 0)
-
-        # Fusion des mois
-        mois_uniques = sorted(
-            set(list(ventes_mois.keys()) + list(achats_mois.keys())),
-            key=lambda x: list(month_name).index(x)
-        )
-
-        labels = mois_uniques
-        ventes_data = [ventes_mois[m] for m in labels]
-        achats_data = [achats_mois[m] for m in labels]
-
-        # =========================
-        # 🔹 DETTES CLIENTS
-        # =========================
-        clients_labels = []
-        dettes_data = []
-        
-        clients_avec_dettes = []
-        for client in clients:
-            total_reste = sum(float(v.reste_a_payer or 0) for v in client.ventes)
-            if total_reste > 0:
-                clients_avec_dettes.append((client.nom_client, float(total_reste)))
-        
-        clients_avec_dettes.sort(key=lambda x: x[1], reverse=True)
-        
-        if len(clients_avec_dettes) > 10:
-            clients_avec_dettes = clients_avec_dettes[:10]
-        
-        clients_labels = [c[0] for c in clients_avec_dettes]
-        dettes_data = [c[1] for c in clients_avec_dettes]
-
-        # =========================
-        # 🔹 VENTES PAR VENDEUR
-        # =========================
-        vendeur_labels = []
-        vendeur_data = []
-        
-        vendeurs_performance = []
-        for vendeur in vendeurs:
-            total_vendeur = sum(float(v.total or 0) for v in vendeur.ventes)
-            if total_vendeur > 0:
-                vendeurs_performance.append((vendeur.nom, float(total_vendeur)))
-        
-        vendeurs_performance.sort(key=lambda x: x[1], reverse=True)
-        
-        vendeur_labels = [v[0] for v in vendeurs_performance]
-        vendeur_data = [v[1] for v in vendeurs_performance]
-
-        # =========================
-        # 🔹 TOP 5 PRODUITS LES PLUS VENDUS
-        # =========================
-        produits_vendus = defaultdict(int)
-        
-        for vente in ventes:
-            for ligne in vente.lignes:
-                if ligne.stock and ligne.stock.produit:
-                    nom_produit = ligne.stock.produit.nom_produit
-                    produits_vendus[nom_produit] += ligne.quantite or 0
-        
-        top_produits = sorted(produits_vendus.items(), key=lambda x: x[1], reverse=True)[:5]
-
-        return render_template(
-            "dashboard.html",
-            labels=labels,
-            ventes_data=ventes_data,
-            achats_data=achats_data,
-            clients_labels=clients_labels,
-            dettes_data=dettes_data,
-            vendeur_labels=vendeur_labels,
-            vendeur_data=vendeur_data,
-            total_ventes=round(total_ventes, 2),
-            total_achats=round(total_achats, 2),
-            total_dettes=round(total_dettes, 2),
-            nb_vendeurs=nb_vendeurs,
-            moyenne_ventes_vendeur=round(moyenne_ventes_vendeur, 2),
-            trend_ventes=round(trend_ventes, 1),
-            trend_achats=round(trend_achats, 1),
-            taux_recouvrement=round(taux_recouvrement, 1),
-            top_produits=top_produits
+    # ============================================================
+    # 🔹 IMPORTS ET CHARGEMENT DES DONNÉES
+    # ============================================================
+    from models import LigneVente, Produit, Stock
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import extract, func
+    from collections import defaultdict
+    from calendar import month_name
+    
+    # =========================
+    # 🔹 VENTES FILTRÉES
+    # =========================
+    query_ventes = Vente.query.options(
+        joinedload(Vente.client),
+        joinedload(Vente.lignes).joinedload(LigneVente.stock).joinedload(Stock.produit),
+        joinedload(Vente.vendeur)
+    )
+    
+    # Toujours filtrer par année
+    query_ventes = query_ventes.filter(
+        extract('year', Vente.date_vente) == annee_filtre
+    )
+    
+    # Filtrer par mois seulement si un mois spécifique est sélectionné
+    if mois_filtre and mois_filtre > 0:
+        query_ventes = query_ventes.filter(
+            extract('month', Vente.date_vente) == mois_filtre
         )
     
-    # ============================================================
-    # 🔹 DASHBOARD FINANCE
-    # ============================================================
-    elif current_user.role == 'finance':
-        # Récupération des dernières factures/ventes
-        dernieres_factures = []
-        ventes_recentes = Vente.query.options(
-            joinedload(Vente.client)
-        ).order_by(Vente.date_vente.desc()).limit(10).all()
-        
-        for vente in ventes_recentes:
-            dernieres_factures.append({
-                'numero': vente.numero_facture or f"VENTE-{vente.id}",
-                'client': vente.client.nom_client if vente.client else "Client inconnu",
-                'date': vente.date_vente.strftime('%d/%m/%Y') if vente.date_vente else "N/A",
-                'montant': round(float(vente.total or 0), 2),
-                'statut': 'payee' if (vente.reste_a_payer or 0) == 0 else 'en_attente'
-            })
-        
-        # Activités récentes (ventes et paiements)
-        activites = []
-        for vente in ventes_recentes[:5]:
-            activites.append({
-                'icon': 'file-invoice',
-                'titre': f"Facture {vente.numero_facture or f'VENTE-{vente.id}'}",
-                'description': f"Client: {vente.client.nom_client if vente.client else 'N/A'} - {round(float(vente.total or 0), 2)} FCFA",
-                'date': vente.date_vente.strftime('%d/%m/%Y %H:%M') if vente.date_vente else "N/A"
-            })
-        
-        return render_template(
-            "dashboard_non_admin.html",
-            dernieres_factures=dernieres_factures,
-            activites=activites
+    ventes = query_ventes.all()
+    
+    # =========================
+    # 🔹 ACHATS FILTRÉS
+    # =========================
+    query_achats = Achat.query
+    
+    # Toujours filtrer par année
+    query_achats = query_achats.filter(
+        extract('year', Achat.date_achat) == annee_filtre
+    )
+    
+    # Filtrer par mois seulement si un mois spécifique est sélectionné
+    if mois_filtre and mois_filtre > 0:
+        query_achats = query_achats.filter(
+            extract('month', Achat.date_achat) == mois_filtre
         )
     
-    # ============================================================
-    # 🔹 DASHBOARD OPÉRATEUR
-    # ============================================================
-    elif current_user.role == 'operateur':
-        # Récupération des tâches (exemple : bons de livraison en cours)
-        from models import BonLivraison
-        
-        taches_en_cours = []
-        bons_en_cours = BonLivraison.query.filter(
-            BonLivraison.status == 'partielle'
-        ).order_by(BonLivraison.date_creation.desc()).limit(10).all()
-        
-        for bon in bons_en_cours:
-            taches_en_cours.append({
-                'nom': f"Livraison {bon.numero}",
-                'machine': 'Entrepôt',
-                'priorite': 'moyenne',
-                'echeance': bon.date_livraison.strftime('%d/%m/%Y') if bon.date_livraison else "N/A",
-                'statut': 'en_cours'
-            })
-        
-        # Activités récentes
-        activites = []
-        for bon in bons_en_cours[:5]:
-            activites.append({
-                'icon': 'truck',
-                'titre': f"Bon de livraison {bon.numero}",
-                'description': f"Status: {bon.status}",
-                'date': bon.date_creation.strftime('%d/%m/%Y %H:%M') if bon.date_creation else "N/A"
-            })
-        
-        return render_template(
-            "dashboard_non_admin.html",
-            taches_en_cours=taches_en_cours,
-            activites=activites
-        )
+    achats = query_achats.all()
     
-    # ============================================================
-    # 🔹 RÔLE NON RECONNU
-    # ============================================================
-    else:
-        flash(f"Rôle '{current_user.role}' non reconnu. Contactez l'administrateur.", "warning")
-        return redirect(url_for('logout'))
+    vendeurs = Vendeur.query.all()
+    clients = Client.query.all()
+
+    # =========================
+    # 🔹 CALCUL DU BÉNÉFICE
+    # =========================
+    total_benefice_brut = 0
+    total_cout_revient = 0
+    
+    for vente in ventes:
+        for ligne in vente.lignes:
+            if ligne.stock and ligne.stock.produit:
+                produit = ligne.stock.produit
+                quantite = int(ligne.quantite or 0)
+                prix_vente_unitaire = float(ligne.prix_unitaire or 0)
+                prix_achat_local = float(getattr(produit, 'prix_achat_local', 0) or 0)
+                frais_approche_unitaire = float(getattr(produit, 'frais_approche', 0) or 0)
+                
+                cout_revient_unitaire = prix_achat_local + frais_approche_unitaire
+                benefice_unitaire = prix_vente_unitaire - cout_revient_unitaire
+                
+                total_benefice_brut += benefice_unitaire * quantite
+                total_cout_revient += cout_revient_unitaire * quantite
+    
+    total_ventes = sum(float(v.total or 0) for v in ventes)
+    total_achats = sum(float(a.total_ttc or 0) for a in achats)
+    benefice_simple = total_ventes - total_achats
+    marge_beneficiaire = (benefice_simple / total_ventes * 100) if total_ventes > 0 else 0
+
+    # =========================
+    # 🔹 TENDANCES (comparaison avec même période année précédente)
+    # =========================
+    ventes_precedent = Vente.query.filter(
+        extract('year', Vente.date_vente) == annee_filtre - 1
+    )
+    achats_precedent = Achat.query.filter(
+        extract('year', Achat.date_achat) == annee_filtre - 1
+    )
+    
+    if mois_filtre and mois_filtre > 0:
+        ventes_precedent = ventes_precedent.filter(extract('month', Vente.date_vente) == mois_filtre)
+        achats_precedent = achats_precedent.filter(extract('month', Achat.date_achat) == mois_filtre)
+    
+    total_ventes_precedent = sum(float(v.total or 0) for v in ventes_precedent.all())
+    total_achats_precedent = sum(float(a.total_ttc or 0) for a in achats_precedent.all())
+    
+    trend_ventes = ((total_ventes - total_ventes_precedent) / total_ventes_precedent * 100) if total_ventes_precedent > 0 else 0
+    trend_achats = ((total_achats - total_achats_precedent) / total_achats_precedent * 100) if total_achats_precedent > 0 else 0
+    trend_benefice = ((benefice_simple - (total_ventes_precedent - total_achats_precedent)) / (total_ventes_precedent - total_achats_precedent) * 100) if (total_ventes_precedent - total_achats_precedent) > 0 else 0
+
+    # =========================
+    # 🔹 DETTES CLIENTS
+    # =========================
+    total_dettes = 0
+    clients_avec_dettes = []
+    
+    for client in clients:
+        total_reste = sum(
+            float(v.reste_a_payer or 0) 
+            for v in client.ventes
+            if v.date_vente and v.date_vente.year == annee_filtre
+            and (mois_filtre == 0 or v.date_vente.month == mois_filtre)
+        )
+        if total_reste > 0:
+            clients_avec_dettes.append((client.nom_client, float(total_reste)))
+            total_dettes += total_reste
+    
+    clients_avec_dettes.sort(key=lambda x: x[1], reverse=True)
+    clients_top10 = clients_avec_dettes[:10]
+    clients_labels = [c[0] for c in clients_top10]
+    dettes_data = [c[1] for c in clients_top10]
+
+    # =========================
+    # 🔹 VENTES & ACHATS PAR MOIS (pour l'année)
+    # =========================
+    ventes_mois = defaultdict(float)
+    achats_mois = defaultdict(float)
+    benefices_mois = defaultdict(float)
+    
+    ventes_annee = Vente.query.filter(
+        extract('year', Vente.date_vente) == annee_filtre
+    ).all()
+    
+    achats_annee = Achat.query.filter(
+        extract('year', Achat.date_achat) == annee_filtre
+    ).all()
+    
+    for v in ventes_annee:
+        if v.date_vente:
+            mois = month_name[v.date_vente.month]
+            ventes_mois[mois] += float(v.total or 0)
+    
+    for a in achats_annee:
+        if a.date_achat:
+            mois = month_name[a.date_achat.month]
+            achats_mois[mois] += float(a.total_ttc or 0)
+    
+    for mois in ventes_mois:
+        benefices_mois[mois] = ventes_mois[mois] - achats_mois.get(mois, 0)
+
+    mois_uniques = sorted(
+        set(list(ventes_mois.keys()) + list(achats_mois.keys())),
+        key=lambda x: list(month_name).index(x) if x in month_name else 99
+    )
+    
+    labels = mois_uniques
+    ventes_data = [ventes_mois.get(m, 0) for m in labels]
+    achats_data = [achats_mois.get(m, 0) for m in labels]
+    benefices_data = [benefices_mois.get(m, 0) for m in labels]
+
+    # =========================
+    # 🔹 TOP PRODUITS
+    # =========================
+    produits_vendus = defaultdict(int)
+    produits_benefices = defaultdict(float)
+    
+    for vente in ventes:
+        for ligne in vente.lignes:
+            if ligne.stock and ligne.stock.produit:
+                nom_produit = ligne.stock.produit.nom_produit
+                quantite = int(ligne.quantite or 0)
+                produits_vendus[nom_produit] += quantite
+                
+                prix_vente = float(ligne.prix_unitaire or 0)
+                prix_achat = float(getattr(ligne.stock.produit, 'prix_achat_local', 0) or 0)
+                frais_approche = float(getattr(ligne.stock.produit, 'frais_approche', 0) or 0)
+                
+                benefice_produit = (prix_vente - prix_achat - frais_approche) * quantite
+                produits_benefices[nom_produit] += benefice_produit
+    
+    top_produits = sorted(produits_vendus.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_produits_benefices = sorted(produits_benefices.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    # =========================
+    # 🔹 VENDEURS
+    # =========================
+    vendeur_labels = []
+    vendeur_data = []
+    vendeurs_performance = []
+    
+    for vendeur in vendeurs:
+        total_vendeur = sum(
+            float(v.total or 0) 
+            for v in vendeur.ventes
+            if v.date_vente and v.date_vente.year == annee_filtre
+            and (mois_filtre == 0 or v.date_vente.month == mois_filtre)
+        )
+        if total_vendeur > 0:
+            vendeurs_performance.append((vendeur.nom, float(total_vendeur)))
+    
+    vendeurs_performance.sort(key=lambda x: x[1], reverse=True)
+    vendeur_labels = [v[0] for v in vendeurs_performance]
+    vendeur_data = [v[1] for v in vendeurs_performance]
+    
+    nb_vendeurs_actifs = len(vendeurs_performance)
+    moyenne_ventes_vendeur = total_ventes / nb_vendeurs_actifs if nb_vendeurs_actifs > 0 else 0
+
+    taux_recouvrement = ((total_ventes - total_dettes) / total_ventes * 100) if total_ventes > 0 else 0
+
+    # Années disponibles
+    annees_ventes = db.session.query(
+        func.extract('year', Vente.date_vente)
+    ).distinct().order_by(
+        func.extract('year', Vente.date_vente).desc()
+    ).all()
+    
+    annees_disponibles = [int(a[0]) for a in annees_ventes if a[0]]
+    if not annees_disponibles:
+        annees_disponibles = [datetime.now().year]
+
+    return render_template(
+        "dashboard_admin.html",
+        mois_filtre=mois_filtre,
+        annee_filtre=annee_filtre,
+        annees_disponibles=annees_disponibles,
+        labels=labels,
+        ventes_data=ventes_data,
+        achats_data=achats_data,
+        benefices_data=benefices_data,
+        clients_labels=clients_labels,
+        dettes_data=dettes_data,
+        vendeur_labels=vendeur_labels,
+        vendeur_data=vendeur_data,
+        total_ventes=round(total_ventes, 2),
+        total_achats=round(total_achats, 2),
+        total_dettes=round(total_dettes, 2),
+        benefice_brut=round(benefice_simple, 2),
+        benefice_detaille=round(total_benefice_brut, 2),
+        marge_beneficiaire=round(marge_beneficiaire, 1),
+        total_cout_revient=round(total_cout_revient, 2),
+        trend_ventes=round(trend_ventes, 1),
+        trend_achats=round(trend_achats, 1),
+        trend_benefice=round(trend_benefice, 1),
+        nb_vendeurs=nb_vendeurs_actifs,
+        moyenne_ventes_vendeur=round(moyenne_ventes_vendeur, 2),
+        taux_recouvrement=round(taux_recouvrement, 1),
+        top_produits=top_produits,
+        top_produits_benefices=top_produits_benefices,
+        month_name=month_name,
+        now=datetime.now()
+    )
+
 
 @app.route('/gestion_materiel/produit', methods=['GET', 'POST'])
 @login_required
@@ -879,77 +914,94 @@ def delete_clients():
 @app.route('/gestion_materiel/fournisseur', methods=['GET', 'POST'])
 @login_required
 def fournisseur():
-  form = FournisseurForm(csrf_enabled=False)
-  fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
-  
-  if form.validate_on_submit():
-     nouveau_fournisseur = Fournisseur(
-      nom_fournisseur = form.nom_fournisseur.data,
-      telephone = form.telephone.data,
-      adresse = form.adresse.data, 
-     )
-     db.session.add(nouveau_fournisseur)
-     db.session.commit()
-
-     flash("Fournisseur ajouter avec succes", "success")
-     return redirect(url_for("fournisseur"))
-  return render_template('Fournisseur.html', form=form, fournisseurs=fournisseurs)
+    form = FournisseurForm(csrf_enabled=False)
+    fournisseurs = Fournisseur.query.order_by(Fournisseur.nom_fournisseur).all()
+    
+    if form.validate_on_submit():
+        try:
+            nouveau_fournisseur = Fournisseur(
+                compagnie=form.compagnie.data,
+                nom_fournisseur=form.nom_fournisseur.data,
+                telephone=form.telephone.data,
+                adresse=form.adresse.data,
+                email=form.email.data
+            )
+            db.session.add(nouveau_fournisseur)
+            db.session.commit()
+            flash("Fournisseur ajouté avec succès", "success")
+            return redirect(url_for("fournisseur"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erreur lors de l'ajout : {str(e)}", "danger")
+    
+    return render_template('Fournisseur.html', form=form, fournisseurs=fournisseurs)
 
 
 @app.route('/gestion_materiel/fournisseur/edit/<int:id>', methods=['POST'])
 @login_required
 def edit_fournisseur(id):
     fournisseur = Fournisseur.query.get_or_404(id)
-    form = FournisseurForm()
-
+    form = FournisseurForm(csrf_enabled=False)
+    
     if form.validate_on_submit():
-        form.populate_obj(fournisseur)
-        db.session.commit()
-        flash("Client modifié avec succès", "success")
-
+        try:
+            # Mise à jour manuelle des champs
+            fournisseur.compagnie = form.compagnie.data
+            fournisseur.nom_fournisseur = form.nom_fournisseur.data
+            fournisseur.telephone = form.telephone.data
+            fournisseur.adresse = form.adresse.data
+            fournisseur.email = form.email.data
+            
+            db.session.commit()
+            flash("Fournisseur modifié avec succès", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erreur lors de la modification : {str(e)}", "danger")
+    
     return redirect(url_for('fournisseur'))
-
 
 
 @app.route('/gestion_materiel/fournisseur/delete', methods=['POST'])
 @login_required
 def delete_fournisseurs():
-
     ids = request.form.getlist('fournisseur_ids')
-
+    
     if not ids:
         flash("Aucun fournisseur sélectionné", "warning")
         return redirect(url_for('fournisseur'))
-
-    fournisseurs = Fournisseur.query.filter(Fournisseur.id.in_(ids)).all()
-
-    fournisseurs_bloques = []
-    fournisseurs_supprimes = 0
-
-    for f in fournisseurs:
-
-        # 🔒 Vérifier s’il a des ventes
-        if f.achats:
-            fournisseurs_bloques.append(f.nom_fournisseur)
-            continue
-
-        db.session.delete(f)
-        fournisseurs_supprimes += 1
-
-    db.session.commit()
-
-    if fournisseurs_bloques:
-        flash(
-            "Impossible de supprimer (clients liés à des ventes) : " +
-            ", ".join(fournisseurs_bloques),
-            "danger"
-        )
-
-    if fournisseurs_supprimes:
-        flash(f"{fournisseurs_supprimes} client(s) supprimé(s)", "success")
-
+    
+    try:
+        fournisseurs = Fournisseur.query.filter(Fournisseur.id.in_(ids)).all()
+        
+        fournisseurs_bloques = []
+        fournisseurs_supprimes = 0
+        
+        for f in fournisseurs:
+            # Vérifier s'il a des achats liés (si la relation existe)
+            if hasattr(f, 'achats') and f.achats:
+                fournisseurs_bloques.append(f.nom_fournisseur)
+                continue
+            
+            db.session.delete(f)
+            fournisseurs_supprimes += 1
+        
+        db.session.commit()
+        
+        if fournisseurs_bloques:
+            flash(
+                "Impossible de supprimer (fournisseurs liés à des achats) : " +
+                ", ".join(fournisseurs_bloques),
+                "danger"
+            )
+        
+        if fournisseurs_supprimes:
+            flash(f"{fournisseurs_supprimes} fournisseur(s) supprimé(s)", "success")
+            
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la suppression : {str(e)}", "danger")
+    
     return redirect(url_for('fournisseur'))
-
 
 # fornisseur
 

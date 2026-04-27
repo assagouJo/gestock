@@ -52,6 +52,46 @@
         border-radius: 3px;
     }
 
+    /* Section des filtres */
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .filter-card .form-label {
+        font-weight: 600;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-card .form-select {
+        border-radius: 10px;
+        border: 2px solid var(--light-color);
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-card .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+    }
+
+    .filter-badge {
+        background: var(--info-color);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     /* Cartes de statistiques modernes */
     .stats-grid {
         display: grid;
@@ -78,13 +118,14 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: var(--primary-color);
     }
 
     .stat-card.ventes::before { background: var(--primary-color); }
     .stat-card.achats::before { background: var(--danger-color); }
+    .stat-card.benefice::before { background: var(--success-color); }
     .stat-card.dettes::before { background: var(--warning-color); }
-    .stat-card.vendeurs::before { background: var(--success-color); }
+    .stat-card.vendeurs::before { background: var(--purple-color); }
+    .stat-card.cout::before { background: var(--info-color); }
 
     .stat-card:hover {
         transform: translateY(-8px);
@@ -110,8 +151,10 @@
 
     .stat-card.ventes .stat-icon { background: rgba(67, 97, 238, 0.1); color: var(--primary-color); }
     .stat-card.achats .stat-icon { background: rgba(231, 76, 60, 0.1); color: var(--danger-color); }
+    .stat-card.benefice .stat-icon { background: rgba(46, 204, 113, 0.1); color: var(--success-color); }
     .stat-card.dettes .stat-icon { background: rgba(243, 156, 18, 0.1); color: var(--warning-color); }
-    .stat-card.vendeurs .stat-icon { background: rgba(46, 204, 113, 0.1); color: var(--success-color); }
+    .stat-card.vendeurs .stat-icon { background: rgba(155, 89, 182, 0.1); color: var(--purple-color); }
+    .stat-card.cout .stat-icon { background: rgba(52, 152, 219, 0.1); color: var(--info-color); }
 
     .stat-menu {
         cursor: pointer;
@@ -125,11 +168,14 @@
     }
 
     .stat-value {
-        font-size: 2rem;
+        font-size: 1.8rem;
         font-weight: bold;
         color: var(--dark-color);
         margin-bottom: 8px;
     }
+
+    .stat-value.positive { color: var(--success-color); }
+    .stat-value.negative { color: var(--danger-color); }
 
     .stat-label {
         color: #7f8c8d;
@@ -158,6 +204,7 @@
 
     .trend-up { color: var(--success-color); }
     .trend-down { color: var(--danger-color); }
+    .trend-neutral { color: var(--warning-color); }
 
     .stat-sub {
         font-size: 0.75rem;
@@ -243,13 +290,13 @@
         padding: 40px;
     }
 
-    /* Section Top Produits améliorée */
+    /* Section Top Produits */
     .top-products {
         background: white;
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        margin-top: 20px;
+        margin-bottom: 30px;
     }
 
     .top-products-header {
@@ -268,6 +315,12 @@
         display: flex;
         align-items: center;
         gap: 8px;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 
     .product-list {
@@ -295,6 +348,7 @@
         font-weight: bold;
         color: var(--primary-color);
         margin-right: 10px;
+        font-size: 1.2rem;
     }
 
     .product-name {
@@ -315,19 +369,16 @@
         gap: 5px;
     }
 
-    /* Loader */
-    .loader {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid var(--light-color);
-        border-radius: 50%;
-        border-top-color: var(--primary-color);
-        animation: spin 0.6s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
+    .product-benefice {
+        background: var(--success-color);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
     /* Refresh button */
@@ -345,6 +396,10 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
         z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
     }
 
     .refresh-btn:hover {
@@ -358,6 +413,10 @@
         }
         
         .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .product-grid {
             grid-template-columns: 1fr;
         }
 
@@ -379,12 +438,73 @@
         <i class="bi bi-speedometer2"></i> 
         Tableau de Bord
         <small style="font-size: 0.8rem; color: #7f8c8d; display: block; margin-top: 5px;">
-            Dernière mise à jour: {{ now.strftime('%d/%m/%Y %H:%M') if now else 'N/A' }}
+            {% if mois_filtre %}
+                {{ month_name[mois_filtre] }} {{ annee_filtre }}
+            {% else %}
+                Année {{ annee_filtre }}
+            {% endif %}
+            | Mis à jour: {{ now().strftime('%d/%m/%Y %H:%M') if now else 'N/A' }}
         </small>
     </h3>
 
+    <!-- Section des filtres -->
+    <div class="filter-card">
+        <form method="GET" action="{{ url_for('dashboard') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="annee" class="form-label">
+                    <i class="bi bi-calendar-year"></i> Année
+                </label>
+                <select name="annee" id="annee" class="form-select">
+                    {% for annee in annees_disponibles %}
+                        <option value="{{ annee }}" {% if annee == annee_filtre %}selected{% endif %}>
+                            {{ annee }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="mois" class="form-label">
+                    <i class="bi bi-calendar-month"></i> Mois
+                </label>
+                <select name="mois" id="mois" class="form-select">
+                    <option value="">Tous les mois</option>
+                    {% for i in range(1, 13) %}
+                        <option value="{{ i }}" {% if i == mois_filtre %}selected{% endif %}>
+                            {{ month_name[i] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px; padding: 10px;">
+                    <i class="bi bi-filter"></i> Appliquer le filtre
+                </button>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100" style="border-radius: 10px; padding: 10px;">
+                    <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+        
+        <div class="mt-3">
+            <span class="filter-badge">
+                <i class="bi bi-info-circle"></i>
+                {% if mois_filtre %}
+                    Affichage : {{ month_name[mois_filtre] }} {{ annee_filtre }}
+                {% else %}
+                    Affichage : Toute l'année {{ annee_filtre }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
     <!-- Cartes de statistiques -->
     <div class="stats-grid">
+        <!-- Ventes -->
         <div class="stat-card ventes" onclick="showDetail('ventes')">
             <div class="stat-header">
                 <div class="stat-icon">💰</div>
@@ -395,14 +515,15 @@
             <div class="stat-value">{{ "{:,.0f}".format(total_ventes|default(0)) }} <small style="font-size: 0.9rem;">FCFA</small></div>
             <div class="stat-label">Total des Ventes</div>
             <div class="stat-footer">
-                <div class="stat-trend {% if trend_ventes > 0 %}trend-up{% else %}trend-down{% endif %}">
-                    <i class="bi bi-{% if trend_ventes > 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
-                    {% if trend_ventes > 0 %}+{% endif %}{{ trend_ventes|default(0) }}%
+                <div class="stat-trend {% if trend_ventes > 0 %}trend-up{% elif trend_ventes < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                    <i class="bi bi-{% if trend_ventes > 0 %}arrow-up{% elif trend_ventes < 0 %}arrow-down{% else %}dash{% endif %}"></i>
+                    {% if trend_ventes > 0 %}+{% endif %}{{ trend_ventes|default(0)|round(1) }}%
                 </div>
-                <div class="stat-sub">vs mois dernier</div>
+                <div class="stat-sub">vs période précédente</div>
             </div>
         </div>
         
+        <!-- Achats -->
         <div class="stat-card achats" onclick="showDetail('achats')">
             <div class="stat-header">
                 <div class="stat-icon">📦</div>
@@ -413,14 +534,55 @@
             <div class="stat-value">{{ "{:,.0f}".format(total_achats|default(0)) }} <small style="font-size: 0.9rem;">FCFA</small></div>
             <div class="stat-label">Total des Achats</div>
             <div class="stat-footer">
-                <div class="stat-trend {% if trend_achats > 0 %}trend-up{% else %}trend-down{% endif %}">
-                    <i class="bi bi-{% if trend_achats > 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
-                    {% if trend_achats > 0 %}+{% endif %}{{ trend_achats|default(0) }}%
+                <div class="stat-trend {% if trend_achats > 0 %}trend-up{% elif trend_achats < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                    <i class="bi bi-{% if trend_achats > 0 %}arrow-up{% elif trend_achats < 0 %}arrow-down{% else %}dash{% endif %}"></i>
+                    {% if trend_achats > 0 %}+{% endif %}{{ trend_achats|default(0)|round(1) }}%
                 </div>
-                <div class="stat-sub">vs mois dernier</div>
+                <div class="stat-sub">vs période précédente</div>
             </div>
         </div>
         
+        <!-- Bénéfice -->
+        <div class="stat-card benefice" onclick="showDetail('benefice')">
+            <div class="stat-header">
+                <div class="stat-icon">📈</div>
+                <div class="stat-menu" title="Plus d'infos">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </div>
+            </div>
+            <div class="stat-value {% if benefice_brut > 0 %}positive{% elif benefice_brut < 0 %}negative{% endif %}">
+                {{ "{:,.0f}".format(benefice_brut|default(0)) }} <small style="font-size: 0.9rem;">FCFA</small>
+            </div>
+            <div class="stat-label">Bénéfice Brut</div>
+            <div class="stat-footer">
+                <div class="stat-trend {% if trend_benefice > 0 %}trend-up{% elif trend_benefice < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                    <i class="bi bi-{% if trend_benefice > 0 %}arrow-up{% elif trend_benefice < 0 %}arrow-down{% else %}dash{% endif %}"></i>
+                    {% if trend_benefice > 0 %}+{% endif %}{{ trend_benefice|default(0)|round(1) }}%
+                </div>
+                <div class="stat-sub">Marge: {{ marge_beneficiaire|default(0)|round(1) }}%</div>
+            </div>
+        </div>
+        
+        <!-- Coût de revient -->
+        <div class="stat-card cout" onclick="showDetail('cout')">
+            <div class="stat-header">
+                <div class="stat-icon">🧮</div>
+                <div class="stat-menu" title="Plus d'infos">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ "{:,.0f}".format(total_cout_revient|default(0)) }} <small style="font-size: 0.9rem;">FCFA</small></div>
+            <div class="stat-label">Coût de Revient Total</div>
+            <div class="stat-footer">
+                <div class="stat-trend">
+                    <i class="bi bi-calculator"></i>
+                    Produits importés
+                </div>
+                <div class="stat-sub">Achats + Frais</div>
+            </div>
+        </div>
+        
+        <!-- Dettes -->
         <div class="stat-card dettes" onclick="showDetail('dettes')">
             <div class="stat-header">
                 <div class="stat-icon">💳</div>
@@ -433,12 +595,13 @@
             <div class="stat-footer">
                 <div class="stat-trend trend-up">
                     <i class="bi bi-check-circle"></i>
-                    {{ taux_recouvrement|default(0) }}% recouvré
+                    {{ taux_recouvrement|default(0)|round(1) }}% recouvré
                 </div>
-                <div class="stat-sub">sur total</div>
+                <div class="stat-sub">sur créances totales</div>
             </div>
         </div>
         
+        <!-- Vendeurs -->
         <div class="stat-card vendeurs" onclick="showDetail('vendeurs')">
             <div class="stat-header">
                 <div class="stat-icon">👥</div>
@@ -451,7 +614,7 @@
             <div class="stat-footer">
                 <div class="stat-trend">
                     <i class="bi bi-trophy"></i>
-                    Moy: {{ moyenne_ventes_vendeur|default(0)|round(0) }} FCFA
+                    Moy: {{ "{:,.0f}".format(moyenne_ventes_vendeur|default(0)) }} FCFA
                 </div>
                 <div class="stat-sub">par vendeur</div>
             </div>
@@ -460,24 +623,26 @@
 
     <!-- Graphiques -->
     <div class="grid-container">
+        <!-- Ventes vs Achats vs Bénéfice -->
         <div class="card" id="card-ventes-achats">
             <div class="card-header">
                 <h4>
                     <i class="bi bi-graph-up"></i>
-                    Ventes vs Achats par mois
+                    Ventes, Achats & Bénéfice
                 </h4>
                 <div class="card-actions">
-                    <button class="card-btn" onclick="exportChart('ventesAchatsChart')" title="Exporter en PNG">
-                        <i class="bi bi-camera"></i>
-                    </button>
                     <button class="card-btn" onclick="toggleChartType('ventesAchatsChart')" title="Changer type">
                         <i class="bi bi-bar-chart-steps"></i>
+                    </button>
+                    <button class="card-btn" onclick="exportChart('ventesAchatsChart')" title="Exporter en PNG">
+                        <i class="bi bi-camera"></i>
                     </button>
                 </div>
             </div>
             <canvas id="ventesAchatsChart"></canvas>
         </div>
 
+        <!-- Top 10 des dettes -->
         <div class="card" id="card-dettes">
             <div class="card-header">
                 <h4>
@@ -493,6 +658,7 @@
             <canvas id="dettesChart"></canvas>
         </div>
 
+        <!-- Performance des vendeurs -->
         <div class="card" id="card-vendeur">
             <div class="card-header">
                 <h4>
@@ -511,6 +677,7 @@
             <canvas id="vendeurChart"></canvas>
         </div>
 
+        <!-- Répartition des dettes -->
         <div class="card" id="card-doughnut">
             <div class="card-header">
                 <h4>
@@ -527,40 +694,72 @@
         </div>
     </div>
 
-    <!-- Top produits amélioré -->
-    {% if top_produits %}
-    <div class="top-products">
-        <div class="top-products-header">
-            <h4>
-                <i class="bi bi-trophy-fill" style="color: var(--warning-color);"></i>
-                Top 5 des produits les plus vendus
-            </h4>
-            <button class="card-btn" onclick="exportTopProducts()" title="Exporter la liste">
-                <i class="bi bi-download"></i> Exporter
-            </button>
-        </div>
-        <div class="product-list">
-            {% for produit, quantite in top_produits %}
-            <div class="product-item" onclick="showProductDetail('{{ produit }}')">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <span class="product-rank">
-                        {% if loop.index == 1 %}🥇
-                        {% elif loop.index == 2 %}🥈
-                        {% elif loop.index == 3 %}🥉
-                        else 🔹
-                        {% endif %}
-                    </span>
-                    <span class="product-name">{{ produit }}</span>
-                </div>
-                <span class="product-quantity">
-                    <i class="bi bi-box"></i>
-                    {{ quantite }} unités
-                </span>
+    <!-- Sections Top Produits -->
+    <div class="product-grid">
+        <!-- Top 5 produits les plus vendus -->
+        {% if top_produits %}
+        <div class="top-products">
+            <div class="top-products-header">
+                <h4>
+                    <i class="bi bi-trophy-fill" style="color: var(--warning-color);"></i>
+                    Top 5 des produits les plus vendus
+                </h4>
             </div>
-            {% endfor %}
+            <div class="product-list">
+                {% for produit, quantite in top_produits %}
+                <div class="product-item">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="product-rank">
+                            {% if loop.index == 1 %}🥇
+                            {% elif loop.index == 2 %}🥈
+                            {% elif loop.index == 3 %}🥉
+                            else 🔹
+                            {% endif %}
+                        </span>
+                        <span class="product-name">{{ produit }}</span>
+                    </div>
+                    <span class="product-quantity">
+                        <i class="bi bi-box"></i>
+                        {{ quantite }} unités
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+        {% endif %}
+
+        <!-- Top 5 produits les plus rentables -->
+        {% if top_produits_benefices %}
+        <div class="top-products">
+            <div class="top-products-header">
+                <h4>
+                    <i class="bi bi-graph-up-arrow" style="color: var(--success-color);"></i>
+                    Top 5 des produits les plus rentables
+                </h4>
+            </div>
+            <div class="product-list">
+                {% for produit, benefice in top_produits_benefices %}
+                <div class="product-item">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="product-rank">
+                            {% if loop.index == 1 %}🥇
+                            {% elif loop.index == 2 %}🥈
+                            {% elif loop.index == 3 %}🥉
+                            else 💎
+                            {% endif %}
+                        </span>
+                        <span class="product-name">{{ produit }}</span>
+                    </div>
+                    <span class="product-benefice">
+                        <i class="bi bi-cash"></i>
+                        {{ "{:,.0f}".format(benefice) }} FCFA
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <!-- Bouton refresh -->
@@ -571,44 +770,28 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
     let charts = {};
-    let chartTypes = {};
 
     function showDetail(type) {
         const messages = {
-            'ventes': '📊 Détail des ventes - Fonctionnalité à venir',
-            'achats': '📦 Détail des achats - Fonctionnalité à venir',
-            'dettes': '💳 Détail des dettes - Fonctionnalité à venir',
-            'vendeurs': '👥 Détail des vendeurs - Fonctionnalité à venir'
+            'ventes': '📊 Détail des ventes - Cliquez pour voir le détail par produit et client',
+            'achats': '📦 Détail des achats - Cliquez pour voir les fournisseurs et commandes',
+            'benefice': '📈 Détail du bénéfice - Marge bénéficiaire: {{ marge_beneficiaire|default(0)|round(1) }}%\nBénéfice détaillé: {{ "{:,.0f}".format(benefice_detaille|default(0)) }} FCFA',
+            'cout': '🧮 Coût de revient total des produits importés',
+            'dettes': '💳 Détail des dettes - Taux de recouvrement: {{ taux_recouvrement|default(0)|round(1) }}%',
+            'vendeurs': '👥 Détail des vendeurs - Moyenne: {{ "{:,.0f}".format(moyenne_ventes_vendeur|default(0)) }} FCFA/vendeur'
         };
         alert(messages[type] || 'Détails disponibles prochainement');
     }
 
-    function showProductDetail(productName) {
-        alert(`📦 Détails du produit "${productName}"\nFonctionnalité à venir`);
-    }
-
-    function exportTopProducts() {
-        const products = [];
-        document.querySelectorAll('.product-item').forEach(item => {
-            const name = item.querySelector('.product-name')?.innerText;
-            const qty = item.querySelector('.product-quantity')?.innerText;
-            if (name && qty) products.push(`${name}: ${qty}`);
-        });
-        
-        const blob = new Blob([products.join('\n')], {type: 'text/plain'});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'top_products.txt';
-        link.click();
-        URL.revokeObjectURL(link.href);
-    }
-
     function showEmptyMessage(cardId, message) {
         const card = document.getElementById(cardId);
+        if (!card) return;
+        
         const canvas = card.querySelector('canvas');
         if (canvas) {
             canvas.style.display = 'none';
         }
+        
         if (!card.querySelector('.empty-message')) {
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'empty-message';
@@ -639,7 +822,8 @@
         chart.config.type = newType;
         chart.update();
         
-        const icon = event?.target?.closest('.card-btn')?.querySelector('i');
+        const btn = event?.target?.closest('.card-btn');
+        const icon = btn?.querySelector('i');
         if (icon) {
             icon.className = newType === 'bar' ? 'bi bi-bar-chart-steps' : 'bi bi-graph-up';
         }
@@ -655,45 +839,69 @@
     }
 
     function refreshDashboard() {
+        // Ajouter un spinner au bouton
+        const btn = document.querySelector('.refresh-btn');
+        if (btn) {
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        }
         location.reload();
     }
 
-    // Données initiales
+    // Données initiales depuis Jinja
     const labels = {{ labels | tojson }};
     const ventesData = {{ ventes_data | tojson }};
     const achatsData = {{ achats_data | tojson }};
+    const beneficesData = {{ benefices_data | default([]) | tojson }};
     const clientsLabels = {{ clients_labels | tojson }};
     const dettesData = {{ dettes_data | tojson }};
     const vendeurLabels = {{ vendeur_labels | tojson }};
     const vendeurData = {{ vendeur_data | tojson }};
 
-    // 1️⃣ VENTES VS ACHATS
+    // 1️⃣ VENTES VS ACHATS VS BÉNÉFICE
     if (labels && labels.length > 0) {
         const ctx = document.getElementById("ventesAchatsChart").getContext('2d');
+        const datasets = [
+            { 
+                label: "Ventes", 
+                data: ventesData, 
+                backgroundColor: "rgba(67, 97, 238, 0.6)",
+                borderColor: "rgba(67, 97, 238, 1)",
+                borderWidth: 2,
+                borderRadius: 8,
+                tension: 0.4
+            },
+            { 
+                label: "Achats", 
+                data: achatsData, 
+                backgroundColor: "rgba(231, 76, 60, 0.6)",
+                borderColor: "rgba(231, 76, 60, 1)",
+                borderWidth: 2,
+                borderRadius: 8,
+                tension: 0.4
+            }
+        ];
+
+        // Ajouter le dataset des bénéfices si disponible
+        if (beneficesData && beneficesData.length > 0) {
+            datasets.push({
+                label: "Bénéfice",
+                data: beneficesData,
+                type: 'line',
+                backgroundColor: "rgba(46, 204, 113, 0.1)",
+                borderColor: "rgba(46, 204, 113, 1)",
+                borderWidth: 3,
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: "rgba(46, 204, 113, 1)"
+            });
+        }
+
         charts.ventesAchatsChart = new Chart(ctx, {
             type: "bar",
             data: {
                 labels: labels,
-                datasets: [
-                    { 
-                        label: "Ventes", 
-                        data: ventesData, 
-                        backgroundColor: "rgba(54, 162, 235, 0.7)",
-                        borderColor: "rgba(54, 162, 235, 1)",
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        tension: 0.4
-                    },
-                    { 
-                        label: "Achats", 
-                        data: achatsData, 
-                        backgroundColor: "rgba(255, 99, 132, 0.7)",
-                        borderColor: "rgba(255, 99, 132, 1)",
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        tension: 0.4
-                    }
-                ]
+                datasets: datasets
             },
             options: { 
                 responsive: true, 
@@ -708,6 +916,10 @@
                     },
                     legend: {
                         position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
                     }
                 },
                 scales: {
@@ -715,6 +927,11 @@
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M FCFA';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(0) + 'k FCFA';
+                                }
                                 return value.toLocaleString() + ' FCFA';
                             }
                         }
@@ -727,29 +944,57 @@
     }
 
     // 2️⃣ DETTES CLIENTS
-    if (clientsLabels && clientsLabels.length > 0 && dettesData && dettesData.length > 0) {
+        // 2️⃣ DETTES CLIENTS
+    if (clientsLabels && clientsLabels.length > 0 && dettesData && dettesData.some(v => v > 0)) {
         const ctx = document.getElementById("dettesChart").getContext('2d');
         charts.dettesChart = new Chart(ctx, {
             type: "bar",
             data: {
                 labels: clientsLabels,
                 datasets: [{
-                    label: "Dettes Clients",
+                    label: "Dettes (FCFA)",
                     data: dettesData,
-                    backgroundColor: "rgba(243, 156, 18, 0.7)",
-                    borderColor: "rgba(243, 156, 18, 1)",
-                    borderWidth: 2,
+                    backgroundColor: dettesData.map((_, i) => {
+                        const colors = [
+                            'rgba(243, 156, 18, 0.8)',
+                            'rgba(231, 76, 60, 0.8)',
+                            'rgba(241, 196, 15, 0.8)',
+                            'rgba(230, 126, 34, 0.8)',
+                            'rgba(211, 84, 0, 0.8)',
+                            'rgba(192, 57, 43, 0.8)'
+                        ];
+                        return colors[i % colors.length];
+                    }),
+                    borderColor: 'rgba(0,0,0,0.1)',
+                    borderWidth: 1,
                     borderRadius: 8
                 }]
             },
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false,
+                indexAxis: 'x',
                 plugins: {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 return `Dette: ${context.raw.toLocaleString()} FCFA`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M FCFA';
+                                }
+                                return value.toLocaleString() + ' FCFA';
                             }
                         }
                     }
@@ -760,7 +1005,7 @@
         showEmptyMessage("card-dettes", "Aucune dette client enregistrée");
     }
 
-    // 3️⃣ VENTES PAR VENDEUR
+    // 3️⃣ PERFORMANCE DES VENDEURS
     if (vendeurLabels && vendeurLabels.length > 0 && vendeurData && vendeurData.length > 0) {
         const ctx = document.getElementById("vendeurChart").getContext('2d');
         charts.vendeurChart = new Chart(ctx, {
@@ -768,10 +1013,10 @@
             data: {
                 labels: vendeurLabels,
                 datasets: [{
-                    label: "Total Ventes",
+                    label: "Total Ventes (FCFA)",
                     data: vendeurData,
-                    backgroundColor: "rgba(46, 204, 113, 0.7)",
-                    borderColor: "rgba(46, 204, 113, 1)",
+                    backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                    borderColor: 'rgba(46, 204, 113, 1)',
                     borderWidth: 2,
                     borderRadius: 8
                 }]
@@ -779,6 +1024,7 @@
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false,
+                indexAxis: 'x',
                 plugins: {
                     tooltip: {
                         callbacks: {
@@ -786,6 +1032,9 @@
                                 return `Ventes: ${context.raw.toLocaleString()} FCFA`;
                             }
                         }
+                    },
+                    legend: {
+                        display: false
                     }
                 },
                 scales: {
@@ -793,6 +1042,9 @@
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M FCFA';
+                                }
                                 return value.toLocaleString() + ' FCFA';
                             }
                         }
@@ -803,16 +1055,16 @@
     } else {
         showEmptyMessage("card-vendeur", "Aucune vente enregistrée");
     }
-    
-    // 4️⃣ DETTES EN CAMEMBERT
-    if (clientsLabels && clientsLabels.length > 0 && dettesData && dettesData.length > 0) {
+
+    // 4️⃣ RÉPARTITION DES DETTES (DOUGHNUT)
+    if (clientsLabels && clientsLabels.length > 0 && dettesData && dettesData.some(v => v > 0)) {
         const ctx = document.getElementById("doughnutChart").getContext('2d');
         charts.doughnutChart = new Chart(ctx, {
             type: "doughnut",
             data: {
                 labels: clientsLabels,
                 datasets: [{
-                    label: "Reste à payer",
+                    label: "Restant à payer",
                     data: dettesData,
                     backgroundColor: [
                         'rgba(67, 97, 238, 0.8)',
@@ -822,10 +1074,13 @@
                         'rgba(155, 89, 182, 0.8)',
                         'rgba(52, 73, 94, 0.8)',
                         'rgba(241, 196, 15, 0.8)',
-                        'rgba(230, 126, 34, 0.8)'
+                        'rgba(230, 126, 34, 0.8)',
+                        'rgba(26, 188, 156, 0.8)',
+                        'rgba(149, 165, 166, 0.8)'
                     ],
                     borderWidth: 2,
-                    borderColor: '#fff'
+                    borderColor: '#fff',
+                    hoverBorderWidth: 3
                 }]
             },
             options: { 
@@ -833,15 +1088,19 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { 
-                        position: 'bottom',
-                        labels: { font: { size: 11 } }
+                        position: 'right',
+                        labels: { 
+                            font: { size: 11 },
+                            padding: 10,
+                            usePointStyle: true
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const percentage = ((context.raw / total) * 100).toFixed(1);
-                                return `${context.label}: ${context.raw.toLocaleString()} FCFA (${percentage}%)`;
+                                return ` ${context.label}: ${context.raw.toLocaleString()} FCFA (${percentage}%)`;
                             }
                         }
                     }
@@ -851,6 +1110,47 @@
     } else {
         showEmptyMessage("card-doughnut", "Aucune donnée disponible");
     }
-</script>
 
-{% endblock %}
+    // ============================
+    // 🔹 FONCTIONS UTILITAIRES SUPPLÉMENTAIRES
+    // ============================
+    
+    // Animation des filtres au changement
+    document.getElementById('mois')?.addEventListener('change', function() {
+        // Optionnel : soumettre automatiquement le formulaire
+        // this.closest('form').submit();
+    });
+
+    document.getElementById('annee')?.addEventListener('change', function() {
+        // Optionnel : soumettre automatiquement le formulaire
+        // this.closest('form').submit();
+    });
+
+    // Fonction pour exporter tous les graphiques en une seule fois
+    function exportAllCharts() {
+        const chartIds = ['ventesAchatsChart', 'dettesChart', 'vendeurChart', 'doughnutChart'];
+        chartIds.forEach(id => {
+            if (charts[id]) {
+                setTimeout(() => exportChart(id), 100);
+            }
+        });
+    }
+
+    // Ajouter un bouton d'export global dans chaque carte
+    document.querySelectorAll('.card-header').forEach(header => {
+        if (!header.querySelector('.export-all-btn')) {
+            const exportBtn = document.createElement('button');
+            exportBtn.className = 'card-btn export-all-btn';
+            exportBtn.title = 'Exporter tous les graphiques';
+            exportBtn.innerHTML = '<i class="bi bi-download"></i>';
+            exportBtn.onclick = exportAllCharts;
+            header.querySelector('.card-actions')?.appendChild(exportBtn);
+        }
+    });
+
+    // Initialisation : mettre en évidence la période active
+    console.log('Dashboard chargé avec succès');
+    console.log('Période:', '{{ month_name[mois_filtre] if mois_filtre else "Toute l\'année" }}', '{{ annee_filtre }}');
+    console.log('Total ventes:', '{{ "{:,.0f}".format(total_ventes) }} FCFA');
+    console.log('Bénéfice:', '{{ "{:,.0f}".format(benefice_brut) }} FCFA');
+</script>

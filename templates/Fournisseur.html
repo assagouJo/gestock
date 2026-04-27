@@ -11,6 +11,7 @@
         --info-color: #3498db;
         --dark-color: #2c3e50;
         --light-color: #ecf0f1;
+        --filter-bg: #f0f4ff;
     }
 
     @keyframes fadeInUp {
@@ -57,10 +58,146 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
+    /* Barre de recherche principale */
+    .search-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .search-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+    }
+
+    .search-field {
+        position: relative;
+    }
+
+    .search-field input,
+    .search-field select {
+        width: 100%;
+        padding: 9px 12px 9px 35px;
+        border: 2px solid #e0e5ec;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .search-field input:focus,
+    .search-field select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        outline: none;
+    }
+
+    .search-field .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+
+    .search-field .clear-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: none;
+        background: none;
+        border: none;
+        padding: 2px 5px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .search-field .clear-icon:hover {
+        color: var(--danger-color);
+        background: #fde8e8;
+    }
+
+    .search-field input:not(:placeholder-shown) ~ .clear-icon {
+        display: block;
+    }
+
+    .search-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+        justify-content: flex-end;
+    }
+
+    .btn-filter {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-reset {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-reset:hover {
+        background: #c0392b;
+    }
+
+    .btn-apply {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-apply:hover {
+        background: #3651d5;
+    }
+
     /* Cartes statistiques */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 15px;
         margin-bottom: 25px;
     }
@@ -121,6 +258,11 @@
         font-size: 0.9rem;
     }
 
+    .results-info {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
     .export-buttons {
         display: flex;
         gap: 8px;
@@ -150,7 +292,7 @@
 
     .table-wrapper {
         overflow-x: auto;
-        max-height: 450px;
+        max-height: 500px;
         overflow-y: auto;
     }
 
@@ -158,14 +300,16 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.85rem;
-        table-layout: fixed;
+        min-width: 900px;
     }
 
     /* Largeurs fixes des colonnes */
     .table-custom th:nth-child(1) { width: 40px; }
-    .table-custom th:nth-child(2) { width: 30%; }
-    .table-custom th:nth-child(3) { width: 20%; }
-    .table-custom th:nth-child(4) { width: 35%; }
+    .table-custom th:nth-child(2) { width: 20%; }
+    .table-custom th:nth-child(3) { width: 22%; }
+    .table-custom th:nth-child(4) { width: 15%; }
+    .table-custom th:nth-child(5) { width: 20%; }
+    .table-custom th:nth-child(6) { width: 23%; }
 
     .table-custom thead th {
         background: var(--dark-color);
@@ -176,6 +320,23 @@
         top: 0;
         z-index: 10;
         text-align: left;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .table-custom thead th:hover {
+        background: #34495e;
+    }
+
+    .table-custom thead th .sort-icon {
+        font-size: 0.7rem;
+        margin-left: 5px;
+        opacity: 0.5;
+    }
+
+    .table-custom thead th.sorted .sort-icon {
+        opacity: 1;
+        color: var(--success-color);
     }
 
     .table-custom tbody tr {
@@ -186,23 +347,41 @@
     .table-custom tbody tr:hover {
         background: #f8f9fa;
         transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .table-custom tbody tr.hidden {
+        display: none;
+    }
+
+    .table-custom tbody tr.no-results {
+        text-align: center;
+        color: #95a5a6;
+        font-style: italic;
     }
 
     .table-custom td {
-        padding: 10px;
+        padding: 12px 10px;
         border-bottom: 1px solid var(--light-color);
         vertical-align: middle;
     }
 
-    /* Badge fournisseur */
-    .badge-fournisseur {
+    .highlight {
+        background: yellow;
+        padding: 1px 3px;
+        border-radius: 2px;
+    }
+
+    /* Badge compagnie */
+    .badge-compagnie {
         display: inline-block;
-        padding: 5px 12px;
-        border-radius: 20px;
+        padding: 4px 10px;
+        border-radius: 15px;
         font-size: 0.75rem;
         font-weight: 600;
-        background: var(--primary-color);
-        color: white;
+        background: #e8f4f8;
+        color: #2980b9;
+        border: 1px solid #bde0fe;
     }
 
     .checkbox-custom {
@@ -244,6 +423,7 @@
         font-weight: 600;
         margin-bottom: 8px;
         color: var(--dark-color);
+        font-size: 0.85rem;
     }
 
     .form-control {
@@ -256,6 +436,11 @@
     .form-control:focus {
         border-color: var(--success-color);
         box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+    }
+
+    .required-field::after {
+        content: " *";
+        color: var(--danger-color);
     }
 
     /* Bouton suppression */
@@ -279,6 +464,28 @@
         transform: none;
     }
 
+    /* Alertes */
+    .alert {
+        border-radius: 12px;
+        padding: 15px 20px;
+        border: none;
+    }
+
+    /* Animation */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .stat-value {
+        animation: pulse 2s infinite;
+    }
+
+    .table-custom tbody tr {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .stats-grid {
@@ -294,6 +501,10 @@
             flex-direction: column;
         }
         
+        .search-grid {
+            grid-template-columns: 1fr;
+        }
+        
         .export-buttons {
             width: 100%;
             justify-content: center;
@@ -301,11 +512,7 @@
         
         .table-custom {
             font-size: 0.75rem;
-        }
-        
-        .table-custom th,
-        .table-custom td {
-            padding: 8px;
+            min-width: 700px;
         }
     }
 </style>
@@ -318,32 +525,93 @@
         <h4>
             <i class="bi bi-truck"></i> Gestion des Fournisseurs
         </h4>
-        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addFournisseurModal">
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addFournisseurModal" onclick="resetModal()">
             <i class="bi bi-plus-circle"></i> Ajouter Fournisseur
         </button>
     </div>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     {% if fournisseurs %}
     <!-- Statistiques -->
     {% set total_fournisseurs = fournisseurs|length %}
+    {% set avec_compagnie = fournisseurs|selectattr('compagnie')|list|length %}
     {% set avec_telephone = fournisseurs|selectattr('telephone')|list|length %}
+    {% set avec_email = fournisseurs|selectattr('email')|list|length %}
     {% set avec_adresse = fournisseurs|selectattr('adresse')|list|length %}
     
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon">🏢</div>
-            <div class="stat-value">{{ total_fournisseurs }}</div>
+            <div class="stat-value" id="statTotal">{{ total_fournisseurs }}</div>
             <div class="stat-label">Total fournisseurs</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">📞</div>
-            <div class="stat-value">{{ avec_telephone }}</div>
-            <div class="stat-label">Avec téléphone</div>
+    </div>
+
+    <!-- BARRE DE RECHERCHE ET FILTRES -->
+    <div class="search-container">
+        <div class="search-header">
+            <div class="search-title">
+                <i class="bi bi-funnel"></i> Filtres de recherche
+                <span class="filter-badge" id="activeFilters">0 actif(s)</span>
+            </div>
+            <div>
+                <button type="button" class="btn-filter btn-reset" onclick="resetAllFilters()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                </button>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">📍</div>
-            <div class="stat-value">{{ avec_adresse }}</div>
-            <div class="stat-label">Avec adresse</div>
+        <div class="search-grid">
+            <div class="search-field">
+                <i class="bi bi-building search-icon"></i>
+                <input type="text" id="filterCompagnie" placeholder="Compagnie..." 
+                       oninput="applyFilters()" onkeyup="debounceFilter()">
+                <button class="clear-icon" onclick="clearFilter('filterCompagnie')" title="Effacer">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="search-field">
+                <i class="bi bi-person search-icon"></i>
+                <input type="text" id="filterNom" placeholder="Nom fournisseur..." 
+                       oninput="applyFilters()" onkeyup="debounceFilter()">
+                <button class="clear-icon" onclick="clearFilter('filterNom')" title="Effacer">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="search-field">
+                <i class="bi bi-telephone search-icon"></i>
+                <input type="text" id="filterTelephone" placeholder="Téléphone..." 
+                       oninput="applyFilters()" onkeyup="debounceFilter()">
+                <button class="clear-icon" onclick="clearFilter('filterTelephone')" title="Effacer">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="search-field">
+                <i class="bi bi-envelope search-icon"></i>
+                <input type="text" id="filterEmail" placeholder="Email..." 
+                       oninput="applyFilters()" onkeyup="debounceFilter()">
+                <button class="clear-icon" onclick="clearFilter('filterEmail')" title="Effacer">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="search-field">
+                <i class="bi bi-geo-alt search-icon"></i>
+                <input type="text" id="filterAdresse" placeholder="Adresse..." 
+                       oninput="applyFilters()" onkeyup="debounceFilter()">
+                <button class="clear-icon" onclick="clearFilter('filterAdresse')" title="Effacer">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -353,8 +621,9 @@
             <div class="table-header">
                 <div class="table-title">
                     <i class="bi bi-list-ul"></i> Liste des fournisseurs
-                    <span class="badge bg-secondary ms-2">{{ total_fournisseurs }} fournisseur(s)</span>
+                    <span class="badge bg-secondary ms-2" id="resultCount">{{ total_fournisseurs }} fournisseur(s)</span>
                 </div>
+                <div class="results-info" id="filteredInfo"></div>
                 <div class="export-buttons">
                     <button type="button" onclick="exportToExcel()" class="btn-sm-custom btn-excel">
                         <i class="bi bi-file-earmark-excel"></i> Excel
@@ -369,31 +638,51 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" id="select-all" class="checkbox-custom"></th>
-                            <th>Nom</th>
-                            <th>Téléphone</th>
-                            <th>Adresse</th>
+                            <th onclick="sortTable(1)" class="sorted">
+                                Compagnie <i class="bi bi-arrow-down-up sort-icon"></i>
+                            </th>
+                            <th onclick="sortTable(2)">
+                                Nom <i class="bi bi-arrow-down-up sort-icon"></i>
+                            </th>
+                            <th onclick="sortTable(3)">
+                                Téléphone <i class="bi bi-arrow-down-up sort-icon"></i>
+                            </th>
+                            <th onclick="sortTable(4)">
+                                Email <i class="bi bi-arrow-down-up sort-icon"></i>
+                            </th>
+                            <th onclick="sortTable(5)">
+                                Adresse <i class="bi bi-arrow-down-up sort-icon"></i>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                         {% for fournisseur in fournisseurs %}
                         <tr class="fournisseur-row"
                             data-id="{{ fournisseur.id }}"
+                            data-compagnie="{{ fournisseur.compagnie or '' }}"
                             data-nom="{{ fournisseur.nom_fournisseur }}"
                             data-telephone="{{ fournisseur.telephone or '' }}"
-                            data-adresse="{{ fournisseur.adresse or '' }}"
-                            style="cursor:pointer">
+                            data-email="{{ fournisseur.email or '' }}"
+                            data-adresse="{{ fournisseur.adresse or '' }}">
                             
                             <td class="text-center">
                                 <input type="checkbox" name="fournisseur_ids" 
                                        value="{{ fournisseur.id }}" 
                                        class="checkbox-custom fournisseur-checkbox">
                             </td>
-                            <td>
-                                <span class="badge-fournisseur" title="{{ fournisseur.nom_fournisseur }}">
-                                    {{ fournisseur.nom_fournisseur|upper|truncate(30, true) }}
-                                </span>
+                            <td class="col-compagnie">
+                                {% if fournisseur.compagnie %}
+                                    <span class="badge-compagnie" title="{{ fournisseur.compagnie }}">
+                                        🏭 {{ fournisseur.compagnie|truncate(20, true) }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
                             </td>
-                            <td>
+                            <td class="col-nom">
+                                <strong>{{ fournisseur.nom_fournisseur|upper|truncate(30, true) }}</strong>
+                            </td>
+                            <td class="col-telephone">
                                 {% if fournisseur.telephone %}
                                     <i class="bi bi-telephone-fill text-success me-1"></i>
                                     {{ fournisseur.telephone }}
@@ -401,7 +690,17 @@
                                     <span class="text-muted">Non renseigné</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="col-email">
+                                {% if fournisseur.email %}
+                                    <i class="bi bi-envelope-fill text-primary me-1"></i>
+                                    <a href="mailto:{{ fournisseur.email }}" class="text-decoration-none">
+                                        {{ fournisseur.email|truncate(25, true) }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Non renseigné</span>
+                                {% endif %}
+                            </td>
+                            <td class="col-adresse">
                                 {% if fournisseur.adresse %}
                                     <i class="bi bi-geo-alt-fill text-info me-1"></i>
                                     {{ fournisseur.adresse|truncate(40, true) }}
@@ -412,12 +711,6 @@
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot class="table-secondary">
-                        <tr>
-                            <td colspan="3" class="text-end fw-bold">TOTAL FOURNISSEURS :</td>
-                            <td class="fw-bold">{{ total_fournisseurs }}</td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
@@ -449,7 +742,7 @@
 
 <!-- MODAL : AJOUTER/MODIFIER FOURNISSEUR -->
 <div class="modal fade" id="addFournisseurModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalTitle">
@@ -461,18 +754,50 @@
                 <form method="post" id="fournisseurForm" action="{{ url_for('fournisseur') }}">
                     {{ form.hidden_tag() }}
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-building"></i> Nom du fournisseur
-                        </label>
-                        {{ form.nom_fournisseur(class="form-control", placeholder="Entrez le nom du fournisseur") }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i> Compagnie
+                            </label>
+                            {{ form.compagnie(class="form-control", placeholder="Nom de la compagnie (optionnel)") }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required-field">
+                                <i class="bi bi-person"></i> Nom du fournisseur
+                            </label>
+                            {{ form.nom_fournisseur(class="form-control", placeholder="Entrez le nom du fournisseur") }}
+                            {% if form.nom_fournisseur.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.nom_fournisseur.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-telephone"></i> Téléphone
-                        </label>
-                        {{ form.telephone(class="form-control", placeholder="Ex: 6X XXX XXX") }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-telephone"></i> Téléphone
+                            </label>
+                            {{ form.telephone(class="form-control", placeholder="Ex: 6X XXX XXX") }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-envelope"></i> Email
+                            </label>
+                            {{ form.email(class="form-control", placeholder="exemple@email.com", type="email") }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -482,7 +807,7 @@
                         {{ form.adresse(class="form-control", placeholder="Entrez l'adresse complète") }}
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end gap-2 mt-4">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             <i class="bi bi-x-circle"></i> Annuler
                         </button>
@@ -495,39 +820,206 @@
 </div>
 
 <script>
-// Sélectionner tous les checkboxes
+// ============================================
+// SYSTÈME DE FILTRES
+// ============================================
+
+let debounceTimer;
+
+function debounceFilter() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(applyFilters, 300);
+}
+
+function applyFilters() {
+    const filterCompagnie = document.getElementById('filterCompagnie').value.toLowerCase().trim();
+    const filterNom = document.getElementById('filterNom').value.toLowerCase().trim();
+    const filterTelephone = document.getElementById('filterTelephone').value.toLowerCase().trim();
+    const filterEmail = document.getElementById('filterEmail').value.toLowerCase().trim();
+    const filterAdresse = document.getElementById('filterAdresse').value.toLowerCase().trim();
+    
+    const rows = document.querySelectorAll('#tableBody .fournisseur-row');
+    let visibleCount = 0;
+    let activeFilters = 0;
+    
+    // Compter les filtres actifs
+    if (filterCompagnie) activeFilters++;
+    if (filterNom) activeFilters++;
+    if (filterTelephone) activeFilters++;
+    if (filterEmail) activeFilters++;
+    if (filterAdresse) activeFilters++;
+    
+    rows.forEach(row => {
+        const compagnie = (row.dataset.compagnie || '').toLowerCase();
+        const nom = (row.dataset.nom || '').toLowerCase();
+        const telephone = (row.dataset.telephone || '').toLowerCase();
+        const email = (row.dataset.email || '').toLowerCase();
+        const adresse = (row.dataset.adresse || '').toLowerCase();
+        
+        let show = true;
+        
+        if (filterCompagnie && !compagnie.includes(filterCompagnie)) show = false;
+        if (filterNom && !nom.includes(filterNom)) show = false;
+        if (filterTelephone && !telephone.includes(filterTelephone)) show = false;
+        if (filterEmail && !email.includes(filterEmail)) show = false;
+        if (filterAdresse && !adresse.includes(filterAdresse)) show = false;
+        
+        if (show) {
+            row.style.display = '';
+            row.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+            row.classList.add('hidden');
+        }
+    });
+    
+    // Mettre à jour les compteurs
+    document.getElementById('activeFilters').textContent = `${activeFilters} actif(s)`;
+    document.getElementById('resultCount').textContent = `${visibleCount} fournisseur(s)`;
+    
+    const totalRows = rows.length;
+    if (visibleCount < totalRows) {
+        document.getElementById('filteredInfo').textContent = 
+            `Filtré : ${visibleCount} sur ${totalRows}`;
+    } else {
+        document.getElementById('filteredInfo').textContent = '';
+    }
+    
+    // Mettre à jour les statistiques
+    document.getElementById('statTotal').textContent = visibleCount;
+    
+    // Mettre à jour l'état des boutons clear
+    updateClearButtons();
+}
+
+function clearFilter(filterId) {
+    document.getElementById(filterId).value = '';
+    applyFilters();
+}
+
+function resetAllFilters() {
+    document.querySelectorAll('.search-field input').forEach(input => {
+        input.value = '';
+    });
+    applyFilters();
+}
+
+function updateClearButtons() {
+    document.querySelectorAll('.search-field input').forEach(input => {
+        const clearBtn = input.nextElementSibling;
+        if (clearBtn && clearBtn.classList.contains('clear-icon')) {
+            clearBtn.style.display = input.value ? 'block' : 'none';
+        }
+    });
+}
+
+// ============================================
+// SYSTÈME DE TRI
+// ============================================
+
+let sortDirection = {};
+const columnMap = {
+    1: 'compagnie',
+    2: 'nom',
+    3: 'telephone',
+    4: 'email',
+    5: 'adresse'
+};
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('fournisseursTable');
+    const tbody = document.getElementById('tableBody');
+    const rows = Array.from(tbody.querySelectorAll('.fournisseur-row'));
+    
+    // Basculer la direction
+    if (!sortDirection[columnIndex]) {
+        sortDirection[columnIndex] = 'asc';
+    } else {
+        sortDirection[columnIndex] = sortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
+    }
+    
+    // Trier les lignes
+    rows.sort((a, b) => {
+        const key = columnMap[columnIndex];
+        let aVal = (a.dataset[key] || '').toLowerCase();
+        let bVal = (b.dataset[key] || '').toLowerCase();
+        
+        if (aVal < bVal) return sortDirection[columnIndex] === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDirection[columnIndex] === 'asc' ? 1 : -1;
+        return 0;
+    });
+    
+    // Réorganiser les lignes
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Mettre à jour les icônes de tri
+    document.querySelectorAll('.table-custom thead th').forEach(th => {
+        th.classList.remove('sorted');
+    });
+    
+    const header = table.querySelectorAll('thead th')[columnIndex];
+    header.classList.add('sorted');
+    
+    // Mettre à jour l'icône
+    const icon = header.querySelector('.sort-icon');
+    if (icon) {
+        if (sortDirection[columnIndex] === 'asc') {
+            icon.className = 'bi bi-sort-up sort-icon';
+        } else {
+            icon.className = 'bi bi-sort-down sort-icon';
+        }
+    }
+}
+
+// ============================================
+// FONCTIONS EXISTANTES
+// ============================================
+
+// Gestionnaire de la checkbox "Tout sélectionner"
 document.getElementById('select-all')?.addEventListener('change', function(e) {
-    document.querySelectorAll('.fournisseur-checkbox').forEach(cb => cb.checked = e.target.checked);
+    document.querySelectorAll('.fournisseur-checkbox:not(:hidden)').forEach(cb => {
+        const row = cb.closest('tr');
+        if (row.style.display !== 'none') {
+            cb.checked = e.target.checked;
+        }
+    });
     toggleDeleteButton();
 });
 
-// Fonction pour sélectionner tous
+// Sélectionner tous les fournisseurs visibles
 function selectAll() {
-    document.querySelectorAll('.fournisseur-checkbox').forEach(cb => cb.checked = true);
-    const selectAll = document.getElementById('select-all');
-    if (selectAll) selectAll.checked = true;
+    document.querySelectorAll('.fournisseur-checkbox').forEach(cb => {
+        const row = cb.closest('tr');
+        if (row.style.display !== 'none') {
+            cb.checked = true;
+        }
+    });
+    document.getElementById('select-all').checked = true;
     toggleDeleteButton();
 }
 
-// Fonction pour désélectionner tous
+// Désélectionner tous les fournisseurs
 function deselectAll() {
     document.querySelectorAll('.fournisseur-checkbox').forEach(cb => cb.checked = false);
-    const selectAll = document.getElementById('select-all');
-    if (selectAll) selectAll.checked = false;
+    document.getElementById('select-all').checked = false;
     toggleDeleteButton();
 }
 
-// Gérer l'affichage du bouton de suppression
+// Gérer l'affichage et l'état du bouton de suppression
 function toggleDeleteButton() {
     const checkboxes = document.querySelectorAll('.fournisseur-checkbox:checked');
     const deleteBtn = document.getElementById('deleteBtn');
     if (deleteBtn) {
-        if (checkboxes.length > 0) {
-            deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Supprimer ${checkboxes.length} fournisseur(s)`;
+        const count = checkboxes.length;
+        if (count > 0) {
+            deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Supprimer ${count} fournisseur(s)`;
             deleteBtn.disabled = false;
+            deleteBtn.style.opacity = '1';
         } else {
             deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Supprimer sélection`;
             deleteBtn.disabled = true;
+            deleteBtn.style.opacity = '0.5';
         }
     }
 }
@@ -535,38 +1027,60 @@ function toggleDeleteButton() {
 // Confirmation avant suppression
 function confirmDelete() {
     const checkboxes = document.querySelectorAll('.fournisseur-checkbox:checked');
-    if (checkboxes.length === 0) {
-        alert('Veuillez sélectionner au moins un fournisseur à supprimer');
+    const count = checkboxes.length;
+    
+    if (count === 0) {
+        alert('⚠️ Veuillez sélectionner au moins un fournisseur à supprimer');
         return false;
     }
-    return confirm(`⚠️ Supprimer ${checkboxes.length} fournisseur(s) ? Cette action est irréversible.`);
+    
+    const message = count === 1 
+        ? '⚠️ Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action est irréversible.'
+        : `⚠️ Êtes-vous sûr de vouloir supprimer ces ${count} fournisseurs ? Cette action est irréversible.`;
+    
+    return confirm(message);
 }
 
-// Export Excel
+// Export Excel (exporte uniquement les lignes visibles)
 function exportToExcel() {
-    let csv = [["Nom", "Téléphone", "Adresse"]];
+    let csv = [["Compagnie", "Nom", "Téléphone", "Email", "Adresse"]];
     
-    document.querySelectorAll('#fournisseursTable tbody tr').forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 3) {
-            csv.push([
-                cells[1]?.innerText.replace(/\n/g, ' '),
-                cells[2]?.innerText.replace(/\n/g, ' '),
-                cells[3]?.innerText.replace(/\n/g, ' ')
-            ]);
+    document.querySelectorAll('#tableBody .fournisseur-row').forEach(row => {
+        if (row.style.display !== 'none') {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 6) {
+                const cleanText = (index) => {
+                    let text = cells[index]?.innerText || '';
+                    return text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                };
+                
+                csv.push([
+                    cleanText(1),
+                    cleanText(2),
+                    cleanText(3),
+                    cleanText(4),
+                    cleanText(5)
+                ]);
+            }
         }
     });
     
-    const blob = new Blob(["\uFEFF" + csv.map(row => row.join(',')).join('\n')], 
-                          { type: 'text/csv;charset=utf-8;' });
+    const csvContent = "\uFEFF" + csv.map(row => row.join(';')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'fournisseurs.csv';
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `fournisseurs_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(link.href);
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
-// Double-clic pour modifier
+// Gestion du modal et double-clic
 document.addEventListener("DOMContentLoaded", function() {
     const modalEl = document.getElementById("addFournisseurModal");
     const modal = new bootstrap.Modal(modalEl);
@@ -574,36 +1088,92 @@ document.addEventListener("DOMContentLoaded", function() {
     const title = document.getElementById("modalTitle");
     const submitBtn = form.querySelector('input[type="submit"]');
 
-    // Double-clic pour modifier
+    // Double-clic pour modifier un fournisseur
     document.querySelectorAll(".fournisseur-row").forEach(row => {
         row.addEventListener("dblclick", function() {
             title.innerHTML = '<i class="bi bi-pencil"></i> Modifier le fournisseur';
             form.action = `/gestion_materiel/fournisseur/edit/${this.dataset.id}`;
             
+            form.compagnie.value = this.dataset.compagnie || "";
             form.nom_fournisseur.value = this.dataset.nom || "";
             form.telephone.value = this.dataset.telephone || "";
+            form.email.value = this.dataset.email || "";
             form.adresse.value = this.dataset.adresse || "";
             
-            if (submitBtn) submitBtn.value = "Modifier";
+            if (submitBtn) {
+                submitBtn.value = "Modifier";
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-primary');
+            }
             
             modal.show();
         });
+        
+        row.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
     });
 
-    // Reset modal
+    // Réinitialisation du modal
     modalEl.addEventListener("hidden.bs.modal", function() {
-        title.innerHTML = '<i class="bi bi-truck"></i> Ajouter un fournisseur';
-        form.action = "{{ url_for('fournisseur') }}";
-        form.reset();
-        if (submitBtn) submitBtn.value = "Ajouter";
+        resetModal();
     });
 
-    // Écouter les changements de checkbox
     document.querySelectorAll('.fournisseur-checkbox').forEach(cb => {
-        cb.addEventListener('change', toggleDeleteButton);
+        cb.addEventListener('change', function() {
+            toggleDeleteButton();
+            
+            const allCheckboxes = document.querySelectorAll('.fournisseur-checkbox');
+            const visibleCheckboxes = document.querySelectorAll('.fournisseur-row:not([style*="display: none"]) .fournisseur-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.fournisseur-checkbox:checked');
+            const selectAll = document.getElementById('select-all');
+            
+            if (selectAll) {
+                if (checkedCheckboxes.length === visibleCheckboxes.length && visibleCheckboxes.length > 0) {
+                    selectAll.checked = true;
+                    selectAll.indeterminate = false;
+                } else if (checkedCheckboxes.length === 0) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                } else {
+                    selectAll.indeterminate = true;
+                }
+            }
+        });
     });
     
     toggleDeleteButton();
+});
+
+// Reset modal function
+function resetModal() {
+    const form = document.getElementById("fournisseurForm");
+    const title = document.getElementById("modalTitle");
+    const submitBtn = form?.querySelector('input[type="submit"]');
+    
+    if (title) title.innerHTML = '<i class="bi bi-truck"></i> Ajouter un fournisseur';
+    if (form) {
+        form.action = "{{ url_for('fournisseur') }}";
+        form.reset();
+    }
+    if (submitBtn) {
+        submitBtn.value = "Enregistrer";
+        submitBtn.classList.add('btn-success');
+        submitBtn.classList.remove('btn-primary');
+    }
+}
+
+// Raccourci clavier pour la recherche
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('filterNom')?.focus();
+    }
+    if (e.key === 'Escape') {
+        resetAllFilters();
+    }
 });
 </script>
 {% endblock %}

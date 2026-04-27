@@ -60,9 +60,11 @@ class Client(db.Model):
 
 class Fournisseur(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    compagnie = db.Column(db.String(100), nullable=True)
     nom_fournisseur = db.Column(db.String(100), nullable=False)
     telephone = db.Column(db.String(30))
     adresse = db.Column(db.String(255))
+    email = db.Column(db.String(100), nullable=True)
 
     # 🔥 NOUVELLE RELATION
     achats = db.relationship(
