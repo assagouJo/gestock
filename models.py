@@ -461,9 +461,17 @@ class Facture(db.Model):
 
 
 class KitProforma(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
+    proforma_title = db.Column(db.String(500))
+    proforma_comment = db.Column(db.String(500))
+    proforma_comment2 = db.Column(db.String(500))
     numero = db.Column(db.String(50), unique=True, nullable=False)
+    attn = db.Column(db.String(100))
+    condition_paiement = db.Column(db.String(200))
+    delai_livraison = db.Column(db.String(200))
+    garantie = db.Column(db.String(200))
+    remise = db.Column(db.Float, default=0)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
 
     client_id = db.Column(
         db.Integer,
@@ -477,12 +485,6 @@ class KitProforma(db.Model):
     cascade="all, delete-orphan"
     )
 
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    attn = db.Column(db.String(100))
-    condition_paiement = db.Column(db.String(200))
-    delai_livraison = db.Column(db.String(200))
-    garantie = db.Column(db.String(200))
 
     prix_global = db.Column(db.Float)
 
@@ -539,10 +541,13 @@ class Proforma(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     proforma_title = db.Column(db.String(500))
     proforma_comment = db.Column(db.String(500))
+    proforma_comment2 = db.Column(db.String(500))
     condition_paiement = db.Column(db.String(500))
     delai_livraison = db.Column(db.String(500))
     garantie = db.Column(db.String(500))
     attn = db.Column(db.String(400))
+    total_ht = db.Column(db.Float, default=0)
+    remise = db.Column(db.Float, default=0)
     numero = db.Column(db.String(50), unique=True, nullable=False)
 
     client_id = db.Column(

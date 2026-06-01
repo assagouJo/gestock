@@ -251,6 +251,8 @@
         /* MODIFICATION : On enlève overflow:hidden et text-overflow:ellipsis */
         overflow: visible;
         text-overflow: clip;
+        word-break: break-word;     /* Casser les mots longs */
+        white-space: normal;
     }
     
     .bon-table tbody tr:hover td {
@@ -294,10 +296,12 @@
         font-weight: 600;
         font-size: 9px;
         font-family: monospace;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+        white-space: normal;        /* Permettre le retour à la ligne */
+        word-break: break-all;      /* Casser où nécessaire */
+        overflow-wrap: break-word;
+        max-width: 100%;           /* Prendre toute la largeur */
+        overflow: visible;
+        text-overflow: clip;
     }
     
     /* ========== CORRECTION POUR NUMÉRO DE SÉRIE LONG ========== */
@@ -328,9 +332,10 @@
     /* Style pour les marques et modèles */
     .marque-model {
         font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal;        /* Permettre le retour à la ligne */
+        word-break: break-word;
+        overflow: visible;
+        text-overflow: clip;
     }
     
     .text-muted {
@@ -800,7 +805,7 @@
             <div class="signature-line">LE CLIENT</div>
         </div>
         <div class="signature-block">
-            <div class="signature-line">SERVICE TECHNIQUE</div>
+            <div class="signature-line">SERVICE COMMERCIAL</div>
         </div>
     </div>
 

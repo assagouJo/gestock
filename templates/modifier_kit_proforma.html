@@ -159,6 +159,24 @@
         color: white;
     }
 
+    /* ✅ Prix final */
+    .price-final-card {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .price-final-input {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: white;
+    }
+
     /* Boutons */
     .btn-group-custom {
         display: flex;
@@ -244,6 +262,18 @@
                 <!-- Champ caché pour stocker l'ordre des blocs -->
                 <input type="hidden" name="ordre_blocs" id="ordreBlocs" value="">
                 
+                <!-- TITRE DE LA PROFORMA -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label">
+                            <i class="fas fa-heading"></i> Titre de la proforma
+                        </label>
+                        <input type="text" name="proforma_title" class="form-control form-control-lg" 
+                               value="{{ kit.proforma_title or '' }}" 
+                               placeholder="Ex: Offre pour équipement médical">
+                    </div>
+                </div>
+
                 <!-- Informations client et date -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -304,6 +334,35 @@
                         <input type="text" name="garantie" class="form-control" 
                                value="{{ kit.garantie or '' }}" 
                                placeholder="Ex: 1 an">
+                    </div>
+                </div>
+
+                <!-- COMMENTAIRES ET REMISE -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Commentaire principal
+                        </label>
+                        <textarea name="proforma_comment" class="form-control" 
+                                  rows="3" 
+                                  placeholder="Commentaire général sur la proforma">{{ kit.proforma_comment or '' }}</textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-comment-dots"></i> Commentaire supplémentaire
+                        </label>
+                        <textarea name="proforma_comment2" class="form-control" 
+                                  rows="3" 
+                                  placeholder="Commentaire additionnel">{{ kit.proforma_comment2 or '' }}</textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-tag"></i> Remise (FCFA)
+                        </label>
+                        <input type="number" name="remise" id="remise" class="form-control form-control-lg" 
+                               value="{{ kit.remise if kit.remise else '0' }}" 
+                               min="0" step="0.01" placeholder="0">
+                        <small class="text-muted">Montant à déduire du prix global</small>
                     </div>
                 </div>
 
@@ -459,18 +518,29 @@
 
                 <hr class="my-4">
 
-                <!-- Prix global -->
+                <!-- ✅ Prix global et Prix final -->
                 <div class="row mb-4">
-                    <div class="col-md-4 offset-md-8">
+                    <div class="col-md-4 offset-md-2">
                         <div class="price-card">
                             <div class="price-label">
                                 <i class="fas fa-tag"></i> Prix global
                             </div>
-                            <input type="number" name="prix_global" 
+                            <input type="number" name="prix_global" id="prix_global"
                                    class="form-control price-input" 
                                    step="0.01" min="0" 
                                    value="{{ kit.prix_global }}" 
                                    required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="price-final-card">
+                            <div class="price-label">
+                                <i class="fas fa-check-circle"></i> Prix final après remise
+                            </div>
+                            <input type="text" id="prix_final"
+                                   class="form-control price-final-input" 
+                                   readonly>
+                            <small style="opacity: 0.9;">Prix global - Remise</small>
                         </div>
                     </div>
                 </div>
@@ -518,6 +588,28 @@
 document.addEventListener('DOMContentLoaded', function() {
     let blocCounter = {{ blocs_dict|length }};
     
+    // ✅ Fonction pour calculer le prix final
+    function calculerPrixFinal() {
+        const prixGlobal = parseFloat(document.getElementById('prix_global').value) || 0;
+        const remise = parseFloat(document.getElementById('remise').value) || 0;
+        const prixFinal = prixGlobal - remise;
+        document.getElementById('prix_final').value = prixFinal.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' FCFA';
+    }
+    
+    // ✅ Écouteurs pour le calcul en temps réel
+    const prixGlobalInput = document.getElementById('prix_global');
+    const remiseInput = document.getElementById('remise');
+    
+    if (prixGlobalInput) {
+        prixGlobalInput.addEventListener('input', calculerPrixFinal);
+    }
+    if (remiseInput) {
+        remiseInput.addEventListener('input', calculerPrixFinal);
+    }
+    
+    // Calcul initial
+    calculerPrixFinal();
+    
     function getNomComplet(produit) {
         if (produit.model && produit.model !== 'null' && produit.model !== '') {
             return `${produit.nom} - ${produit.model}`;
@@ -530,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
         produitsData.forEach(produit => {
             const selected = (selectedId && produit.id === selectedId) ? 'selected' : '';
             const nomComplet = getNomComplet(produit);
-            options += `<option value="${produit.id}" ${selected} title="${nomComplet}">${nomComplet|truncate(35)}</option>`;
+            options += `<option value="${produit.id}" ${selected} title="${nomComplet}">${nomComplet.substring(0, 35)}</option>`;
         });
         return options;
     }

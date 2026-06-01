@@ -55,6 +55,22 @@
                     </div>
                 </div>
 
+                <!-- Commentaire et Remise -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Commentaire</label>
+                        <textarea name="proforma_comment" class="form-control" 
+                            placeholder="Commentaire">{{ kit.proforma_comment if kit else '' }}</textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Remise (FCFA)</label>
+                        <input type="number" name="remise" id="remise" class="form-control form-control-lg" 
+                               value="{{ kit.remise if kit else '0' }}" 
+                               min="0" step="0.01" placeholder="0">
+                        <small class="text-muted">Montant à déduire du prix global</small>
+                    </div>
+                </div>
+
                 <hr class="my-4">
 
                 <!-- Blocs de produits -->
@@ -78,7 +94,13 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <!-- Produit principal du bloc avec modèle -->
+                            <!-- Titre du bloc -->
+                            <div class="mb-3">
+                                <input type="text" name="proforma_title" value="{{ kit.proforma_title if kit else '' }}" 
+                                class="form-control" placeholder="Titre de la proforma">
+                            </div>
+                            
+                            <!-- Produit principal du bloc -->
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     <label class="form-label fw-bold">Produit principal du bloc <span class="text-danger">*</span></label>
@@ -98,7 +120,7 @@
                                 </div>
                             </div>
 
-                            <!-- Produits secondaires (accessoires) avec modèle -->
+                            <!-- Produits secondaires (accessoires) -->
                             <label class="form-label fw-bold mt-2">Accessoires / Sondes</label>
                             <table class="table table-bordered">
                                 <thead class="table-light">
@@ -141,13 +163,28 @@
                 </div>
 
                 <hr class="my-4">
-
-                <!-- Prix global -->
+                
+                <!-- Commentaire supplémentaire -->
                 <div class="row mb-4">
-                    <div class="col-md-4 offset-md-8">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Commentaire supplémentaire</label>
+                        <textarea name="proforma_comment2" class="form-control" 
+                            placeholder="Commentaire supplémentaire">{{ kit.proforma_comment2 if kit else '' }}</textarea>
+                    </div>
+                </div>
+                
+                <!-- ✅ Prix global et Prix final -->
+                <div class="row mb-4">
+                    <div class="col-md-4 offset-md-4">
                         <label class="form-label fw-bold">Prix global du kit (F CFA) <span class="text-danger">*</span></label>
-                        <input type="number" name="prix_global" class="form-control form-control-lg" 
+                        <input type="number" name="prix_global" id="prix_global" class="form-control form-control-lg" 
                                step="0.01" min="0" required placeholder="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Prix final après remise</label>
+                        <input type="text" id="prix_final" class="form-control form-control-lg" 
+                               readonly style="background-color: #e9ecef; font-weight: bold; color: #28a745;">
+                        <small class="text-muted">Prix global - Remise</small>
                     </div>
                 </div>
 
@@ -167,6 +204,30 @@
 
 <script>
 let blocIndex = 1;
+
+// ✅ Fonction pour calculer le prix final
+function calculerPrixFinal() {
+    const prixGlobal = parseFloat(document.getElementById('prix_global').value) || 0;
+    const remise = parseFloat(document.getElementById('remise').value) || 0;
+    const prixFinal = prixGlobal - remise;
+    document.getElementById('prix_final').value = prixFinal.toFixed(2) + ' FCFA';
+}
+
+// ✅ Écouteurs pour le calcul en temps réel
+document.addEventListener('DOMContentLoaded', function() {
+    const prixGlobalInput = document.getElementById('prix_global');
+    const remiseInput = document.getElementById('remise');
+    
+    if (prixGlobalInput) {
+        prixGlobalInput.addEventListener('input', calculerPrixFinal);
+    }
+    if (remiseInput) {
+        remiseInput.addEventListener('input', calculerPrixFinal);
+    }
+    
+    // Calcul initial
+    calculerPrixFinal();
+});
 
 // Fonction pour mettre à jour les indices des blocs
 function updateBlocIndices() {
@@ -280,8 +341,16 @@ document.getElementById('addBloc').addEventListener('click', function() {
     });
     
     newBloc.querySelectorAll('input[type="number"]').forEach(input => {
-        input.value = '1';
+        if (input.name !== 'remise') {  // Ne pas réinitialiser la remise
+            input.value = '1';
+        }
     });
+    
+    // Réinitialiser le titre
+    const titreInput = newBloc.querySelector('input[name="proforma_title"]');
+    if (titreInput) {
+        titreInput.value = '';
+    }
     
     // Vider les produits secondaires (garder une ligne)
     const tbody = newBloc.querySelector('.produits-secondaires-body');

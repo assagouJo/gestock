@@ -2998,29 +2998,48 @@ def nouvelle_proforma():
 @app.route("/proforma/create", methods=["POST"])
 @login_required
 def create_proforma():
-    from datetime import datetime
-    
-    client_id = request.form.get("client_id")
-    condition_paiement = request.form.get("condition_paiement")
-    delai_livraison = request.form.get("delai_livraison")
-    garantie = request.form.get("garantie")
-    attn = request.form.get("attn")
-    proforma_title = request.form.get("proforma_title")
-    proforma_comment = request.form.get("proforma_comment")
 
-    if not client_id:
-        flash("Veuillez choisir un client", "danger")
-        return redirect(url_for("nouvelle_proforma"))
-    
-    conditionnement = request.form.getlist("conditionnement[]")
+    from datetime import datetime
 
     try:
-        # Générer le numéro au format PRO-YYYYMMDDHHMMSS (compatible avec les existants)
-        numero_proforma = f"{datetime.now().strftime('%Y%H%M%S')}"
-        
-        print(f"🔍 Génération du numéro: {numero_proforma}")
-        
-        # Création de la proforma AVEC le numéro
+
+        # =========================
+        # Champs formulaire
+        # =========================
+        client_id = request.form.get("client_id")
+
+        condition_paiement = request.form.get("condition_paiement")
+        delai_livraison = request.form.get("delai_livraison")
+        garantie = request.form.get("garantie")
+
+        attn = request.form.get("attn")
+
+        proforma_title = request.form.get("proforma_title")
+        proforma_comment = request.form.get("proforma_comment")
+        proforma_comment2 = request.form.get("proforma_comment2")
+
+        if not client_id:
+            flash("Veuillez choisir un client", "danger")
+            return redirect(url_for("nouvelle_proforma"))
+
+        # =========================
+        # Récupération remise FIXE
+        # =========================
+        remise_saisie = request.form.get("remise", 0)
+
+        try:
+            remise_saisie = float(remise_saisie) if remise_saisie else 0
+        except ValueError:
+            remise_saisie = 0
+
+        # =========================
+        # Génération numéro proforma
+        # =========================
+        numero_proforma = f"PRO-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        # =========================
+        # Création proforma
+        # =========================
         proforma = Proforma(
             client_id=client_id,
             condition_paiement=condition_paiement,
@@ -3029,61 +3048,118 @@ def create_proforma():
             attn=attn,
             proforma_title=proforma_title,
             proforma_comment=proforma_comment,
-            numero=numero_proforma  # ← Le numéro est assigné directement
+            proforma_comment2=proforma_comment2,
+            numero=numero_proforma,
+            remise=0,          # Sera mis à jour après calcul
+            total_ht=0,        # Sera mis à jour après calcul
+            total=0            # Sera mis à jour après calcul
         )
 
         db.session.add(proforma)
-        db.session.flush()  # Pour obtenir l'ID si nécessaire
-        
-        print(f"✅ Proforma ajoutée avec ID: {proforma.id}, Numéro: {proforma.numero}")
-        
-        # Traitement des produits
+        db.session.flush()
+
+        # =========================
+        # Récupération lignes produits
+        # =========================
         produits = request.form.getlist("produit_id[]")
         quantites = request.form.getlist("quantite[]")
         prix = request.form.getlist("prix[]")
+        conditionnements = request.form.getlist("conditionnement[]")
 
-        total = 0
+        # =========================
+        # Variables calcul
+        # =========================
+        sous_total_global = 0  # Total HT avant remise
 
+        # =========================
+        # Boucle création lignes
+        # =========================
         for i in range(len(produits)):
+
             if not produits[i]:
                 continue
-                
+
             try:
                 produit_id = int(produits[i])
-                quantite = int(quantites[i])
+                quantite = float(quantites[i])
                 prix_unitaire = float(prix[i])
-            except (ValueError, TypeError) as e:
-                print(f"❌ Erreur de conversion ligne {i}: {e}")
+
+            except (ValueError, TypeError):
                 continue
 
-            sous_total = quantite * prix_unitaire
-            total += sous_total
+            # Sous-total ligne
+            sous_total_ligne = quantite * prix_unitaire
 
+            # Accumulation sous-total global
+            sous_total_global += sous_total_ligne
+
+            # Création ligne proforma
             ligne = LigneProforma(
                 proforma_id=proforma.id,
                 produit_id=produit_id,
-                conditionnement=conditionnement[i] if i < len(conditionnement) else None,
+                conditionnement=conditionnements[i]
+                if i < len(conditionnements)
+                else None,
                 quantite=quantite,
                 prix_unitaire=prix_unitaire,
-                sous_total=sous_total
+                sous_total=sous_total_ligne
             )
+
             db.session.add(ligne)
 
-        proforma.total = total
+        # =========================
+        # Calcul remise et totaux
+        # =========================
         
-        # Vérification finale avant commit
-        if not proforma.numero:
-            raise ValueError("Le numéro de proforma n'a pas été généré correctement")
-            
+        # Montant de la remise (valeur fixe entrée par l'utilisateur)
+        montant_remise = remise_saisie
+
+        # Protection : la remise ne peut pas dépasser le sous-total global
+        if montant_remise > sous_total_global:
+            montant_remise = sous_total_global  # Remise max = 100% du sous-total
+
+        # Calcul du total global après déduction de la remise
+        total_global = sous_total_global - montant_remise
+
+        # =========================
+        # Mise à jour proforma avec les totaux calculés
+        # =========================
+        proforma.total_ht = sous_total_global      # Sous-total global avant remise
+        proforma.remise = montant_remise            # Montant de la remise appliquée
+        proforma.total = total_global               # Total global après remise
+
+        # =========================
+        # Sauvegarde finale
+        # =========================
         db.session.commit()
-        
-        flash(f"✅ Proforma {proforma.numero} créée avec succès", "success")
-        return redirect(url_for("details_proforma", proforma_id=proforma.id))
-        
+
+        flash(
+            f"✅ Proforma {proforma.numero} créée avec succès | "
+            f"Sous-total: {sous_total_global:,.0f} FCFA | "
+            f"Remise: {montant_remise:,.0f} FCFA | "
+            f"Total: {total_global:,.0f} FCFA",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "details_proforma",
+                proforma_id=proforma.id
+            )
+        )
+
     except Exception as e:
+
         db.session.rollback()
-        print(f"❌ ERREUR COMPLÈTE: {str(e)}")
-        flash(f"❌ Erreur lors de la création: {str(e)}", "danger")
+
+        print(f"❌ ERREUR : {str(e)}")
+        print(f"❌ Détails : {traceback.format_exc()}")
+
+        flash(
+            f"❌ Erreur lors de la création : {str(e)}",
+            "danger"
+        )
+
         return redirect(url_for("nouvelle_proforma"))
 
 
@@ -3105,68 +3181,139 @@ def modifier_proforma(proforma_id):
             conditionnements=conditionnements
         )
     
+    # =========================
     # METHOD POST - Mise à jour
+    # =========================
+    
+    # Champs formulaire
     client_id = request.form.get("client_id")
     condition_paiement = request.form.get("condition_paiement")
     delai_livraison = request.form.get("delai_livraison")
     garantie = request.form.get("garantie")
     attn = request.form.get("attn")
-    proforma_title = request.form.get("proforma_title")  # NOUVEAU
-    proforma_comment = request.form.get("proforma_comment")  # NOUVEAU
+    proforma_title = request.form.get("proforma_title")
+    proforma_comment = request.form.get("proforma_comment")
+    proforma_comment2 = request.form.get("proforma_comment2")
+    
+    # =========================
+    # Récupération remise FIXE
+    # =========================
+    remise_saisie = request.form.get("remise", 0)
+    try:
+        remise_saisie = float(remise_saisie) if remise_saisie else 0
+    except ValueError:
+        remise_saisie = 0
     
     if not client_id:
         flash("Veuillez choisir un client", "danger")
         return redirect(url_for("modifier_proforma", proforma_id=proforma_id))
     
+    # =========================
     # Mise à jour des informations de la proforma
+    # =========================
     proforma.client_id = client_id
     proforma.condition_paiement = condition_paiement
     proforma.delai_livraison = delai_livraison
     proforma.garantie = garantie
     proforma.attn = attn
-    proforma.proforma_title = proforma_title  # NOUVEAU
-    proforma.proforma_comment = proforma_comment  # NOUVEAU
+    proforma.proforma_title = proforma_title
+    proforma.proforma_comment = proforma_comment
+    proforma.proforma_comment2 = proforma_comment2
     
+    # =========================
     # Supprimer les anciennes lignes
+    # =========================
     for ligne in proforma.lignes:
         db.session.delete(ligne)
     
+    # =========================
     # Récupérer les nouvelles données
+    # =========================
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     prix = request.form.getlist("prix[]")
     conditionnements = request.form.getlist("conditionnement[]")
     
-    total = 0
+    # =========================
+    # Variables calcul
+    # =========================
+    sous_total_global = 0  # Total HT avant remise
     
+    # =========================
+    # Boucle création lignes
+    # =========================
     for i in range(len(produits)):
         if not produits[i] or not quantites[i] or not prix[i]:
             continue
             
-        produit_id = int(produits[i])
-        quantite = int(quantites[i])
-        prix_unitaire = float(prix[i])
+        try:
+            produit_id = int(produits[i])
+            quantite = float(quantites[i])
+            prix_unitaire = float(prix[i])
+        except (ValueError, TypeError):
+            continue
+            
         conditionnement = conditionnements[i] if i < len(conditionnements) else None
         
-        sous_total = quantite * prix_unitaire
-        total += sous_total
+        # Calcul du sous-total ligne
+        sous_total_ligne = quantite * prix_unitaire
         
+        # Accumulation sous-total global
+        sous_total_global += sous_total_ligne
+        
+        # Création de la ligne (stocke le sous-total original SANS remise)
         ligne = LigneProforma(
             proforma_id=proforma.id,
             produit_id=produit_id,
             conditionnement=conditionnement,
             quantite=quantite,
             prix_unitaire=prix_unitaire,
-            sous_total=sous_total
+            sous_total=sous_total_ligne  # Sous-total original sans remise
         )
         
         db.session.add(ligne)
     
-    proforma.total = total
+    # =========================
+    # Calcul remise et totaux
+    # =========================
     
+    # Montant de la remise (valeur fixe entrée par l'utilisateur)
+    montant_remise = remise_saisie
+    
+    # Protection : la remise ne peut pas dépasser le sous-total global
+    if montant_remise > sous_total_global:
+        montant_remise = sous_total_global  # Remise max = 100% du sous-total
+    
+    # Calcul du total global après déduction de la remise
+    total_global = sous_total_global - montant_remise
+    
+    # =========================
+    # Mise à jour de la proforma avec les totaux calculés
+    # =========================
+    proforma.total_ht = sous_total_global      # Sous-total global avant remise
+    proforma.remise = montant_remise            # Montant de la remise appliquée
+    proforma.total = total_global               # Total global après remise
+    
+    # =========================
+    # Sauvegarde finale
+    # =========================
     db.session.commit()
     
-    flash("Proforma modifiée avec succès", "success")
+    if montant_remise > 0:
+        flash(
+            f"✅ Proforma modifiée avec succès | "
+            f"Sous-total: {sous_total_global:,.0f} FCFA | "
+            f"Remise: {montant_remise:,.0f} FCFA | "
+            f"Total: {total_global:,.0f} FCFA",
+            "success"
+        )
+    else:
+        flash(
+            f"✅ Proforma modifiée avec succès | "
+            f"Total: {total_global:,.0f} FCFA",
+            "success"
+        )
+    
     return redirect(url_for("details_proforma", proforma_id=proforma_id))
 
 
@@ -3303,11 +3450,24 @@ def nouveau_kit_proforma():
 def create_kit_proforma():
     try:
         client_id = request.form.get("client_id")
-        prix_global = request.form.get("prix_global")
+        prix_global = float(request.form.get("prix_global", 0))  # ✅ Prix saisi manuellement
         attn = request.form.get("attn")
         condition_paiement = request.form.get("condition_paiement")
         delai_livraison = request.form.get("delai_livraison")
         garantie = request.form.get("garantie")
+        proforma_title = request.form.get("proforma_title")
+        proforma_comment = request.form.get("proforma_comment")
+        proforma_comment2 = request.form.get("proforma_comment2")
+
+        # ✅ Récupérer la remise
+        remise = request.form.get("remise", 0)
+        if remise and remise.strip():
+            remise = float(remise)
+        else:
+            remise = 0
+
+        # ✅ Calcul : prix_global = prix - remise
+        prix_final = prix_global - remise
 
         numero = f"{datetime.now().strftime('%m%M%S')}"
 
@@ -3315,11 +3475,15 @@ def create_kit_proforma():
         kit = KitProforma(
             numero=numero,
             client_id=client_id,
-            prix_global=prix_global,
+            prix_global=prix_final,  # ✅ Prix après remise
             attn=attn,
             condition_paiement=condition_paiement,
             delai_livraison=delai_livraison,
-            garantie=garantie
+            garantie=garantie,
+            remise=remise,  # ✅ Remise enregistrée pour affichage
+            proforma_title=proforma_title,
+            proforma_comment=proforma_comment,
+            proforma_comment2=proforma_comment2
         )
         db.session.add(kit)
         db.session.flush()
@@ -3332,16 +3496,13 @@ def create_kit_proforma():
         
         # Pour chaque bloc
         for i in sorted(bloc_indices):
-            # Récupérer le produit principal et sa quantité
             produit_principal_id = request.form.get(f"produit_principal_{i}")
             quantite_principale = request.form.get(f"quantite_principale_{i}", 1)
             
             if produit_principal_id and produit_principal_id.strip():
-                # Créer un nom de bloc basé sur le produit principal
                 produit = Produit.query.get(int(produit_principal_id))
                 nom_bloc = produit.nom_produit if produit else f"Bloc {i+1}"
                 
-                # Créer le bloc
                 bloc = BlocKit(
                     kit_id=kit.id,
                     nom=nom_bloc
@@ -3349,7 +3510,6 @@ def create_kit_proforma():
                 db.session.add(bloc)
                 db.session.flush()
                 
-                # Ajouter la ligne pour le produit principal
                 ligne_principale = LigneKitProforma(
                     kit_id=kit.id,
                     bloc_id=bloc.id,
@@ -3358,11 +3518,9 @@ def create_kit_proforma():
                 )
                 db.session.add(ligne_principale)
                 
-                # Récupérer les produits secondaires
                 produits_secondaires = request.form.getlist(f"produit_secondaire_{i}[]")
                 quantites_secondaires = request.form.getlist(f"quantite_secondaire_{i}[]")
                 
-                # Ajouter les produits secondaires
                 for j, produit_id in enumerate(produits_secondaires):
                     if produit_id and produit_id.strip():
                         quantite = quantites_secondaires[j] if j < len(quantites_secondaires) else 1
@@ -3375,13 +3533,14 @@ def create_kit_proforma():
                         db.session.add(ligne_secondaire)
 
         db.session.commit()
-        flash(f"Kit proforma {kit.numero} créé avec succès!", "success")
+        flash(f"Kit proforma {kit.numero} créé avec succès! Prix final: {prix_final:,.2f} FCFA", "success")
         return redirect(url_for("details_kit_proforma", kit_id=kit.id))
         
     except Exception as e:
         db.session.rollback()
         flash(f"Erreur lors de la création du kit: {str(e)}", "danger")
         return redirect(url_for("nouveau_kit_proforma"))
+    
 
 # Route pour modifier un kit
 @app.route('/modifier-kit-proforma/<int:kit_id>', methods=['GET', 'POST'])
@@ -3397,7 +3556,17 @@ def modifier_kit_proforma(kit_id):
             kit.condition_paiement = request.form.get('condition_paiement')
             kit.delai_livraison = request.form.get('delai_livraison')
             kit.garantie = request.form.get('garantie')
-            kit.prix_global = float(request.form.get('prix_global', 0))
+            
+            # ✅ Nouveaux champs
+            kit.proforma_title = request.form.get('proforma_title', '')
+            kit.proforma_comment = request.form.get('proforma_comment', '')
+            kit.proforma_comment2 = request.form.get('proforma_comment2', '')
+            
+            # ✅ Calcul : prix_global = prix - remise
+            prix_saisi = float(request.form.get('prix_global', 0))
+            remise = request.form.get('remise', '0')
+            kit.remise = float(remise) if remise and remise.strip() else 0
+            kit.prix_global = prix_saisi - kit.remise  # ✅ Prix final après remise
             
             # SUPPRIMER toutes les lignes existantes
             for ligne in kit.lignes:
@@ -3407,20 +3576,19 @@ def modifier_kit_proforma(kit_id):
             for bloc in kit.blocs:
                 db.session.delete(bloc)
             
-            # ✅ Récupérer l'ordre des blocs depuis le champ caché
+            # Récupérer l'ordre des blocs depuis le champ caché
             ordre_blocs_str = request.form.get('ordre_blocs', '')
             ordre_blocs = ordre_blocs_str.split(',') if ordre_blocs_str else []
             
             # Si pas d'ordre, on reconstruit l'ordre depuis les champs du formulaire
             if not ordre_blocs:
-                # Parcourir tous les champs du formulaire pour trouver les blocs
                 for field in request.form.keys():
                     if field.startswith('bloc_titre_'):
                         bloc_id = field.replace('bloc_titre_', '')
                         if bloc_id not in ordre_blocs:
                             ordre_blocs.append(bloc_id)
             
-            # ✅ Traiter chaque bloc dans l'ordre spécifié
+            # Traiter chaque bloc dans l'ordre spécifié
             for bloc_id in ordre_blocs:
                 # Récupérer le titre du bloc
                 bloc_titre = request.form.get(f'bloc_titre_{bloc_id}', '')
@@ -3454,7 +3622,7 @@ def modifier_kit_proforma(kit_id):
                 db.session.add(nouveau_bloc)
                 db.session.flush()
                 
-                # ✅ Créer les lignes pour ce bloc en préservant l'ordre
+                # Créer les lignes pour ce bloc en préservant l'ordre
                 for i in range(len(produits_valides)):
                     ligne = LigneKitProforma(
                         kit_id=kit.id,
@@ -3490,15 +3658,13 @@ def modifier_kit_proforma(kit_id):
             traceback.print_exc()
     
     # GET request
-
-    clients = Client.query.order_by(Client.nom_client.asc()).all()  # ← Trier les clients aussi
+    clients = Client.query.order_by(Client.nom_client.asc()).all()
     produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
     
     return render_template('modifier_kit_proforma.html', 
                          kit=kit, 
                          clients=clients, 
                          produits=produits)
-
 
 
 # Route pour supprimer un kit

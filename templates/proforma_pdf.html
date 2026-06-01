@@ -251,6 +251,29 @@
         color: #000;
     }
     
+    /* AJOUTÉ : Style pour la ligne sous-total */
+    .sous-total-row td {
+        padding: 6px !important;
+        background: #fafafa;
+    }
+    
+    .sous-total-row .sous-total-value {
+        font-size: 14px;
+        color: #333;
+    }
+    
+    /* AJOUTÉ : Style pour la ligne remise */
+    .remise-row td {
+        padding: 6px !important;
+        background: #fff8f0;
+        color: #cc0000;
+    }
+    
+    .remise-row .remise-value {
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
     .montant-lettre {
         background: #f9f9f9;
         padding: 5px 15px;
@@ -278,12 +301,28 @@
         border-radius: 4px;
     }
     
-    
     .comment-box p {
         margin: 0;
         font-size: 14px;
         font-weight: 800;
         line-height: 1.5;
+    }
+    
+    /* AJOUTÉ : Style pour commentaire 2 */
+    .comment-box-2 {
+        margin: 5px 0;
+        padding: 5px 5px;
+        border-left: 4px solid #ffc107;
+        background-color: #fffdf0;
+        border-radius: 4px;
+    }
+    
+    .comment-box-2 p {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.5;
+        color: #856404;
     }
     
     .footer {
@@ -346,6 +385,18 @@
             background-color: #f8f9fa !important;
         }
         
+        .comment-box-2 {
+            background-color: #fffdf0 !important;
+        }
+        
+        .sous-total-row td {
+            background-color: #fafafa !important;
+        }
+        
+        .remise-row td {
+            background-color: #fff8f0 !important;
+        }
+        
         /* RÈGLES CRITIQUES - ÉVITE DE COUPER LES LIGNES */
         .table-produits tr {
             page-break-inside: avoid;
@@ -364,7 +415,9 @@
         }
         
         /* La ligne total reste avec le tableau */
-        .total-row {
+        .total-row,
+        .sous-total-row,
+        .remise-row {
             page-break-before: avoid;
             page-break-inside: avoid;
         }
@@ -373,7 +426,8 @@
         .client-box,
         .conditions-box,
         .montant-lettre,
-        .comment-box {
+        .comment-box,
+        .comment-box-2 {
             page-break-inside: avoid;
         }
         
@@ -464,6 +518,8 @@
     </table>
 </div>
 {% endif %}
+
+<!-- COMMENTAIRE 1 -->
 {% if proforma.proforma_comment %}
 <div class="comment-box">
     <p>{{ proforma.proforma_comment }}</p>
@@ -582,6 +638,24 @@
         </tr>
         {% endfor %}
         
+        <!-- AJOUTÉ : LIGNE SOUS-TOTAL GLOBAL -->
+        <tr class="sous-total-row">
+            <td colspan="3"><strong>SOUS-TOTAL GLOBAL</strong></td>
+            <td colspan="2" class="sous-total-value">
+                <strong>{{ "{:,.0f}".format(proforma.total_ht or proforma.total).replace(',', ' ') }} F CFA</strong>
+            </td>
+        </tr>
+        
+        <!-- AJOUTÉ : LIGNE REMISE (si remise > 0) -->
+        {% if proforma.remise and proforma.remise > 0 %}
+        <tr class="remise-row">
+            <td colspan="3"><strong>REMISE</strong></td>
+            <td colspan="2" class="remise-value">
+                <strong>- {{ "{:,.0f}".format(proforma.remise).replace(',', ' ') }} F CFA</strong>
+            </td>
+        </tr>
+        {% endif %}
+        
         <!-- LIGNE TOTAL -->
         <tr class="total-row">
             <td colspan="3"><strong>TOTAL</strong></td>
@@ -589,6 +663,12 @@
         </tr>
     </tbody>
 </table>
+<!-- AJOUTÉ : COMMENTAIRE 2 (optionnel) -->
+{% if proforma.proforma_comment2 %}
+<div class="comment-box-2">
+    <p>{{ proforma.proforma_comment2 }}</p>
+</div>
+{% endif %}
 
 <!-- MONTANT EN LETTRES -->
 <div class="montant-lettre">
@@ -598,7 +678,6 @@
     </p>
 </div>
 
-<!-- COMMENTAIRE OPTIONNEL -->
 
 <!-- SIGNATURES -->
 <div class="footer">

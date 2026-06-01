@@ -24,6 +24,51 @@
         line-height: 1.4;
         color: #333;
     }
+
+    .title-row td {
+        background-color: #f0f8ff;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        color: #0066cc;
+        padding: 4px 4px;
+    }
+
+    .title-row td {
+            background-color: #f0f8ff !important;
+    }
+
+    .proforma-title {
+        text-align: center;
+        margin: 4px 0;
+        padding: 4px;
+        background-color: #f0f8ff;
+        border-left: 4px solid #0066cc;
+        border-right: 4px solid #0066cc;
+    }
+    
+    .proforma-title h4 {
+        color: #0066cc;
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0;
+        font-style: italic;
+    }
+
+    .comment-box {
+        margin: 5px 0;
+        padding: 5px 5px;
+        border-left: 4px solid #17a2b8;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    .comment-box p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.5;
+    }
     
     /* Pour le texte en gras */
     strong, b, th, h1, h2, h3, h4, h5, h6,
@@ -241,6 +286,14 @@
         background-color: #f0f0f0;
         padding: 8px 4px;
     }
+
+    /* ✅ Ligne remise */
+    .remise-row td {
+        font-weight: bold;
+        background-color: #fff3f3;
+        padding: 6px 4px;
+        color: #cc0000;
+    }
     
     /* Montant en lettres */
     .montant-chiffre {
@@ -407,6 +460,12 @@
     </table>
 </div>
 
+{% if kit.proforma_comment %}
+<div class="comment-box">
+    <p>{{ kit.proforma_comment }}</p>
+</div>
+{% endif %}
+
 <table class="table-produits">
     <thead>
         <tr>
@@ -416,12 +475,22 @@
         </tr>
     </thead>
     <tbody>
+
+    {% if kit.proforma_title %}
+        <tr class="title-row">
+            <td colspan="5">
+                <div class="proforma-title">
+                    <h4>{{ kit.proforma_title }}</h4>
+                </div>
+            </td>
+        </tr>
+    {% endif %}
+
     {% if kit.blocs and kit.blocs|length > 0 %}
         {% for bloc in kit.blocs %}
             {% if bloc.lignes and bloc.lignes|length > 0 %}
                 {% set produit_principal = bloc.lignes[0] %}
-                {% set has_image = produit_principal.produit and produit_principal.produit.image %}
-                
+                {% set has_image = produit_principal.produit and produit_principal.produit.image %}        
                 <!-- Produit principal -->
                 <tr class="produit-principal">
                     <td>
@@ -455,13 +524,11 @@
                                 <span class="detail-label desc">Description :</span>
                                 <div style="margin-top: 5px;">
                                     {% set description = produit_principal.produit.description %}
-                                    {# Remplacer les deux points (:) par des séparateurs de lignes #}
                                     {% set sections = description.split(':') %}
                                     
                                     {% for section in sections %}
                                         {% if section.strip() %}
                                             {% if ',' in section %}
-                                                {# Si la section contient des virgules, créer une liste à puces #}
                                                 <ul style="margin: 5px 0 5px 20px; padding-left: 0; list-style-type: disc;">
                                                     {% for item in section.split(',') %}
                                                         {% if item.strip() %}
@@ -470,7 +537,6 @@
                                                     {% endfor %}
                                                 </ul>
                                             {% else %}
-                                                {# Sinon, afficher la ligne normalement #}
                                                 {% if section.strip() %}
                                                     <div style="margin: 5px 0; font-weight: 500;">{{ section.strip() }}</div>
                                                 {% endif %}
@@ -538,17 +604,13 @@
                                     <span class="detail-label">Description :</span>
                                     <div class="detail-value" style="margin-top: 5px;">
                                         {% set description = ligne.produit.description %}
-                                        
-                                        {# Découper par les deux points #}
                                         {% set parties = description.split(':') %}
                                         
                                         {% for partie in parties %}
                                             {% if partie.strip() %}
-                                                {# Si c'est la première partie (titre) #}
                                                 {% if loop.index == 1 %}
                                                     <strong style="display: block; margin: 5px 0;">{{ partie.strip() }}</strong>
                                                 {% else %}
-                                                    {# Pour le contenu après les deux points #}
                                                     {% if ',' in partie %}
                                                         <ul style="margin: 5px 0 10px 20px; padding-left: 0; list-style-type: disc;">
                                                             {% for item in partie.split(',') %}
@@ -641,6 +703,7 @@
                             <div class="detail-item">
                                 <span class="detail-label">Description:</span>
                                 <span class="detail-value">{{ ligne.produit.description }}</span>
+                                <h3 style="color: red;">** Pour plus d'info voir catalogue **</h3>
                             </div>
                             {% endif %}
                         </div>
@@ -669,12 +732,35 @@
     <tr>
         <td colspan="3" style="height: 5px;"></td>
     </tr>
+    
+    <!-- ✅ Ligne Prix global (prix saisi par l'utilisateur) -->
+    <tr>
+        <td colspan="2" style="font-size: 13px; text-align: right; padding-right: 10px;"><strong>MONTANT TOTAL</strong></td>
+        {% set prix_saisi = kit.prix_global + (kit.remise if kit.remise else 0) %}
+        <td style="text-align: right;"><strong style="font-size: 13px;">{{ "{:,.0f}".format(prix_saisi|float) }} F CFA</strong></td>
+    </tr>
+    
+    <!-- ✅ Ligne Remise (si remise > 0) -->
+    {% if kit.remise and kit.remise > 0 %}
+    <tr class="remise-row">
+        <td colspan="2" style="font-size: 13px; text-align: right; padding-right: 10px;"><strong>REMISE SPECIALE</strong></td>
+        <td style="text-align: right;"><strong style="font-size: 13px; color: #cc0000;">- {{ "{:,.0f}".format(kit.remise|float) }} F CFA</strong></td>
+    </tr>
+    {% endif %}
+    
+    <!-- Ligne Total final -->
     <tr class="total-row">
         <td colspan="2" style="font-size: 14px;">MONTANT TOTAL HT/HD</td>
         <td style="text-align: right;"><strong style="font-size: 14px;">{{ "{:,.0f}".format(kit.prix_global|float) if kit.prix_global else '0' }} F CFA</strong></td>
     </tr>
     </tbody>
 </table>
+
+{% if kit.proforma_comment2 %}
+<div class="comment-box">
+    <p>{{ kit.proforma_comment2 }}</p>
+</div>
+{% endif %}
 
 <div class="montant-chiffre">
     <strong style="font-size: 14px;">Arrêtée la présente proforma à la somme de :</strong><br>
