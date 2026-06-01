@@ -49,11 +49,16 @@
         border-radius: 10px;
         font-weight: 600;
         transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .btn-add:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        color: var(--info-color);
     }
 
     /* Barre de recherche */
@@ -439,27 +444,28 @@
                                 <input type="checkbox" name="bon_ids[]" value="{{ bon.id }}" class="checkbox-custom bon-checkbox">
                             </td>
                             
-                            <!-- NUMERO AVEC TOOLTIP -->
+                            <!-- NUMERO -->
                             <td class="fw-bold">
                                 <span class="badge-numero" 
                                       title="Bon de commande n°{{ bon.numero }}"
                                       style="cursor: help;">
                                     {{ bon.numero }}
                                 </span>
-                            </div>
+                            </td>
                             
-                            <td class="text-center">{{ bon.date_creation.strftime('%d/%m/%y') }}</div>
+                            <!-- DATE -->
+                            <td class="text-center">{{ bon.date_creation.strftime('%d/%m/%y') }}</td>
                             
-                            <!-- CLIENT AVEC TOOLTIP -->
+                            <!-- CLIENT -->
                             <td>
                                 <span class="badge-client" 
                                       title="{{ bon.client.nom_client }}"
                                       style="cursor: help;">
                                     {{ bon.client.nom_client|truncate(18, true) }}
                                 </span>
-                            </div>
+                            </td>
                             
-                            <!-- VENDEUR AVEC TOOLTIP -->
+                            <!-- VENDEUR -->
                             <td>
                                 {% if bon.vendeur %}
                                     <span class="badge-vendeur" 
@@ -470,9 +476,9 @@
                                 {% else %}
                                     <span class="badge bg-secondary" title="Non assigné">N/A</span>
                                 {% endif %}
-                            </div>
+                            </td>
                             
-                            <!-- COMPAGNIE AVEC TOOLTIP -->
+                            <!-- COMPAGNIE -->
                             <td>
                                 {% if bon.compagnie %}
                                     <span class="badge-compagnie" 
@@ -483,10 +489,15 @@
                                 {% else %}
                                     <span class="badge bg-secondary" title="Non assigné">N/A</span>
                                 {% endif %}
-                            </div>
+                            </td>
                             
-                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</div>
-                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</div>
+                            <!-- QUANTITÉ -->
+                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite') }}</td>
+                            
+                            <!-- LIVRÉ -->
+                            <td class="text-center">{{ bon.lignes | sum(attribute='quantite_livree') }}</td>
+                            
+                            <!-- RESTE -->
                             <td class="text-center">
                                 {% set reste = bon.lignes | sum(attribute='reste_a_livrer') %}
                                 {% if reste > 0 %}
@@ -494,8 +505,12 @@
                                 {% else %}
                                     <span class="badge bg-success" title="Totalement livré">0</span>
                                 {% endif %}
-                            </div>
-                            <td class="montant">{{ "{:,.0f}".format(bon.total|float).replace(',', ' ') }} F</div>
+                            </td>
+                            
+                            <!-- TOTAL -->
+                            <td class="montant">{{ "{:,.0f}".format(bon.total|float).replace(',', ' ') }} F</td>
+                            
+                            <!-- BONS DE LIVRAISON -->
                             <td class="text-center">
                                 {% if bon.livraisons|length > 0 %}
                                     <span class="badge bg-info" title="{{ bon.livraisons|length }} bon(s) de livraison">{{ bon.livraisons|length }} BL</span>
@@ -505,7 +520,9 @@
                                 {% else %}
                                     <span class="badge bg-secondary" title="Aucun bon de livraison">Aucun</span>
                                 {% endif %}
-                            </div>
+                            </td>
+                            
+                            <!-- STATUS -->
                             <td class="text-center">
                                 <span class="badge-status
                                     {% if bon.status == 'livree' %}bg-success
@@ -526,13 +543,18 @@
                                     <br>
                                     <small class="text-muted" title="{{ bon.pourcentage_livre }}% livré">{{ "%.0f"|format(bon.pourcentage_livre) }}%</small>
                                 {% endif %}
-                            </div>
+                            </td>
+                            
+                            <!-- ACTIONS -->
                             <td class="text-center">
                                 <div class="btn-group" role="group">
+                                    <!-- Voir détails -->
                                     <a href="{{ url_for('details_bon_commande', bon_id=bon.id) }}" 
                                        class="btn btn-sm btn-info" title="Voir les détails">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    
+                                    <!-- Brouillon : Modifier + Confirmer -->
                                     {% if bon.status == 'brouillon' %}
                                         <a href="{{ url_for('modifier_bon_commande', bon_id=bon.id) }}" 
                                            class="btn btn-sm btn-warning" title="Modifier">
@@ -544,12 +566,16 @@
                                             <i class="bi bi-check-lg"></i>
                                         </button>
                                     {% endif %}
-                                    {% if bon.status == 'confirmee' %}
-                                        <a href="{{ url_for('create_bon_livraison', commande_id=bon.id) }}" 
+                                    
+                                    <!-- Confirmée ou Partielle : Créer BL -->
+                                    {% if bon.status == 'confirmee' or bon.status == 'livraison_partielle' %}
+                                        <a href="{{ url_for('nouveau_bon_livraison', commande_id=bon.id) }}" 
                                            class="btn btn-sm btn-primary" title="Créer un bon de livraison">
                                             <i class="bi bi-truck"></i>
                                         </a>
                                     {% endif %}
+                                    
+                                    <!-- Supprimer (si pas de BL et pas livrée) -->
                                     {% if bon.livraisons|length == 0 and bon.status != 'livree' %}
                                         <button type="button" 
                                                 onclick="confirmDelete({{ bon.id }}, '{{ bon.numero }}', {{ bon.livraisons|length }})" 
@@ -558,7 +584,7 @@
                                         </button>
                                     {% endif %}
                                 </div>
-                            </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -602,7 +628,6 @@ function filterBons() {
         if (match) {
             row.classList.remove('hidden-row');
             visibleCount++;
-            // Mettre en évidence le texte recherché
             if (searchTerm !== '') {
                 highlightRow(row, searchTerm);
             } else {
@@ -613,7 +638,6 @@ function filterBons() {
         }
     });
     
-    // Mettre à jour les compteurs
     document.getElementById('resultCount').innerText = visibleCount;
     document.getElementById('badgeCount').innerText = visibleCount;
 }

@@ -771,6 +771,7 @@ class BonLivraison(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero = db.Column(db.String(30), unique=True, nullable=False)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    service_concerne = db.Column(db.String(20), default='commercial')
     nota_bene = db.Column(db.Text)
 
     status = db.Column(

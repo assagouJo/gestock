@@ -2079,6 +2079,15 @@ def create_bon_livraison():
     commande = BonCommande.query.get_or_404(commande_id)
 
     # =========================
+    # 🔥 AJOUT : Récupération du service concerné
+    # =========================
+    service_concerne = request.form.get("service_concerne", "commercial")
+    
+    # Validation : n'accepter que 'commercial' ou 'technique'
+    if service_concerne not in ['commercial', 'technique']:
+        service_concerne = 'commercial'
+
+    # =========================
     # 🔹 Quantités commandées et déjà livrées
     # =========================
     quantite_commande = {}
@@ -2147,7 +2156,8 @@ def create_bon_livraison():
         numero=numero,
         client_id=commande.client_id,
         commande_id=commande.id,
-        status="confirmee"  # Statut direct confirmé
+        status="confirmee",
+        service_concerne=service_concerne
     )
 
     db.session.add(bon)
@@ -2243,7 +2253,7 @@ def create_bon_livraison():
 
     db.session.commit()
 
-    flash(f"✅ Bon de livraison {bon.numero} créé avec succès - Stock mis à jour", "success")
+    flash(f"✅ Bon de livraison {bon.numero} créé avec succès - Stock mis à jour ({service_concerne.upper()})", "success")
 
     return redirect(url_for("detail_bon_livraison", id=bon.id))
 
@@ -2423,7 +2433,7 @@ def livraison_partielle(commande_id):
     
     if not produits_restants:
         flash("⚠ Cette commande est déjà entièrement livrée", "warning")
-        return redirect(url_for('detail_bon_commande', bon_id=commande.id))
+        return redirect(url_for('details_bon_commande', bon_id=commande.id))
     
     # Récupérer les stocks disponibles pour les produits restants
     produits_ids = [l.produit_id for l in produits_restants]

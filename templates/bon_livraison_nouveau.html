@@ -15,6 +15,16 @@
 <br>
 <strong>Bon de commande N° :</strong> {{ commande.numero }}
 </p>
+<div class="col-md-4 mt-1 mb-2">
+    <label class="form-label fw-bold" style="font-size: 1rem;">
+        <i class="bi bi-building"></i> Service concerné *
+    </label>
+    <select name="service_concerne" class="form-select form-select-sm" required>
+        <option value="">-- Choisir le service --</option>
+        <option value="commercial">💼 Service Commercial</option>
+        <option value="technique">🔧 Service Technique</option>
+    </select>
+</div>
 <div class="table-responsive">
 <table class="table table-bordered">
 <thead class="table-dark">

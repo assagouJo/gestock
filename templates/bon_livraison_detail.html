@@ -152,9 +152,11 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 20px;
+        gap: 20px;
     }
     
     .info-card {
+        flex: 1;
         background: #ffffff;
         border-radius: 14px;
         padding: 5px 0;
@@ -195,7 +197,7 @@
     }
     
     .info-label {
-        width: 110px;
+        width: 130px;
         font-weight: 600;
         color: #7f8c8d;
         font-size: 11px;
@@ -212,6 +214,29 @@
         color: #c0392b;
         font-size: 13px;
         font-weight: 700;
+    }
+    
+    /* Badge service */
+    .badge-service {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .badge-service-technique {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #bbdefb;
+    }
+    
+    .badge-service-commercial {
+        background: #fce4ec;
+        color: #c62828;
+        border: 1px solid #f8bbd0;
     }
     
     /* ========== TABLEAU PRINCIPAL ========== */
@@ -248,10 +273,9 @@
         text-align: center;
         border-bottom: 1px solid #eef2f6;
         vertical-align: middle;
-        /* MODIFICATION : On enlève overflow:hidden et text-overflow:ellipsis */
         overflow: visible;
         text-overflow: clip;
-        word-break: break-word;     /* Casser les mots longs */
+        word-break: break-word;
         white-space: normal;
     }
     
@@ -296,16 +320,14 @@
         font-weight: 600;
         font-size: 9px;
         font-family: monospace;
-        white-space: normal;        /* Permettre le retour à la ligne */
-        word-break: break-all;      /* Casser où nécessaire */
+        white-space: normal;
+        word-break: break-all;
         overflow-wrap: break-word;
-        max-width: 100%;           /* Prendre toute la largeur */
+        max-width: 100%;
         overflow: visible;
         text-overflow: clip;
     }
     
-    /* ========== CORRECTION POUR NUMÉRO DE SÉRIE LONG ========== */
-    /* La cellule s'agrandit en hauteur pour afficher tout le numéro */
     .badge-serie {
         display: inline-block;
         font-family: 'Courier New', monospace;
@@ -315,24 +337,19 @@
         background: #f8f9fa;
         padding: 6px 8px;
         border-radius: 6px;
-        
-        /* MODIFICATIONS PRINCIPALES */
-        white-space: normal;           /* Permet le retour à la ligne */
-        word-break: break-all;         /* Coupe le texte n'importe où si nécessaire */
-        overflow-wrap: break-word;     /* Coupe les mots longs */
-        max-width: 100%;              /* Prend toute la largeur disponible */
-        line-height: 1.5;             /* Espacement vertical pour la lisibilité */
+        white-space: normal;
+        word-break: break-all;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        line-height: 1.5;
         text-align: center;
-        
-        /* Suppression des limitations */
         overflow: visible;
         text-overflow: clip;
     }
     
-    /* Style pour les marques et modèles */
     .marque-model {
         font-weight: 500;
-        white-space: normal;        /* Permettre le retour à la ligne */
+        white-space: normal;
         word-break: break-word;
         overflow: visible;
         text-overflow: clip;
@@ -417,6 +434,10 @@
         display: flex;
         justify-content: space-between;
         margin: 80px 30px 5px 30px;
+    }
+    
+    .signature-block {
+        text-align: center;
     }
     
     .signature-line {
@@ -549,7 +570,6 @@
             print-color-adjust: exact;
         }
         
-        /* GARANTIE QUE LES NUMÉROS DE SÉRIE S'AFFICHENT EN ENTIER À L'IMPRESSION */
         .badge-serie {
             white-space: normal !important;
             word-break: break-all !important;
@@ -566,6 +586,12 @@
             overflow: visible !important;
             text-overflow: clip !important;
         }
+        
+        .badge-service-technique,
+        .badge-service-commercial {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
     }
     
     /* ========== RESPONSIVE ========== */
@@ -575,7 +601,7 @@
             margin: 15px;
         }
         .info-grid {
-            grid-template-columns: 1fr;
+            flex-direction: column;
             gap: 15px;
         }
         .doc-header {
@@ -724,6 +750,18 @@
                     <div class="info-value">{{ bon.mode_livraison }}</div>
                 </div>
                 {% endif %}
+                
+                <!-- 🔥 SERVICE CONCERNÉ -->
+                <div class="info-row">
+                    <div class="info-label">Service :</div>
+                    <div class="info-value">
+                        {% if bon.service_concerne == 'technique' %}
+                            <span class="badge-service badge-service-technique">🔧 Service Technique</span>
+                        {% else %}
+                            <span class="badge-service badge-service-commercial">💼 Service Commercial</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -805,7 +843,14 @@
             <div class="signature-line">LE CLIENT</div>
         </div>
         <div class="signature-block">
-            <div class="signature-line">SERVICE COMMERCIAL</div>
+            <!-- 🔥 SIGNATURE DYNAMIQUE SELON LE SERVICE -->
+            <div class="signature-line">
+                {% if bon.service_concerne == 'technique' %}
+                    SERVICE TECHNIQUE
+                {% else %}
+                    SERVICE COMMERCIAL
+                {% endif %}
+            </div>
         </div>
     </div>
 
