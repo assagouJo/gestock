@@ -570,7 +570,7 @@
                                         <select name="produit_id[]" class="form-select-custom" required>
                                             <option value="">-- Produit --</option>
                                             {% for p in produits %}
-                                                <option value="{{ p.id }}">{{ p.nom_produit }}</option>
+                                                <option value="{{ p.id }}">{{ p.nom_produit }} - {{ p.model or '' }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
