@@ -3018,6 +3018,13 @@ def create_proforma():
         # =========================
         client_id = request.form.get("client_id")
 
+        # Récupération du service concerné
+        service_concerne = request.form.get("service_concerne", "commercial")
+
+        # Validation
+        if service_concerne not in ['commercial', 'technique', 'gerant']:
+            service_concerne = 'commercial'
+
         condition_paiement = request.form.get("condition_paiement")
         delai_livraison = request.form.get("delai_livraison")
         garantie = request.form.get("garantie")
@@ -3060,9 +3067,10 @@ def create_proforma():
             proforma_comment=proforma_comment,
             proforma_comment2=proforma_comment2,
             numero=numero_proforma,
-            remise=0,          # Sera mis à jour après calcul
-            total_ht=0,        # Sera mis à jour après calcul
-            total=0            # Sera mis à jour après calcul
+            service_concerne=service_concerne,
+            remise=0,          
+            total_ht=0,        
+            total=0            
         )
 
         db.session.add(proforma)
@@ -3468,6 +3476,12 @@ def create_kit_proforma():
         proforma_title = request.form.get("proforma_title")
         proforma_comment = request.form.get("proforma_comment")
         proforma_comment2 = request.form.get("proforma_comment2")
+        # Récupération du service concerné
+        service_concerne = request.form.get("service_concerne", "commercial")
+
+        # Validation
+        if service_concerne not in ['commercial', 'technique', 'gerant']:
+            service_concerne = 'commercial'
 
         # ✅ Récupérer la remise
         remise = request.form.get("remise", 0)
@@ -3493,7 +3507,9 @@ def create_kit_proforma():
             remise=remise,  # ✅ Remise enregistrée pour affichage
             proforma_title=proforma_title,
             proforma_comment=proforma_comment,
-            proforma_comment2=proforma_comment2
+            proforma_comment2=proforma_comment2,
+            service_concerne=service_concerne
+            
         )
         db.session.add(kit)
         db.session.flush()

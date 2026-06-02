@@ -685,7 +685,16 @@
         <strong>SIGNATURE DU CLIENT</strong>
     </div>
     <div class="signature-box" style="text-align: right;">
-        <strong>LE RESPONSABLE COMMERCIAL</strong>
+        <!-- 🔥 SIGNATURE DYNAMIQUE -->
+        <strong>
+            {% if proforma.service_concerne == 'technique' %}
+                LE RESPONSABLE TECHNIQUE
+            {% elif proforma.service_concerne == 'gerant' %}
+                GERANT
+            {% else %}
+                LE RESPONSABLE COMMERCIAL
+            {% endif %}
+        </strong>
     </div>
 </div>
 

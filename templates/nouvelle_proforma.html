@@ -531,6 +531,31 @@
             </div>
         </div>
 
+        <!-- 🔥 SERVICE CONCERNÉ -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Service concerné</span>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-col-2">
+                        <div class="form-group">
+                            <label class="form-label">Service signataire <span class="required">*</span></label>
+                            <select name="service_concerne" class="form-select" required>
+                                <option value="">Sélectionner le service</option>
+                                <option value="commercial">Service Commercial</option>
+                                <option value="technique">Service Technique</option>
+                                <option value="gerant"> Gerant</option>
+                            </select>
+                            <small style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">
+                                Ce service apparaîtra comme signataire sur la proforma PDF
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Remise -->
         <div class="remise-block">
             <label class="form-label" for="remise">Remise globale (montant fixe)</label>

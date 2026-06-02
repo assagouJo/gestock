@@ -1,129 +1,373 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<style>
+    :root {
+        --color-bg: #f8f9fb;
+        --color-white: #ffffff;
+        --color-border: #e5e7eb;
+        --color-text: #1f2937;
+        --color-text-secondary: #6b7280;
+        --color-primary: #4f46e5;
+        --color-primary-light: #eef2ff;
+        --color-success: #059669;
+        --color-danger: #dc2626;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --radius: 8px;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+        --shadow: 0 1px 3px rgba(0,0,0,0.06);
+        --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --transition: 0.15s ease;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 960px; }
+
+    /* Carte principale */
+    .card {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        background: var(--color-white);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: var(--color-white);
+        border-bottom: 1px solid var(--color-border);
+        padding: 16px 24px;
+    }
+
+    .card-header h4 {
+        color: var(--color-text);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 24px;
+    }
+
+    /* Labels */
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--color-text);
+        margin-bottom: 6px;
+    }
+
+    .form-label .text-danger {
+        color: var(--color-danger) !important;
+    }
+
+    /* Champs */
+    .form-control,
+    .form-select {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        color: var(--color-text);
+        background: var(--color-white);
+        transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 32px;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .form-control-lg {
+        padding: 10px 14px;
+        font-size: 1rem;
+    }
+
+    /* Séparateur */
+    hr {
+        border: none;
+        border-top: 1px solid var(--color-border);
+        margin: 24px 0;
+    }
+
+    /* Blocs */
+    .bloc-item {
+        border: 1px solid var(--color-border) !important;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .bloc-item .card-header {
+        background: var(--color-gray-50);
+        color: var(--color-text);
+        border-bottom: 1px solid var(--color-border);
+        padding: 12px 16px;
+        font-weight: 500;
+    }
+
+    .bloc-item .card-body {
+        padding: 16px;
+    }
+
+    /* Tableau */
+    .table {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: var(--color-gray-50);
+        color: var(--color-text-secondary);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--color-border);
+        padding: 10px 12px;
+    }
+
+    .table tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Boutons */
+    .btn {
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        transition: all var(--transition);
+        border: 1px solid transparent;
+    }
+
+    .btn-sm {
+        font-size: 0.78rem;
+        padding: 5px 12px;
+    }
+
+    .btn-primary {
+        background: var(--color-primary);
+        color: #fff;
+        border-color: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+        background: #4338ca;
+        border-color: #4338ca;
+    }
+
+    .btn-secondary {
+        background: var(--color-white);
+        color: var(--color-text);
+        border-color: var(--color-border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--color-gray-50);
+    }
+
+    .btn-success {
+        background: var(--color-success);
+        color: #fff;
+        border-color: var(--color-success);
+    }
+
+    .btn-success:hover {
+        background: #047857;
+        border-color: #047857;
+    }
+
+    .btn-outline-success {
+        background: var(--color-white);
+        color: var(--color-success);
+        border-color: var(--color-success);
+    }
+
+    .btn-outline-success:hover {
+        background: #ecfdf5;
+    }
+
+    .btn-danger {
+        background: var(--color-white);
+        color: var(--color-danger);
+        border-color: var(--color-danger);
+    }
+
+    .btn-danger:hover {
+        background: #fef2f2;
+    }
+
+    .btn-light {
+        background: var(--color-white);
+        color: var(--color-text);
+        border-color: var(--color-border);
+    }
+
+    .btn-light:hover {
+        background: var(--color-gray-50);
+    }
+
+    /* Prix final */
+    #prix_final {
+        background-color: var(--color-gray-50) !important;
+        font-weight: 600;
+        color: var(--color-success) !important;
+        border: 1px solid var(--color-border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-body { padding: 16px; }
+        .btn { width: 100%; margin-bottom: 8px; }
+        .d-flex.justify-content-between { flex-direction: column; gap: 8px; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">
-                <i class="fas fa-file-invoice me-2"></i>Nouveau Kit Proforma
-            </h4>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Nouveau Kit Proforma</h4>
         </div>
         
         <div class="card-body">
             <form method="POST" action="{{ url_for('create_kit_proforma') }}" id="kitForm">
+                
                 <!-- Informations client -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Client <span class="text-danger">*</span></label>
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Client <span class="text-danger">*</span></label>
                         <select name="client_id" class="form-select" required>
                             <option value="">Sélectionnez un client</option>
                             {% for client in clients %}
-                            <option value="{{ client.id }}">
-                                {{ client.nom_client }} - {{ client.ville }}
-                            </option>
+                            <option value="{{ client.id }}">{{ client.nom_client }} - {{ client.ville }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">ATTN (À l'attention de)</label>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">ATTN (À l'attention de)</label>
                         <input type="text" name="attn" class="form-control" placeholder="Nom du contact">
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Date de la proforma <span class="text-danger">*</span></label>
-                        <input type="date" name="date_proforma" class="form-control" 
-                               value="{{ today_date }}" required>
-                        <small class="text-muted">Choisissez la date souhaitée</small>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Date de la proforma <span class="text-danger">*</span></label>
+                        <input type="date" name="date_proforma" class="form-control" value="{{ today_date }}" required>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem;">Choisissez la date souhaitée</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Service concerné <span class="text-danger">*</span></label>
+                        <select name="service_concerne" class="form-select" required>
+                            <option value="">-- Choisir le service --</option>
+                            <option value="commercial">Service Commercial</option>
+                            <option value="technique">Service Technique</option>
+                            <option value="gerant">Gérant</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem;">Apparaîtra comme signataire sur le PDF</small>
                     </div>
                 </div>
 
                 <!-- Conditions -->
                 <div class="row mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Condition de paiement</label>
-                        <input type="text" name="condition_paiement" class="form-control" 
-                               placeholder="Ex: 50% à la commande">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Condition de paiement</label>
+                        <input type="text" name="condition_paiement" class="form-control" placeholder="Ex: 50% à la commande">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Délai de livraison</label>
-                        <input type="text" name="delai_livraison" class="form-control" 
-                               placeholder="Ex: 2 semaines">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Délai de livraison</label>
+                        <input type="text" name="delai_livraison" class="form-control" placeholder="Ex: 2 semaines">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Garantie</label>
-                        <input type="text" name="garantie" class="form-control" 
-                               placeholder="Ex: 1 an">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Garantie</label>
+                        <input type="text" name="garantie" class="form-control" placeholder="Ex: 1 an">
                     </div>
                 </div>
 
                 <!-- Commentaire et Remise -->
                 <div class="row mb-4">
-                    <div class="col-md-8">
-                        <label class="form-label fw-bold">Commentaire</label>
-                        <textarea name="proforma_comment" class="form-control" 
-                            placeholder="Commentaire">{{ kit.proforma_comment if kit else '' }}</textarea>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Commentaire</label>
+                        <textarea name="proforma_comment" class="form-control" placeholder="Commentaire">{{ kit.proforma_comment if kit else '' }}</textarea>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Remise (FCFA)</label>
-                        <input type="number" name="remise" id="remise" class="form-control form-control-lg" 
-                               value="{{ kit.remise if kit else '0' }}" 
-                               min="0" step="0.01" placeholder="0">
-                        <small class="text-muted">Montant à déduire du prix global</small>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Remise (FCFA)</label>
+                        <input type="number" name="remise" id="remise" class="form-control form-control-lg" value="{{ kit.remise if kit else '0' }}" min="0" step="0.01" placeholder="0">
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem;">Montant à déduire du prix global</small>
                     </div>
                 </div>
 
-                <hr class="my-4">
+                <hr>
 
                 <!-- Blocs de produits -->
-                <h5 class="mb-3">
-                    <i class="fas fa-cubes me-2"></i>Blocs de produits
-                    <button type="button" class="btn btn-sm btn-success ms-3" id="addBloc">
-                        <i class="fas fa-plus"></i> Ajouter un bloc
-                    </button>
+                <h5 style="font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--color-text);">
+                    Blocs de produits
+                    <button type="button" class="btn btn-sm btn-success ms-2" id="addBloc">+ Ajouter un bloc</button>
                 </h5>
 
                 <div id="blocsContainer">
                     <!-- Premier bloc -->
-                    <div class="bloc-item card mb-3 border-primary" data-index="0">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <span>
-                                <i class="fas fa-cube me-2"></i>
-                                <strong>Bloc <span class="bloc-number">1</span></strong>
-                            </span>
-                            <button type="button" class="btn btn-sm btn-light remove-bloc" style="display: none;">
-                                <i class="fas fa-trash"></i> Supprimer
-                            </button>
+                    <div class="bloc-item card mb-3" data-index="0">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span style="font-weight: 600;">Bloc <span class="bloc-number">1</span></span>
+                            <button type="button" class="btn btn-sm btn-light remove-bloc" style="display: none;">✕ Supprimer</button>
                         </div>
                         <div class="card-body">
-                            <!-- Titre du bloc -->
                             <div class="mb-3">
-                                <input type="text" name="proforma_title" value="{{ kit.proforma_title if kit else '' }}" 
-                                class="form-control" placeholder="Titre de la proforma">
+                                <input type="text" name="proforma_title" value="{{ kit.proforma_title if kit else '' }}" class="form-control" placeholder="Titre de la proforma">
                             </div>
                             
-                            <!-- Produit principal du bloc -->
                             <div class="row mb-3">
-                                <div class="col-md-8">
-                                    <label class="form-label fw-bold">Produit principal du bloc <span class="text-danger">*</span></label>
+                                <div class="col-md-8 mb-2">
+                                    <label class="form-label">Produit principal du bloc <span class="text-danger">*</span></label>
                                     <select name="produit_principal_0" class="form-select produit-principal" required>
                                         <option value="">Choisir le produit principal</option>
                                         {% for produit in produits %}
-                                        <option value="{{ produit.id }}">
-                                            {{ produit.nom_produit }} - {{ produit.model }}
-                                        </option>
+                                        <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Quantité <span class="text-danger">*</span></label>
-                                    <input type="number" name="quantite_principale_0" class="form-control quantite-principale" 
-                                           value="1" min="1" required>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Quantité <span class="text-danger">*</span></label>
+                                    <input type="number" name="quantite_principale_0" class="form-control quantite-principale" value="1" min="1" required>
                                 </div>
                             </div>
 
-                            <!-- Produits secondaires (accessoires) -->
-                            <label class="form-label fw-bold mt-2">Accessoires / Sondes</label>
-                            <table class="table table-bordered">
-                                <thead class="table-light">
+                            <label class="form-label mt-2">Accessoires / Sondes</label>
+                            <table class="table">
+                                <thead>
                                     <tr>
                                         <th>Produit - Modèle</th>
                                         <th style="width: 150px;">Quantité</th>
@@ -136,66 +380,52 @@
                                             <select name="produit_secondaire_0[]" class="form-select produit-secondaire">
                                                 <option value="">Choisir un accessoire</option>
                                                 {% for produit in produits %}
-                                                <option value="{{ produit.id }}">
-                                                    {{ produit.nom_produit }} - {{ produit.model }}
-                                                </option>
+                                                <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>
                                                 {% endfor %}
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="quantite_secondaire_0[]" class="form-control quantite-secondaire" 
-                                                   value="1" min="1">
+                                            <input type="number" name="quantite_secondaire_0[]" class="form-control quantite-secondaire" value="1" min="1">
                                         </td>
                                         <td>
-                                            <button type="button" class="btn btn-danger btn-sm remove-produit-secondaire" disabled>
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger remove-produit-secondaire" disabled>✕</button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                             
-                            <button type="button" class="btn btn-sm btn-outline-success add-produit-secondaire">
-                                <i class="fas fa-plus"></i> Ajouter un accessoire
-                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success add-produit-secondaire">+ Ajouter un accessoire</button>
                         </div>
                     </div>
                 </div>
 
-                <hr class="my-4">
+                <hr>
                 
                 <!-- Commentaire supplémentaire -->
                 <div class="row mb-4">
                     <div class="col-md-12">
-                        <label class="form-label fw-bold">Commentaire supplémentaire</label>
-                        <textarea name="proforma_comment2" class="form-control" 
-                            placeholder="Commentaire supplémentaire">{{ kit.proforma_comment2 if kit else '' }}</textarea>
+                        <label class="form-label">Commentaire supplémentaire</label>
+                        <textarea name="proforma_comment2" class="form-control" placeholder="Commentaire supplémentaire">{{ kit.proforma_comment2 if kit else '' }}</textarea>
                     </div>
                 </div>
                 
-                <!-- ✅ Prix global et Prix final -->
+                <!-- Prix global et Prix final -->
                 <div class="row mb-4">
-                    <div class="col-md-4 offset-md-4">
-                        <label class="form-label fw-bold">Prix global du kit (F CFA) <span class="text-danger">*</span></label>
-                        <input type="number" name="prix_global" id="prix_global" class="form-control form-control-lg" 
-                               step="0.01" min="0" required placeholder="0">
+                    <div class="col-md-4 offset-md-4 mb-3">
+                        <label class="form-label">Prix global du kit (F CFA) <span class="text-danger">*</span></label>
+                        <input type="number" name="prix_global" id="prix_global" class="form-control form-control-lg" step="0.01" min="0" required placeholder="0">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Prix final après remise</label>
-                        <input type="text" id="prix_final" class="form-control form-control-lg" 
-                               readonly style="background-color: #e9ecef; font-weight: bold; color: #28a745;">
-                        <small class="text-muted">Prix global - Remise</small>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Prix final après remise</label>
+                        <input type="text" id="prix_final" class="form-control form-control-lg" readonly>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem;">Prix global - Remise</small>
                     </div>
                 </div>
 
                 <!-- Boutons -->
                 <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Annuler
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Créer le kit
-                    </button>
+                    <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Créer le kit</button>
                 </div>
             </form>
         </div>
@@ -205,123 +435,66 @@
 <script>
 let blocIndex = 1;
 
-// ✅ Fonction pour calculer le prix final
 function calculerPrixFinal() {
     const prixGlobal = parseFloat(document.getElementById('prix_global').value) || 0;
     const remise = parseFloat(document.getElementById('remise').value) || 0;
     const prixFinal = prixGlobal - remise;
-    document.getElementById('prix_final').value = prixFinal.toFixed(2) + ' FCFA';
+    document.getElementById('prix_final').value = prixFinal.toLocaleString('fr-FR') + ' FCFA';
 }
 
-// ✅ Écouteurs pour le calcul en temps réel
 document.addEventListener('DOMContentLoaded', function() {
     const prixGlobalInput = document.getElementById('prix_global');
     const remiseInput = document.getElementById('remise');
-    
-    if (prixGlobalInput) {
-        prixGlobalInput.addEventListener('input', calculerPrixFinal);
-    }
-    if (remiseInput) {
-        remiseInput.addEventListener('input', calculerPrixFinal);
-    }
-    
-    // Calcul initial
+    if (prixGlobalInput) prixGlobalInput.addEventListener('input', calculerPrixFinal);
+    if (remiseInput) remiseInput.addEventListener('input', calculerPrixFinal);
     calculerPrixFinal();
 });
 
-// Fonction pour mettre à jour les indices des blocs
 function updateBlocIndices() {
     const blocs = document.querySelectorAll('.bloc-item');
     blocs.forEach((bloc, index) => {
         bloc.dataset.index = index;
         bloc.querySelector('.bloc-number').textContent = index + 1;
-        
-        // Mettre à jour les noms des champs du produit principal
         const produitPrincipal = bloc.querySelector('.produit-principal');
-        if (produitPrincipal) {
-            produitPrincipal.name = `produit_principal_${index}`;
-        }
-        
+        if (produitPrincipal) produitPrincipal.name = `produit_principal_${index}`;
         const quantitePrincipale = bloc.querySelector('.quantite-principale');
-        if (quantitePrincipale) {
-            quantitePrincipale.name = `quantite_principale_${index}`;
-        }
-        
-        // Mettre à jour les noms des champs des produits secondaires
-        const selectsSecondaires = bloc.querySelectorAll('select[name^="produit_secondaire_"]');
-        const inputsSecondaires = bloc.querySelectorAll('input[name^="quantite_secondaire_"]');
-        
-        selectsSecondaires.forEach(select => {
-            select.name = `produit_secondaire_${index}[]`;
-        });
-        
-        inputsSecondaires.forEach(input => {
-            input.name = `quantite_secondaire_${index}[]`;
-        });
-        
-        // Gérer l'affichage du bouton supprimer
+        if (quantitePrincipale) quantitePrincipale.name = `quantite_principale_${index}`;
+        bloc.querySelectorAll('select[name^="produit_secondaire_"]').forEach(s => s.name = `produit_secondaire_${index}[]`);
+        bloc.querySelectorAll('input[name^="quantite_secondaire_"]').forEach(i => i.name = `quantite_secondaire_${index}[]`);
         const removeBtn = bloc.querySelector('.remove-bloc');
-        if (removeBtn) {
-            removeBtn.style.display = blocs.length > 1 ? 'inline-block' : 'none';
-        }
+        if (removeBtn) removeBtn.style.display = blocs.length > 1 ? 'inline-block' : 'none';
     });
 }
 
-// Fonction pour ajouter une ligne de produit secondaire
 function addProduitSecondaireRow(tbody, index) {
     const newRow = document.createElement('tr');
     newRow.className = 'produit-secondaire-row';
     newRow.innerHTML = `
-        <td>
-            <select name="produit_secondaire_${index}[]" class="form-select produit-secondaire">
-                <option value="">Choisir un accessoire</option>
-                {% for produit in produits %}
-                <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>
-                {% endfor %}
-            </select>
-        </td>
-        <td>
-            <input type="number" name="quantite_secondaire_${index}[]" class="form-control quantite-secondaire" 
-                   value="1" min="1">
-        </td>
-        <td>
-            <button type="button" class="btn btn-danger btn-sm remove-produit-secondaire">
-                <i class="fas fa-times"></i>
-            </button>
-        </td>
+        <td><select name="produit_secondaire_${index}[]" class="form-select produit-secondaire"><option value="">Choisir un accessoire</option>{% for produit in produits %}<option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>{% endfor %}</select></td>
+        <td><input type="number" name="quantite_secondaire_${index}[]" class="form-control quantite-secondaire" value="1" min="1"></td>
+        <td><button type="button" class="btn btn-sm btn-danger remove-produit-secondaire">✕</button></td>
     `;
     tbody.appendChild(newRow);
 }
 
-// Attacher les événements
 function attachEvents() {
-    // Ajouter un produit secondaire
     document.querySelectorAll('.add-produit-secondaire').forEach(btn => {
         btn.addEventListener('click', function() {
             const bloc = this.closest('.bloc-item');
             const tbody = bloc.querySelector('.produits-secondaires-body');
-            const blocIdx = bloc.dataset.index;
-            addProduitSecondaireRow(tbody, blocIdx);
+            addProduitSecondaireRow(tbody, bloc.dataset.index);
         });
     });
-    
-    // Supprimer un produit secondaire
     document.querySelectorAll('.remove-produit-secondaire').forEach(btn => {
         btn.addEventListener('click', function() {
             const row = this.closest('tr');
-            const tbody = row.closest('tbody');
-            if (tbody.children.length > 1) {
-                row.remove();
-            }
+            if (row.closest('tbody').children.length > 1) row.remove();
         });
     });
-    
-    // Supprimer un bloc
     document.querySelectorAll('.remove-bloc').forEach(btn => {
         btn.addEventListener('click', function() {
             const bloc = this.closest('.bloc-item');
-            const container = document.getElementById('blocsContainer');
-            if (container.children.length > 1) {
+            if (document.getElementById('blocsContainer').children.length > 1) {
                 bloc.remove();
                 updateBlocIndices();
             }
@@ -329,49 +502,23 @@ function attachEvents() {
     });
 }
 
-// Ajouter un nouveau bloc
 document.getElementById('addBloc').addEventListener('click', function() {
     const container = document.getElementById('blocsContainer');
     const firstBloc = container.children[0];
     const newBloc = firstBloc.cloneNode(true);
-    
-    // Réinitialiser les valeurs
-    newBloc.querySelectorAll('select').forEach(select => {
-        select.selectedIndex = 0;
-    });
-    
-    newBloc.querySelectorAll('input[type="number"]').forEach(input => {
-        if (input.name !== 'remise') {  // Ne pas réinitialiser la remise
-            input.value = '1';
-        }
-    });
-    
-    // Réinitialiser le titre
+    newBloc.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    newBloc.querySelectorAll('input[type="number"]').forEach(i => { if (i.name !== 'remise') i.value = '1'; });
     const titreInput = newBloc.querySelector('input[name="proforma_title"]');
-    if (titreInput) {
-        titreInput.value = '';
-    }
-    
-    // Vider les produits secondaires (garder une ligne)
+    if (titreInput) titreInput.value = '';
     const tbody = newBloc.querySelector('.produits-secondaires-body');
     tbody.innerHTML = '';
-    
-    // Ajouter une première ligne de produit secondaire
     addProduitSecondaireRow(tbody, blocIndex);
-    
     container.appendChild(newBloc);
     blocIndex++;
-    
     updateBlocIndices();
     attachEvents();
 });
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', function() {
-    attachEvents();
-});
+document.addEventListener('DOMContentLoaded', function() { attachEvents(); });
 </script>
-
-<!-- Font Awesome pour les icônes -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

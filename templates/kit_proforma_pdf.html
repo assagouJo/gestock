@@ -770,7 +770,18 @@
 <div class="main-content">
     <div class="footer-prof">
         <div class="footer-left"><strong style="font-size: 12px;">SIGNATURE DU CLIENT</strong></div>
-        <div class="footer-right"><strong style="font-size: 12px;">LE RESPONSABLE COMMERCIAL</strong></div>
+        <div class="footer-right">
+            <!-- 🔥 SIGNATURE DYNAMIQUE -->
+            <strong style="font-size: 12px;">
+                {% if kit.service_concerne == 'technique' %}
+                    LE RESPONSABLE TECHNIQUE
+                {% elif kit.service_concerne == 'gerant' %}
+                    GERANT
+                {% else %}
+                    LE RESPONSABLE COMMERCIAL
+                {% endif %}
+            </strong>
+        </div>
     </div>
 </div>
 {% endblock %}
