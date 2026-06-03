@@ -773,12 +773,16 @@
         <div class="footer-right">
             <!-- 🔥 SIGNATURE DYNAMIQUE -->
             <strong style="font-size: 12px;">
-                {% if kit.service_concerne == 'technique' %}
-                    LE RESPONSABLE TECHNIQUE
+                {% if kit.service_concerne == 'service commercial' %}
+                LE SERVICE COMMERCIAL
                 {% elif kit.service_concerne == 'gerant' %}
-                    GERANT
-                {% else %}
+                    LE GERANT
+                {% elif kit.service_concerne == 'responsable commercial' %}
                     LE RESPONSABLE COMMERCIAL
+                {% elif kit.service_concerne == 'responsable technique' %}
+                    LE RESPONSABLE TECHNIQUE
+                {% else %}
+                    LE SERVICE TECHNIQUE
                 {% endif %}
             </strong>
         </div>

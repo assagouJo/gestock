@@ -410,8 +410,10 @@
                         <label for="service_concerne" class="form-label">Service concerné <span class="text-danger">*</span></label>
                         <select name="service_concerne" id="service_concerne" class="form-select" required>
                             <option value="">-- Choisir le service --</option>
-                            <option value="commercial" {% if proforma.service_concerne == 'commercial' %}selected{% endif %}>Service Commercial</option>
-                            <option value="technique" {% if proforma.service_concerne == 'technique' %}selected{% endif %}>Service Technique</option>
+                            <option value="service commercial" {% if proforma.service_concerne == 'service commercial' %}selected{% endif %}>Service Commercial</option>
+                            <option value="responsable commercial" {% if proforma.service_concerne == 'responsable commercial' %}selected{% endif %}>Responsable Commercial</option>
+                            <option value="service technique" {% if proforma.service_concerne == 'service technique' %}selected{% endif %}>Service Technique</option>
+                            <option value="responsable technique" {% if proforma.service_concerne == 'responsable technique' %}selected{% endif %}>Responsable Technique</option>
                             <option value="gerant" {% if proforma.service_concerne == 'gerant' %}selected{% endif %}>Gérant</option>
                         </select>
                     </div>

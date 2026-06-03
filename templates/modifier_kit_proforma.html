@@ -465,8 +465,10 @@
                         <label class="form-label">Service concerné <span class="text-danger">*</span></label>
                         <select name="service_concerne" class="form-select" required>
                             <option value="">-- Choisir le service --</option>
-                            <option value="commercial" {% if kit.service_concerne == 'commercial' %}selected{% endif %}>Service Commercial</option>
-                            <option value="technique" {% if kit.service_concerne == 'technique' %}selected{% endif %}>Service Technique</option>
+                            <option value="service commercial" {% if kit.service_concerne == 'service commercial' %}selected{% endif %}>Service Commercial</option>
+                            <option value="responsable commercial" {% if kit.service_concerne == 'responsable commercial' %}selected{% endif %}>Responsable Commercial</option>
+                            <option value="service technique" {% if kit.service_concerne == 'service technique' %}selected{% endif %}>Service Technique</option>
+                            <option value="responsable technique" {% if kit.service_concerne == 'responsable technique' %}selected{% endif %}>Responsable Technique</option>
                             <option value="gerant" {% if kit.service_concerne == 'gerant' %}selected{% endif %}>Gérant</option>
                         </select>
                         <small>Apparaîtra comme signataire sur le PDF</small>

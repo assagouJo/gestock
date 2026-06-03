@@ -687,12 +687,16 @@
     <div class="signature-box" style="text-align: right;">
         <!-- 🔥 SIGNATURE DYNAMIQUE -->
         <strong>
-            {% if proforma.service_concerne == 'technique' %}
-                LE RESPONSABLE TECHNIQUE
+            {% if proforma.service_concerne == 'service commercial' %}
+                LE SERVICE COMMERCIAL
             {% elif proforma.service_concerne == 'gerant' %}
-                GERANT
-            {% else %}
+                LE GERANT
+            {% elif proforma.service_concerne == 'responsable commercial' %}
                 LE RESPONSABLE COMMERCIAL
+            {% elif proforma.service_concerne == 'responsable technique' %}
+                LE RESPONSABLE TECHNIQUE
+            {% else %}
+                LE SERVICE TECHNIQUE
             {% endif %}
         </strong>
     </div>

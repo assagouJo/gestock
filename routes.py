@@ -3019,10 +3019,10 @@ def create_proforma():
         client_id = request.form.get("client_id")
 
         # Récupération du service concerné
-        service_concerne = request.form.get("service_concerne", "commercial")
+        service_concerne = request.form.get("service_concerne", "service commercial")
 
         # Validation
-        if service_concerne not in ['commercial', 'technique', 'gerant']:
+        if service_concerne not in ['service commercial', 'responsable commercial', 'responsable technique', 'service technique', 'gerant']:
             service_concerne = 'commercial'
 
         condition_paiement = request.form.get("condition_paiement")
@@ -3210,7 +3210,7 @@ def modifier_proforma(proforma_id):
     proforma_comment2 = request.form.get("proforma_comment2")
     
     # ✅ Ajout du service concerné
-    service_concerne = request.form.get("service_concerne", "commercial")
+    service_concerne = request.form.get("service_concerne", "service commercial")
     
     # Récupération remise
     remise_saisie = request.form.get("remise", 0)
