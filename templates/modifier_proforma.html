@@ -5,171 +5,232 @@
 {% block styles %}
 <style>
     :root {
-        --primary-color: #4361ee;
-        --success-color: #2ecc71;
-        --warning-color: #f39c12;
-        --danger-color: #e74c3c;
-        --info-color: #3498db;
-        --dark-color: #2c3e50;
-        --light-color: #ecf0f1;
+        --color-bg: #f8f9fb;
+        --color-white: #ffffff;
+        --color-border: #e5e7eb;
+        --color-text: #1f2937;
+        --color-text-secondary: #6b7280;
+        --color-primary: #4f46e5;
+        --color-primary-light: #eef2ff;
+        --color-warning: #f59e0b;
+        --color-success: #059669;
+        --color-danger: #dc2626;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --radius: 8px;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+        --shadow: 0 1px 3px rgba(0,0,0,0.06);
+        --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --transition: 0.15s ease;
     }
 
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    * { box-sizing: border-box; }
+
+    body {
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
     }
 
-    .modifier-container {
-        animation: fadeInUp 0.5s ease-out;
-    }
+    .container { max-width: 1100px; }
 
     /* En-tête */
-    .modifier-header {
-        background: linear-gradient(135deg, var(--warning-color) 0%, var(--dark-color) 100%);
+    .edit-header {
+        background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%);
         color: white;
-        padding: 20px 25px;
-        border-radius: 15px;
-        margin-bottom: 25px;
+        padding: 16px 24px;
+        border-radius: var(--radius);
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 12px;
     }
 
-    .modifier-header h1 {
+    .edit-header h1 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 600;
+    }
+
+    .badge-numero {
+        background: rgba(255,255,255,0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
     }
 
     .btn-back {
         background: rgba(255,255,255,0.2);
         color: white;
-        border: none;
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all var(--transition);
+        text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        text-decoration: none;
     }
 
     .btn-back:hover {
         background: rgba(255,255,255,0.3);
-        transform: translateY(-2px);
         color: white;
     }
 
     /* Cartes */
     .card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        background: var(--color-white);
         overflow: hidden;
         margin-bottom: 20px;
     }
 
     .card-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
-        color: white;
-        padding: 12px 20px;
-        border: none;
+        background: var(--color-white);
+        border-bottom: 1px solid var(--color-border);
+        padding: 16px 20px;
     }
 
     .card-header h5 {
-        margin: 0;
+        color: var(--color-text);
         font-size: 1rem;
         font-weight: 600;
+        margin: 0;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
     .card-header.bg-info {
-        background: linear-gradient(135deg, var(--info-color) 0%, var(--dark-color) 100%);
+        background: var(--color-primary-light) !important;
+        border-bottom: 1px solid var(--color-border);
     }
 
-    /* MODIFIÉ : Style carte remise */
-    .remise-card {
-        background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 15px 20px;
-        margin-bottom: 20px;
+    .card-header.bg-info h5 {
+        color: var(--color-primary);
     }
 
     .card-body {
         padding: 20px;
     }
 
-    /* Formulaires */
+    /* Labels */
     .form-label {
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--dark-color);
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--color-text);
+        margin-bottom: 6px;
     }
 
-    .form-control, .form-select {
-        border: 2px solid var(--light-color);
-        border-radius: 10px;
-        padding: 10px 15px;
-        transition: all 0.3s ease;
+    .form-label .text-danger {
+        color: var(--color-danger) !important;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: var(--warning-color);
-        box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+    /* Champs */
+    .form-control,
+    .form-select {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        color: var(--color-text);
+        background: var(--color-white);
+        transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--color-warning);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
     }
 
     textarea.form-control {
         resize: vertical;
+        min-height: 80px;
     }
 
-    /* Tableau des produits */
-    .table-container {
-        overflow-x: auto;
+    /* Remise card */
+    .remise-card {
+        background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%);
+        color: white;
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        margin-bottom: 20px;
     }
 
+    .remise-card .form-label {
+        color: white !important;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .remise-card .form-control {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        font-weight: 600;
+    }
+
+    .remise-card .form-control:focus {
+        background: rgba(255,255,255,0.3);
+        border-color: white;
+        color: white;
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    }
+
+    .remise-card .input-group-text {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+    }
+
+    /* Tableau */
     .table-custom {
         width: 100%;
         border-collapse: collapse;
         font-size: 0.85rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        overflow: hidden;
     }
 
     .table-custom thead th {
-        background: var(--dark-color);
-        color: white;
-        padding: 12px;
+        background: var(--color-gray-50);
+        color: var(--color-text-secondary);
         font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--color-border);
+        padding: 10px 12px;
         text-align: center;
     }
 
-    .table-custom tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table-custom tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .table-custom td {
-        padding: 10px;
-        border-bottom: 1px solid var(--light-color);
+    .table-custom tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
         vertical-align: middle;
     }
 
-    /* Drag & drop */
+    .table-custom tbody tr:last-child td {
+        border-bottom: none;
+    }
+
     .drag-handle {
         cursor: grab;
         text-align: center;
-        vertical-align: middle;
+        color: var(--color-text-secondary);
     }
 
     .drag-handle:active {
@@ -178,100 +239,88 @@
 
     .sortable-ghost {
         opacity: 0.3;
-        background-color: #e9ecef;
+        background: var(--color-gray-50);
     }
 
-    /* Sous-total */
-    .sous-total {
-        font-weight: bold;
-        color: var(--primary-color);
-        text-align: right;
-        display: inline-block;
-        width: 100%;
-    }
-
-    /* AJOUTÉ : Section totaux */
+    /* Totaux */
     .totaux-section {
-        background: #f8f9fa;
-        border-radius: 12px;
+        background: var(--color-gray-50);
+        border-radius: var(--radius);
         padding: 20px;
         margin-top: 20px;
-        border: 2px solid var(--light-color);
+        border: 1px solid var(--color-border);
     }
 
     .totaux-ligne {
         display: flex;
         justify-content: space-between;
         padding: 10px 0;
-        border-bottom: 1px solid var(--light-color);
+        border-bottom: 1px solid var(--color-border);
     }
 
     .totaux-ligne:last-child {
         border-bottom: none;
     }
 
-    /* MODIFIÉ : Total global */
     .total-global-card {
-        background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
+        background: linear-gradient(135deg, var(--color-success) 0%, #047857 100%);
         color: white;
-        border-radius: 12px;
-        padding: 15px 20px;
-        margin-top: 15px;
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        margin-top: 12px;
     }
 
     .total-label {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        font-weight: 500;
         opacity: 0.9;
-        letter-spacing: 1px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .total-value {
         font-size: 1.5rem;
-        font-weight: bold;
+        font-weight: 700;
+    }
+
+    .sous-total {
+        font-weight: 600;
+        color: var(--color-primary);
     }
 
     /* Boutons */
-    .btn-add {
-        background: var(--success-color);
-        color: white;
-        border: none;
+    .btn {
+        font-size: 0.85rem;
+        font-weight: 500;
         padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        border-radius: var(--radius);
+        transition: all var(--transition);
+        border: 1px solid transparent;
     }
 
-    .btn-add:hover {
-        background: #27ae60;
-        transform: translateY(-2px);
+    .btn-sm {
+        font-size: 0.78rem;
+        padding: 5px 12px;
     }
 
     .btn-submit {
-        background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
-        color: white;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 10px;
+        background: var(--color-warning);
+        color: #fff;
+        border-color: var(--color-warning);
         font-weight: 600;
-        transition: all 0.3s ease;
+        padding: 10px 25px;
     }
 
     .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        background: #d97706;
+        border-color: #d97706;
     }
 
     .btn-cancel {
-        background: #95a5a6;
-        color: white;
-        border: none;
+        background: var(--color-white);
+        color: var(--color-text);
+        border-color: var(--color-border);
         padding: 10px 25px;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.3s ease;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -279,45 +328,51 @@
     }
 
     .btn-cancel:hover {
-        background: #7f8c8d;
-        transform: translateY(-2px);
-        color: white;
+        background: var(--color-gray-50);
+        color: var(--color-text);
+    }
+
+    .btn-add {
+        background: var(--color-success);
+        color: #fff;
+        border-color: var(--color-success);
+    }
+
+    .btn-add:hover {
+        background: #047857;
+        border-color: #047857;
+    }
+
+    .btn-danger {
+        background: var(--color-white);
+        color: var(--color-danger);
+        border-color: var(--color-danger);
+    }
+
+    .btn-danger:hover {
+        background: #fef2f2;
     }
 
     /* Responsive */
     @media (max-width: 768px) {
-        .modifier-header {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .table-custom {
-            font-size: 0.75rem;
-        }
-        
-        .table-custom th,
-        .table-custom td {
-            padding: 6px;
-        }
-        
-        .btn-submit, .btn-cancel {
-            width: 100%;
-            text-align: center;
-            justify-content: center;
-        }
+        .card-body { padding: 16px; }
+        .edit-header { flex-direction: column; text-align: center; }
+        .table-custom { font-size: 0.75rem; }
+        .table-custom th, .table-custom td { padding: 6px; }
+        .btn-submit, .btn-cancel { width: 100%; justify-content: center; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="modifier-container">
+<div class="container mt-4">
     <!-- En-tête -->
-    <div class="modifier-header">
+    <div class="edit-header">
         <div>
             <h1>
                 <i class="fas fa-edit"></i> Modifier Proforma
             </h1>
-            <small class="opacity-75">N° {{ proforma.numero }}</small>
+            <span class="badge-numero">N° {{ proforma.numero }}</span>
         </div>
         <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-back">
             <i class="fas fa-arrow-left"></i> Retour aux détails
@@ -336,7 +391,7 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="client_id" class="form-label">
-                            <i class="fas fa-user-circle"></i> Client *
+                            Client <span class="text-danger">*</span>
                         </label>
                         <select name="client_id" id="client_id" class="form-select" required>
                             <option value="">Sélectionnez un client</option>
@@ -347,11 +402,18 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label for="attn" class="form-label">
-                            <i class="fas fa-at"></i> ATTN (À l'attention de)
-                        </label>
+                    <div class="col-md-3">
+                        <label for="attn" class="form-label">ATTN (À l'attention de)</label>
                         <input type="text" name="attn" id="attn" class="form-control" value="{{ proforma.attn or '' }}" placeholder="Personne à contacter">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="service_concerne" class="form-label">Service concerné <span class="text-danger">*</span></label>
+                        <select name="service_concerne" id="service_concerne" class="form-select" required>
+                            <option value="">-- Choisir le service --</option>
+                            <option value="commercial" {% if proforma.service_concerne == 'commercial' %}selected{% endif %}>Service Commercial</option>
+                            <option value="technique" {% if proforma.service_concerne == 'technique' %}selected{% endif %}>Service Technique</option>
+                            <option value="gerant" {% if proforma.service_concerne == 'gerant' %}selected{% endif %}>Gérant</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -367,21 +429,15 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label for="condition_paiement" class="form-label">
-                            <i class="fas fa-credit-card"></i> Conditions de paiement
-                        </label>
+                        <label for="condition_paiement" class="form-label">Conditions de paiement</label>
                         <input type="text" name="condition_paiement" id="condition_paiement" class="form-control" value="{{ proforma.condition_paiement or '' }}" placeholder="Ex: 50% à la commande, 50% à la livraison">
                     </div>
                     <div class="col-md-4">
-                        <label for="delai_livraison" class="form-label">
-                            <i class="fas fa-truck"></i> Délai de livraison
-                        </label>
+                        <label for="delai_livraison" class="form-label">Délai de livraison</label>
                         <input type="text" name="delai_livraison" id="delai_livraison" class="form-control" value="{{ proforma.delai_livraison or '' }}" placeholder="Ex: 15 jours">
                     </div>
                     <div class="col-md-4">
-                        <label for="garantie" class="form-label">
-                            <i class="fas fa-shield-alt"></i> Garantie
-                        </label>
+                        <label for="garantie" class="form-label">Garantie</label>
                         <input type="text" name="garantie" id="garantie" class="form-control" value="{{ proforma.garantie or '' }}" placeholder="Ex: 12 mois">
                     </div>
                 </div>
@@ -398,26 +454,18 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-12">
-                        <label for="proforma_title" class="form-label">
-                            <i class="fas fa-heading"></i> Titre de la proforma (optionnel)
-                        </label>
+                        <label for="proforma_title" class="form-label">Titre de la proforma (optionnel)</label>
                         <input type="text" name="proforma_title" id="proforma_title" class="form-control" 
                                placeholder="Ex: DEVIS MATERIEL MEDICAL - CAMPAGNE 2025"
                                value="{{ proforma.proforma_title or '' }}">
-                        <small class="text-muted">Ce titre apparaîtra sur une ligne complète dans le tableau des produits</small>
                     </div>
                     <div class="col-12">
-                        <label for="proforma_comment" class="form-label">
-                            <i class="fas fa-comment"></i> Commentaire (optionnel)
-                        </label>
+                        <label for="proforma_comment" class="form-label">Commentaire (optionnel)</label>
                         <textarea name="proforma_comment" id="proforma_comment" class="form-control" rows="3" 
                                   placeholder="Ex: Livraison à prévoir avant le 30/03/2025. Installation incluse.">{{ proforma.proforma_comment or '' }}</textarea>
-                        <small class="text-muted">Ce commentaire apparaîtra avant les signatures</small>
                     </div>
                     <div class="col-12">
-                        <label for="proforma_comment2" class="form-label">
-                            <i class="fas fa-comment-dots"></i> Commentaire 2 (optionnel)
-                        </label>
+                        <label for="proforma_comment2" class="form-label">Commentaire 2 (optionnel)</label>
                         <textarea name="proforma_comment2" id="proforma_comment2" class="form-control" rows="2" 
                                   placeholder="Commentaire supplémentaire">{{ proforma.proforma_comment2 or '' }}</textarea>
                     </div>
@@ -425,11 +473,11 @@
             </div>
         </div>
 
-        <!-- MODIFIÉ : Section Remise en montant fixe (FCFA) -->
+        <!-- Section Remise -->
         <div class="remise-card">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <label for="remise" style="color: white; font-weight: 600; font-size: 0.9rem;">
+                    <label for="remise" class="form-label">
                         <i class="fas fa-tag"></i> REMISE GLOBALE (Montant fixe en FCFA)
                     </label>
                     <div class="input-group">
@@ -440,11 +488,8 @@
                                value="{{ proforma.remise or 0 }}" 
                                step="1" 
                                min="0"
-                               placeholder="Ex: 2000000"
-                               style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; font-weight: bold;">
-                        <span class="input-group-text" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                            FCFA
-                        </span>
+                               placeholder="Ex: 2000000">
+                        <span class="input-group-text">FCFA</span>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -463,12 +508,12 @@
                 <h5>
                     <i class="fas fa-boxes"></i> Produits
                 </h5>
-                <button type="button" class="btn-add" onclick="ajouterLigne()">
+                <button type="button" class="btn btn-add btn-sm" onclick="ajouterLigne()">
                     <i class="fas fa-plus-circle"></i> Ajouter un produit
                 </button>
             </div>
             <div class="card-body">
-                <div class="table-container">
+                <div class="table-responsive">
                     <table class="table-custom" id="produitsTable">
                         <thead>
                             <tr>
@@ -484,8 +529,8 @@
                         <tbody id="lignesContainer">
                             {% for ligne in proforma.lignes %}
                             <tr class="ligne-produit">
-                                <td class="drag-handle" style="cursor: grab; text-align: center;">
-                                    <i class="fas fa-grip-vertical" style="color: #ccc;"></i>
+                                <td class="drag-handle">
+                                    <i class="fas fa-grip-vertical"></i>
                                 </td>
                                 <td>
                                     <select name="produit_id[]" class="form-select produit-select" required>
@@ -525,7 +570,7 @@
                     </table>
                 </div>
 
-                <!-- MODIFIÉ : Section totaux avec remise -->
+                <!-- Section totaux -->
                 <div class="totaux-section">
                     <div class="totaux-ligne">
                         <span><strong>Sous-total global :</strong></span>
@@ -554,7 +599,7 @@
             <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-cancel">
                 <i class="fas fa-times"></i> Annuler
             </a>
-            <button type="submit" class="btn-submit">
+            <button type="submit" class="btn btn-submit">
                 <i class="fas fa-save"></i> Enregistrer les modifications
             </button>
         </div>
@@ -564,7 +609,7 @@
 <!-- Inclusion de SortableJS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-<!-- MODIFIÉ : Script JavaScript avec remise en montant fixe -->
+<!-- Script JavaScript -->
 <script>
     const produitsData = {
         {% for produit in produits %}
@@ -574,7 +619,6 @@
     
     let sortable = null;
     
-    // Initialiser le drag & drop
     function initSortable() {
         const container = document.getElementById('lignesContainer');
         if (container && !sortable) {
@@ -589,12 +633,10 @@
         }
     }
     
-    // Récupérer la remise en montant fixe (FCFA)
     function getRemise() {
         return parseFloat(document.getElementById('remise').value) || 0;
     }
     
-    // Recalculer tous les sous-totaux
     function recalculerTousLesTotaux() {
         document.querySelectorAll('.ligne-produit').forEach(row => {
             const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
@@ -611,8 +653,8 @@
         const newRow = document.createElement('tr');
         newRow.className = 'ligne-produit';
         newRow.innerHTML = `
-            <td class="drag-handle" style="cursor: grab; text-align: center;">
-                <i class="fas fa-grip-vertical" style="color: #ccc;"></i>
+            <td class="drag-handle">
+                <i class="fas fa-grip-vertical"></i>
             </td>
             <td>
                 <select name="produit_id[]" class="form-select produit-select" required>
@@ -623,7 +665,7 @@
                     </option>
                     {% endfor %}
                 </select>
-              </td>
+            </td>
             <td>
                 <select name="conditionnement[]" class="form-select">
                     <option value="">Standard</option>
@@ -631,25 +673,24 @@
                     <option value="{{ cond.value }}">{{ cond.value|capitalize }}</option>
                     {% endfor %}
                 </select>
-              </td>
+            </td>
             <td>
                 <input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required>
-              </td>
+            </td>
             <td>
                 <input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1" required>
-              </td>
+            </td>
             <td>
                 <span class="sous-total">0 FCFA</span>
-              </td>
+            </td>
             <td class="text-center">
                 <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)" title="Supprimer">
                     <i class="fas fa-trash-alt"></i>
                 </button>
-              </td>
+            </td>
         `;
         tbody.appendChild(newRow);
         
-        // Attacher les écouteurs
         const newSelect = newRow.querySelector('.produit-select');
         newSelect.addEventListener('change', function() { mettreAJourPrix(this); });
         const newQuantite = newRow.querySelector('.quantite');
@@ -679,36 +720,28 @@
         calculerTotalGlobal();
     }
     
-    // MODIFIÉ : Calcul avec remise en montant fixe
     function calculerTotalGlobal() {
         let sousTotalGlobal = 0;
         
-        // Calcul du sous-total global (somme de toutes les lignes)
         document.querySelectorAll('.sous-total').forEach(span => {
             const valeur = parseFloat(span.textContent.replace('FCFA', '').replace(/\s/g, '')) || 0;
             sousTotalGlobal += valeur;
         });
         
-        // Récupération de la remise
         const remise = getRemise();
-        
-        // Protection : la remise ne peut pas dépasser le sous-total
         let montantRemise = remise;
         if (montantRemise > sousTotalGlobal) {
             montantRemise = sousTotalGlobal;
         }
         
-        // Calcul du total global
         const totalGlobal = sousTotalGlobal - montantRemise;
         
-        // Affichage des valeurs
         document.getElementById('sousTotalGlobal').textContent = 
             sousTotalGlobal.toLocaleString('fr-FR') + ' FCFA';
         
         document.getElementById('totalGlobal').textContent = 
             totalGlobal.toLocaleString('fr-FR') + ' FCFA';
         
-        // Gestion de l'affichage de la ligne remise
         const remiseLigne = document.getElementById('remiseLigne');
         const remiseDetail = document.getElementById('remiseDetail');
         
@@ -717,7 +750,6 @@
             document.getElementById('montantRemise').textContent = 
                 '- ' + montantRemise.toLocaleString('fr-FR') + ' FCFA';
             
-            // Affichage du pourcentage équivalent
             const pourcentage = sousTotalGlobal > 0 
                 ? ((montantRemise / sousTotalGlobal) * 100).toFixed(1) 
                 : 0;
@@ -743,12 +775,9 @@
         }
     }
     
-    // Initialiser au chargement
     document.addEventListener('DOMContentLoaded', () => {
-        // Initialiser le drag & drop
         initSortable();
         
-        // Ajouter les écouteurs d'événements
         document.querySelectorAll('.produit-select').forEach(select => {
             select.addEventListener('change', function() { mettreAJourPrix(this); });
         });
@@ -761,10 +790,8 @@
             input.addEventListener('input', function() { calculerTotalLigne(this); });
         });
         
-        // Écouteur sur le champ remise
         document.getElementById('remise').addEventListener('input', calculerTotalGlobal);
         
-        // Calcul initial
         calculerTotalGlobal();
     });
 </script>

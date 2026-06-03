@@ -3199,11 +3199,7 @@ def modifier_proforma(proforma_id):
             conditionnements=conditionnements
         )
     
-    # =========================
     # METHOD POST - Mise à jour
-    # =========================
-    
-    # Champs formulaire
     client_id = request.form.get("client_id")
     condition_paiement = request.form.get("condition_paiement")
     delai_livraison = request.form.get("delai_livraison")
@@ -3213,9 +3209,10 @@ def modifier_proforma(proforma_id):
     proforma_comment = request.form.get("proforma_comment")
     proforma_comment2 = request.form.get("proforma_comment2")
     
-    # =========================
-    # Récupération remise FIXE
-    # =========================
+    # ✅ Ajout du service concerné
+    service_concerne = request.form.get("service_concerne", "commercial")
+    
+    # Récupération remise
     remise_saisie = request.form.get("remise", 0)
     try:
         remise_saisie = float(remise_saisie) if remise_saisie else 0
@@ -3226,9 +3223,7 @@ def modifier_proforma(proforma_id):
         flash("Veuillez choisir un client", "danger")
         return redirect(url_for("modifier_proforma", proforma_id=proforma_id))
     
-    # =========================
     # Mise à jour des informations de la proforma
-    # =========================
     proforma.client_id = client_id
     proforma.condition_paiement = condition_paiement
     proforma.delai_livraison = delai_livraison
@@ -3237,29 +3232,20 @@ def modifier_proforma(proforma_id):
     proforma.proforma_title = proforma_title
     proforma.proforma_comment = proforma_comment
     proforma.proforma_comment2 = proforma_comment2
+    proforma.service_concerne = service_concerne  # ✅ Sauvegarde du service concerné
     
-    # =========================
     # Supprimer les anciennes lignes
-    # =========================
     for ligne in proforma.lignes:
         db.session.delete(ligne)
     
-    # =========================
     # Récupérer les nouvelles données
-    # =========================
     produits = request.form.getlist("produit_id[]")
     quantites = request.form.getlist("quantite[]")
     prix = request.form.getlist("prix[]")
     conditionnements = request.form.getlist("conditionnement[]")
     
-    # =========================
-    # Variables calcul
-    # =========================
-    sous_total_global = 0  # Total HT avant remise
+    sous_total_global = 0
     
-    # =========================
-    # Boucle création lignes
-    # =========================
     for i in range(len(produits)):
         if not produits[i] or not quantites[i] or not prix[i]:
             continue
@@ -3273,48 +3259,32 @@ def modifier_proforma(proforma_id):
             
         conditionnement = conditionnements[i] if i < len(conditionnements) else None
         
-        # Calcul du sous-total ligne
         sous_total_ligne = quantite * prix_unitaire
-        
-        # Accumulation sous-total global
         sous_total_global += sous_total_ligne
         
-        # Création de la ligne (stocke le sous-total original SANS remise)
         ligne = LigneProforma(
             proforma_id=proforma.id,
             produit_id=produit_id,
             conditionnement=conditionnement,
             quantite=quantite,
             prix_unitaire=prix_unitaire,
-            sous_total=sous_total_ligne  # Sous-total original sans remise
+            sous_total=sous_total_ligne
         )
         
         db.session.add(ligne)
     
-    # =========================
     # Calcul remise et totaux
-    # =========================
-    
-    # Montant de la remise (valeur fixe entrée par l'utilisateur)
     montant_remise = remise_saisie
     
-    # Protection : la remise ne peut pas dépasser le sous-total global
     if montant_remise > sous_total_global:
-        montant_remise = sous_total_global  # Remise max = 100% du sous-total
+        montant_remise = sous_total_global
     
-    # Calcul du total global après déduction de la remise
     total_global = sous_total_global - montant_remise
     
-    # =========================
-    # Mise à jour de la proforma avec les totaux calculés
-    # =========================
-    proforma.total_ht = sous_total_global      # Sous-total global avant remise
-    proforma.remise = montant_remise            # Montant de la remise appliquée
-    proforma.total = total_global               # Total global après remise
+    proforma.total_ht = sous_total_global
+    proforma.remise = montant_remise
+    proforma.total = total_global
     
-    # =========================
-    # Sauvegarde finale
-    # =========================
     db.session.commit()
     
     if montant_remise > 0:
@@ -3582,6 +3552,9 @@ def modifier_kit_proforma(kit_id):
             kit.condition_paiement = request.form.get('condition_paiement')
             kit.delai_livraison = request.form.get('delai_livraison')
             kit.garantie = request.form.get('garantie')
+            
+            # ✅ AJOUTER CETTE LIGNE pour le service concerné
+            kit.service_concerne = request.form.get('service_concerne', 'commercial')
             
             # ✅ Nouveaux champs
             kit.proforma_title = request.form.get('proforma_title', '')

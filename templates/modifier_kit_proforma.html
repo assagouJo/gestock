@@ -3,244 +3,397 @@
 {% block styles %}
 <style>
     :root {
-        --primary-color: #4361ee;
-        --success-color: #2ecc71;
-        --warning-color: #f39c12;
-        --danger-color: #e74c3c;
-        --info-color: #3498db;
-        --dark-color: #2c3e50;
-        --light-color: #ecf0f1;
+        --color-bg: #f8f9fb;
+        --color-white: #ffffff;
+        --color-border: #e5e7eb;
+        --color-text: #1f2937;
+        --color-text-secondary: #6b7280;
+        --color-primary: #4f46e5;
+        --color-primary-light: #eef2ff;
+        --color-warning: #f59e0b;
+        --color-warning-light: #fffbeb;
+        --color-success: #059669;
+        --color-danger: #dc2626;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --radius: 8px;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+        --shadow: 0 1px 3px rgba(0,0,0,0.06);
+        --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --transition: 0.15s ease;
     }
 
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    * { box-sizing: border-box; }
+
+    body {
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
     }
 
-    .edit-kit-container {
-        animation: fadeInUp 0.5s ease-out;
-    }
+    .container { max-width: 960px; }
 
-    /* En-tête */
+    /* En-tête de modification */
     .edit-header {
-        background: linear-gradient(135deg, var(--warning-color) 0%, var(--dark-color) 100%);
+        background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%);
         color: white;
-        padding: 20px 25px;
-        border-radius: 15px;
-        margin-bottom: 25px;
+        padding: 16px 24px;
+        border-radius: var(--radius);
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 12px;
     }
 
     .edit-header h4 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 1.1rem;
         font-weight: 600;
     }
 
     .badge-kit {
         background: rgba(255,255,255,0.2);
-        padding: 5px 15px;
+        padding: 4px 12px;
         border-radius: 20px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        font-weight: 500;
     }
 
-    /* Cartes */
+    /* Carte principale */
     .card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        background: var(--color-white);
         overflow: hidden;
-        margin-bottom: 20px;
     }
 
     .card-header {
-        padding: 15px 20px;
-        border: none;
+        background: var(--color-white);
+        border-bottom: 1px solid var(--color-border);
+        padding: 16px 24px;
     }
 
     .card-header.bg-warning {
-        background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%) !important;
+        background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%) !important;
         color: white;
     }
 
-    /* Formulaires */
-    .form-label {
+    .card-header h5 {
+        color: inherit;
+        font-size: 1rem;
         font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--dark-color);
-        font-size: 0.85rem;
+        margin: 0;
     }
 
-    .form-control, .form-select {
-        border: 2px solid var(--light-color);
-        border-radius: 10px;
+    .card-body {
+        padding: 24px;
+    }
+
+    /* Labels */
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--color-text);
+        margin-bottom: 6px;
+    }
+
+    .form-label .text-danger {
+        color: var(--color-danger) !important;
+    }
+
+    /* Champs */
+    .form-control,
+    .form-select {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
         padding: 8px 12px;
-        transition: all 0.3s ease;
+        font-size: 0.875rem;
+        color: var(--color-text);
+        background: var(--color-white);
+        transition: border-color var(--transition), box-shadow var(--transition);
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: var(--warning-color);
-        box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--color-warning);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+
+    .form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 32px;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .form-control-lg {
+        padding: 10px 14px;
+        font-size: 1rem;
+    }
+
+    .form-control-sm {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Séparateur */
+    hr {
+        border: none;
+        border-top: 1px solid var(--color-border);
+        margin: 24px 0;
     }
 
     /* Blocs */
     .bloc-item {
-        transition: all 0.3s ease;
-    }
-
-    .bloc-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 1px solid var(--color-border) !important;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
     }
 
     .bloc-item .card-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%) !important;
-        color: white;
+        background: var(--color-gray-50);
+        color: var(--color-text);
+        border-bottom: 1px solid var(--color-border);
+        padding: 12px 16px;
+        font-weight: 500;
     }
 
-    .fa-grip-vertical {
-        cursor: grab;
+    .bloc-item .card-body {
+        padding: 16px;
     }
 
-    .fa-grip-vertical:active {
-        cursor: grabbing;
+    /* Section produits hors bloc */
+    .card.border-secondary {
+        border-color: var(--color-border) !important;
     }
 
-    /* Tableaux dans les blocs */
-    .table-custom {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
+    .card-header.bg-secondary {
+        background: var(--color-gray-100) !important;
+        color: var(--color-text) !important;
     }
 
-    .table-custom thead th {
-        background: var(--light-color);
-        padding: 10px;
+    /* Tableau */
+    .table {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: var(--color-gray-50);
+        color: var(--color-text-secondary);
         font-weight: 600;
-        text-align: center;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--color-border);
+        padding: 10px 12px;
     }
 
-    .table-custom tbody td {
-        padding: 8px;
+    .table tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
         vertical-align: middle;
     }
 
-    /* Prix global */
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Boutons */
+    .btn {
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        transition: all var(--transition);
+        border: 1px solid transparent;
+    }
+
+    .btn-sm {
+        font-size: 0.78rem;
+        padding: 5px 12px;
+    }
+
+    .btn-warning {
+        background: var(--color-warning);
+        color: #fff;
+        border-color: var(--color-warning);
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        border-color: #d97706;
+    }
+
+    .btn-success {
+        background: var(--color-success);
+        color: #fff;
+        border-color: var(--color-success);
+    }
+
+    .btn-success:hover {
+        background: #047857;
+        border-color: #047857;
+    }
+
+    .btn-outline-success {
+        background: var(--color-white);
+        color: var(--color-success);
+        border-color: var(--color-success);
+    }
+
+    .btn-outline-success:hover {
+        background: #ecfdf5;
+    }
+
+    .btn-danger {
+        background: var(--color-white);
+        color: var(--color-danger);
+        border-color: var(--color-danger);
+    }
+
+    .btn-danger:hover {
+        background: #fef2f2;
+    }
+
+    .btn-info {
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    .btn-info:hover {
+        background: #e0e7ff;
+    }
+
+    .btn-light {
+        background: var(--color-white);
+        color: var(--color-text);
+        border-color: var(--color-border);
+    }
+
+    .btn-light:hover {
+        background: var(--color-gray-50);
+    }
+
+    .btn-secondary {
+        background: var(--color-white);
+        color: var(--color-text);
+        border-color: var(--color-border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--color-gray-50);
+    }
+
+    /* Prix */
     .price-card {
-        background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
+        background: linear-gradient(135deg, var(--color-primary) 0%, #4338ca 100%);
         color: white;
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 20px;
         text-align: center;
     }
 
     .price-label {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
+        font-weight: 500;
         opacity: 0.9;
-        letter-spacing: 1px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
     }
 
     .price-input {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: 1.25rem;
+        font-weight: 600;
         text-align: center;
         background: rgba(255,255,255,0.2);
         border: 2px solid rgba(255,255,255,0.3);
         color: white;
+        border-radius: var(--radius);
+        padding: 8px;
     }
 
     .price-input:focus {
         background: rgba(255,255,255,0.3);
         border-color: white;
         color: white;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
     }
 
-    /* ✅ Prix final */
     .price-final-card {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
         color: white;
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 20px;
         text-align: center;
     }
 
     .price-final-input {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: 1.25rem;
+        font-weight: 600;
         text-align: center;
         background: rgba(255,255,255,0.2);
         border: 2px solid rgba(255,255,255,0.3);
         color: white;
+        border-radius: var(--radius);
+        padding: 8px;
     }
 
-    /* Boutons */
-    .btn-group-custom {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
+    /* Icône de grip */
+    .fa-grip-vertical {
+        cursor: grab;
+        color: var(--color-text-secondary);
     }
 
-    .btn-custom {
-        padding: 10px 25px;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    .fa-grip-vertical:active {
+        cursor: grabbing;
     }
 
-    .btn-custom:hover {
-        transform: translateY(-2px);
+    small {
+        color: var(--color-text-secondary) !important;
+        font-size: 0.75rem;
     }
 
     /* Responsive */
     @media (max-width: 768px) {
-        .edit-header {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .btn-group-custom {
-            flex-direction: column;
-            width: 100%;
-        }
-        
-        .btn-group-custom a, .btn-group-custom button {
-            width: 100%;
-            text-align: center;
-        }
-        
-        .table-custom {
-            font-size: 0.75rem;
-        }
-        
-        .table-custom th,
-        .table-custom td {
-            padding: 6px;
-        }
+        .card-body { padding: 16px; }
+        .btn { width: 100%; margin-bottom: 8px; }
+        .d-flex.justify-content-between { flex-direction: column; gap: 8px; }
+        .edit-header { flex-direction: column; text-align: center; }
+        .price-card, .price-final-card { margin-bottom: 12px; }
     }
 
     /* Impression */
     @media print {
-        .btn, .btn-group-custom, .edit-header .badge-kit {
-            display: none !important;
-        }
-        
-        .card {
-            box-shadow: none;
-            break-inside: avoid;
-        }
+        .btn, .edit-header .badge-kit { display: none !important; }
+        .card { box-shadow: none; break-inside: avoid; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="edit-kit-container">
+<div class="container mt-4">
     <!-- En-tête -->
     <div class="edit-header">
-        <h4>
+        <h4 class="mb-0">
             <i class="fas fa-edit"></i> Modifier Kit Proforma
             <span class="badge-kit">{{ kit.numero }}</span>
         </h4>
@@ -251,8 +404,8 @@
         </div>
     </div>
 
-    <div class="card shadow">
-        <div class="card-header bg-warning text-white">
+    <div class="card">
+        <div class="card-header bg-warning">
             <h5 class="mb-0">
                 <i class="fas fa-info-circle me-2"></i>Informations du kit
             </h5>
@@ -278,59 +431,64 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label">
-                            <i class="fas fa-user"></i> Client <span class="text-danger">*</span>
+                            Client <span class="text-danger">*</span>
                         </label>
                         <select name="client_id" class="form-select" required>
                             <option value="">Sélectionnez un client</option>
                             {% for client in clients %}
                             <option value="{{ client.id }}" 
-                                    {% if client.id == kit.client_id %}selected{% endif %}
-                                    title="{{ client.nom_client }} - {{ client.ville }}">
-                                {{ client.nom_client|truncate(35, true) }} - {{ client.ville }}
+                                    {% if client.id == kit.client_id %}selected{% endif %}>
+                                {{ client.nom_client }} - {{ client.ville }}
                             </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">
-                            <i class="fas fa-at"></i> ATTN
-                        </label>
+                        <label class="form-label">ATTN (À l'attention de)</label>
                         <input type="text" name="attn" class="form-control" 
                                value="{{ kit.attn or '' }}" 
-                               placeholder="À l'attention de"
-                               title="Personne à contacter">
+                               placeholder="Nom du contact">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">
-                            <i class="fas fa-calendar-alt"></i> Date <span class="text-danger">*</span>
+                            Date de la proforma <span class="text-danger">*</span>
                         </label>
                         <input type="date" name="date_proforma" class="form-control" 
                                value="{{ kit.date.strftime('%Y-%m-%d') if kit.date else '' }}" required>
+                        <small>Choisissez la date souhaitée</small>
+                    </div>
+                </div>
+
+                <!-- Service concerné -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Service concerné <span class="text-danger">*</span></label>
+                        <select name="service_concerne" class="form-select" required>
+                            <option value="">-- Choisir le service --</option>
+                            <option value="commercial" {% if kit.service_concerne == 'commercial' %}selected{% endif %}>Service Commercial</option>
+                            <option value="technique" {% if kit.service_concerne == 'technique' %}selected{% endif %}>Service Technique</option>
+                            <option value="gerant" {% if kit.service_concerne == 'gerant' %}selected{% endif %}>Gérant</option>
+                        </select>
+                        <small>Apparaîtra comme signataire sur le PDF</small>
                     </div>
                 </div>
 
                 <!-- Conditions -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <label class="form-label">
-                            <i class="fas fa-handshake"></i> Condition de paiement
-                        </label>
+                        <label class="form-label">Condition de paiement</label>
                         <input type="text" name="condition_paiement" class="form-control" 
                                value="{{ kit.condition_paiement or '' }}" 
                                placeholder="Ex: 100% à la commande">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">
-                            <i class="fas fa-truck"></i> Délai de livraison
-                        </label>
+                        <label class="form-label">Délai de livraison</label>
                         <input type="text" name="delai_livraison" class="form-control" 
                                value="{{ kit.delai_livraison or '' }}" 
                                placeholder="Ex: 4-5 semaines">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">
-                            <i class="fas fa-shield-alt"></i> Garantie
-                        </label>
+                        <label class="form-label">Garantie</label>
                         <input type="text" name="garantie" class="form-control" 
                                value="{{ kit.garantie or '' }}" 
                                placeholder="Ex: 1 an">
@@ -340,40 +498,34 @@
                 <!-- COMMENTAIRES ET REMISE -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label">
-                            <i class="fas fa-comment"></i> Commentaire principal
-                        </label>
+                        <label class="form-label">Commentaire principal</label>
                         <textarea name="proforma_comment" class="form-control" 
                                   rows="3" 
                                   placeholder="Commentaire général sur la proforma">{{ kit.proforma_comment or '' }}</textarea>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">
-                            <i class="fas fa-comment-dots"></i> Commentaire supplémentaire
-                        </label>
+                        <label class="form-label">Commentaire supplémentaire</label>
                         <textarea name="proforma_comment2" class="form-control" 
                                   rows="3" 
                                   placeholder="Commentaire additionnel">{{ kit.proforma_comment2 or '' }}</textarea>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">
-                            <i class="fas fa-tag"></i> Remise (FCFA)
-                        </label>
+                        <label class="form-label">Remise (FCFA)</label>
                         <input type="number" name="remise" id="remise" class="form-control form-control-lg" 
                                value="{{ kit.remise if kit.remise else '0' }}" 
                                min="0" step="0.01" placeholder="0">
-                        <small class="text-muted">Montant à déduire du prix global</small>
+                        <small>Montant à déduire du prix global</small>
                     </div>
                 </div>
 
-                <hr class="my-4">
+                <hr>
 
                 <!-- SECTION PRODUITS -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">
+                    <h5 style="font-size: 1rem; font-weight: 600; color: var(--color-text);">
                         <i class="fas fa-cubes me-2"></i>Produits du kit
                     </h5>
-                    <button type="button" class="btn btn-success btn-sm" id="addBloc">
+                    <button type="button" class="btn btn-sm btn-success" id="addBloc">
                         <i class="fas fa-plus"></i> Ajouter un bloc
                     </button>
                 </div>
@@ -391,12 +543,11 @@
                     {% endfor %}
 
                     {% for bloc_id, bloc_data in blocs_dict.items() %}
-                    <div class="bloc-item card mb-3 border-primary" data-bloc-id="{{ bloc_id }}">
-                        <div class="card-header d-flex justify-content-between align-items-center py-2">
+                    <div class="bloc-item card mb-3" data-bloc-id="{{ bloc_id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <span class="d-flex align-items-center">
-                                <i class="fas fa-grip-vertical me-2" style="cursor: move;"></i>
-                                <i class="fas fa-cube me-2"></i>
-                                <strong>Bloc</strong>
+                                <i class="fas fa-grip-vertical me-2"></i>
+                                <span style="font-weight: 600;">Bloc</span>
                                 <input type="text" name="bloc_titre_{{ bloc_id }}" 
                                        class="form-control form-control-sm d-inline-block ms-2" 
                                        style="width: auto; min-width: 200px;" 
@@ -409,13 +560,13 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-sm">
-                                    <thead class="table-light">
+                                <table class="table table-sm">
+                                    <thead>
                                         <tr>
-                                            <th class="text-white">Produit</th>
-                                            <th class="text-white" style="width: 100px;">Quantité</th>
-                                            <th class="text-white" style="width: 100px;">Type</th>
-                                            <th class="text-white" style="width: 50px;"></th>
+                                            <th>Produit</th>
+                                            <th style="width: 100px;">Quantité</th>
+                                            <th style="width: 100px;">Type</th>
+                                            <th style="width: 50px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="bloc-lignes" data-bloc-id="{{ bloc_id }}">
@@ -426,9 +577,8 @@
                                                     <option value="">Choisir</option>
                                                     {% for produit in produits %}
                                                     <option value="{{ produit.id }}" 
-                                                            {% if produit.id == ligne.produit_id %}selected{% endif %}
-                                                            title="{{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}">
-                                                        {{ produit.nom_produit|truncate(35, true) }}{% if produit.model %} - {{ produit.model }}{% endif %}
+                                                            {% if produit.id == ligne.produit_id %}selected{% endif %}>
+                                                        {{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}
                                                     </option>
                                                     {% endfor %}
                                                 </select>
@@ -445,7 +595,7 @@
                                                 </select>
                                             </td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-danger btn-sm remove-ligne" title="Supprimer ce produit">
+                                                <button type="button" class="btn btn-sm btn-danger remove-ligne" title="Supprimer ce produit">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
@@ -465,17 +615,19 @@
                     <!-- Produits hors bloc -->
                     {% set produits_hors_bloc = kit.lignes|selectattr('bloc_id', 'none')|list %}
                     <div class="card mb-3 border-secondary">
-                        <div class="card-header bg-secondary text-white py-2">
-                            <strong><i class="fas fa-box"></i> Produits hors bloc</strong>
+                        <div class="card-header bg-secondary" style="background: var(--color-gray-100) !important; color: var(--color-text) !important;">
+                            <span style="font-weight: 600;">
+                                <i class="fas fa-box"></i> Produits hors bloc
+                            </span>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-sm">
-                                    <thead class="table-light">
+                                <table class="table table-sm">
+                                    <thead>
                                         <tr>
-                                            <th class="text-white">Produit</th>
-                                            <th class="text-white" style="width: 100px;">Quantité</th>
-                                            <th class="text-white" style="width: 50px;"></th>
+                                            <th>Produit</th>
+                                            <th style="width: 100px;">Quantité</th>
+                                            <th style="width: 50px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="hors-bloc-lignes">
@@ -486,9 +638,8 @@
                                                     <option value="">Choisir</option>
                                                     {% for produit in produits %}
                                                     <option value="{{ produit.id }}" 
-                                                            {% if produit.id == ligne.produit_id %}selected{% endif %}
-                                                            title="{{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}">
-                                                        {{ produit.nom_produit|truncate(35, true) }}{% if produit.model %} - {{ produit.model }}{% endif %}
+                                                            {% if produit.id == ligne.produit_id %}selected{% endif %}>
+                                                        {{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}
                                                     </option>
                                                     {% endfor %}
                                                 </select>
@@ -499,7 +650,7 @@
                                                        value="{{ ligne.quantite }}" min="1" required>
                                             </td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-danger btn-sm remove-ligne" title="Supprimer ce produit">
+                                                <button type="button" class="btn btn-sm btn-danger remove-ligne" title="Supprimer ce produit">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
@@ -516,9 +667,9 @@
                     </div>
                 </div>
 
-                <hr class="my-4">
+                <hr>
 
-                <!-- ✅ Prix global et Prix final -->
+                <!-- Prix global et Prix final -->
                 <div class="row mb-4">
                     <div class="col-md-4 offset-md-2">
                         <div class="price-card">
@@ -540,22 +691,22 @@
                             <input type="text" id="prix_final"
                                    class="form-control price-final-input" 
                                    readonly>
-                            <small style="opacity: 0.9;">Prix global - Remise</small>
+                            <small style="opacity: 0.9; display: block; margin-top: 4px; color: white !important;">Prix global - Remise</small>
                         </div>
                     </div>
                 </div>
 
                 <!-- Boutons -->
                 <div class="d-flex justify-content-between flex-wrap gap-2">
-                    <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-secondary btn-custom">
+                    <a href="{{ url_for('list_kit_proforma') }}" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Annuler
                     </a>
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('details_kit_proforma', kit_id=kit.id) }}" class="btn btn-info btn-custom">
+                        <a href="{{ url_for('details_kit_proforma', kit_id=kit.id) }}" class="btn btn-info">
                             <i class="fas fa-eye"></i> Voir détails
                         </a>
-                        <button type="submit" class="btn btn-warning btn-custom">
-                            <i class="fas fa-save"></i> Enregistrer
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
                         </button>
                     </div>
                 </div>
@@ -588,15 +739,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     let blocCounter = {{ blocs_dict|length }};
     
-    // ✅ Fonction pour calculer le prix final
+    // Fonction pour calculer le prix final
     function calculerPrixFinal() {
         const prixGlobal = parseFloat(document.getElementById('prix_global').value) || 0;
         const remise = parseFloat(document.getElementById('remise').value) || 0;
         const prixFinal = prixGlobal - remise;
-        document.getElementById('prix_final').value = prixFinal.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' FCFA';
+        document.getElementById('prix_final').value = prixFinal.toLocaleString('fr-FR') + ' FCFA';
     }
     
-    // ✅ Écouteurs pour le calcul en temps réel
+    // Écouteurs pour le calcul en temps réel
     const prixGlobalInput = document.getElementById('prix_global');
     const remiseInput = document.getElementById('remise');
     
@@ -622,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
         produitsData.forEach(produit => {
             const selected = (selectedId && produit.id === selectedId) ? 'selected' : '';
             const nomComplet = getNomComplet(produit);
-            options += `<option value="${produit.id}" ${selected} title="${nomComplet}">${nomComplet.substring(0, 35)}</option>`;
+            options += `<option value="${produit.id}" ${selected}>${nomComplet}</option>`;
         });
         return options;
     }
@@ -658,15 +809,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const newBlocId = 'new_' + Date.now();
         
         const blocDiv = document.createElement('div');
-        blocDiv.className = 'bloc-item card mb-3 border-primary';
+        blocDiv.className = 'bloc-item card mb-3';
         blocDiv.dataset.blocId = newBlocId;
         
         blocDiv.innerHTML = `
-            <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="d-flex align-items-center">
-                    <i class="fas fa-grip-vertical me-2" style="cursor: move;"></i>
-                    <i class="fas fa-cube me-2"></i>
-                    <strong>Nouveau Bloc</strong>
+                    <i class="fas fa-grip-vertical me-2"></i>
+                    <span style="font-weight: 600;">Nouveau Bloc</span>
                     <input type="text" name="bloc_titre_${newBlocId}" class="form-control form-control-sm d-inline-block ms-2" style="width: auto; min-width: 200px;" placeholder="Titre du bloc">
                 </span>
                 <button type="button" class="btn btn-sm btn-light remove-bloc">
@@ -675,8 +825,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm">
-                        <thead class="table-light">
+                    <table class="table table-sm">
+                        <thead>
                             <tr>
                                 <th>Produit</th>
                                 <th style="width: 100px;">Quantité</th>
@@ -701,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </select>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                                    <button type="button" class="btn btn-sm btn-danger remove-ligne">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </td>
@@ -760,7 +910,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </select>
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                        <button type="button" class="btn btn-sm btn-danger remove-ligne">
                             <i class="fas fa-times"></i>
                         </button>
                     </td>
@@ -832,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="number" name="quantite_hors_bloc[]" class="form-control form-control-sm" value="1" min="1" required>
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-danger btn-sm remove-ligne">
+                    <button type="button" class="btn btn-sm btn-danger remove-ligne">
                         <i class="fas fa-times"></i>
                     </button>
                 </td>
