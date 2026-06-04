@@ -357,7 +357,7 @@
                                     <select name="produit_principal_0" class="form-select produit-principal" required>
                                         <option value="">Choisir le produit principal</option>
                                         {% for produit in produits %}
-                                        <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>
+                                        <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }} - {{ produit.marque }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -382,7 +382,7 @@
                                             <select name="produit_secondaire_0[]" class="form-select produit-secondaire">
                                                 <option value="">Choisir un accessoire</option>
                                                 {% for produit in produits %}
-                                                <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }}</option>
+                                                <option value="{{ produit.id }}">{{ produit.nom_produit }} - {{ produit.model }} - {{ produit.marque }}</option>
                                                 {% endfor %}
                                             </select>
                                         </td>
