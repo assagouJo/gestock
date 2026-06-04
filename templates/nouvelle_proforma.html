@@ -598,7 +598,7 @@
                                         <option value="">Sélectionner un produit</option>
                                         {% for produit in produits %}
                                         <option value="{{ produit.id }}" data-prix="{{ produit.prix_vente or 0 }}">
-                                            {{ produit.nom_produit }} - {{ produit.marque or '' }}
+                                            {{ produit.nom_produit }} - {{ produit.model or '' }}
                                         </option>
                                         {% endfor %}
                                     </select>
