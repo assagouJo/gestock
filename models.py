@@ -471,7 +471,7 @@ class KitProforma(db.Model):
     delai_livraison = db.Column(db.String(200))
     garantie = db.Column(db.String(200))
     remise = db.Column(db.Float, default=0)
-    service_concerne = db.Column(db.String(20), default='commercial')
+    service_concerne = db.Column(db.String(50), default='commercial')
     date = db.Column(db.DateTime, default=datetime.utcnow)
 
     client_id = db.Column(
