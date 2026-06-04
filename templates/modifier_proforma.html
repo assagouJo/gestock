@@ -37,7 +37,6 @@
 
     .container { max-width: 1100px; }
 
-    /* En-tête */
     .edit-header {
         background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%);
         color: white;
@@ -51,11 +50,7 @@
         gap: 12px;
     }
 
-    .edit-header h1 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
+    .edit-header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
 
     .badge-numero {
         background: rgba(255,255,255,0.2);
@@ -80,12 +75,8 @@
         gap: 8px;
     }
 
-    .btn-back:hover {
-        background: rgba(255,255,255,0.3);
-        color: white;
-    }
+    .btn-back:hover { background: rgba(255,255,255,0.3); color: white; }
 
-    /* Cartes */
     .card {
         border: 1px solid var(--color-border);
         border-radius: var(--radius);
@@ -116,15 +107,10 @@
         border-bottom: 1px solid var(--color-border);
     }
 
-    .card-header.bg-info h5 {
-        color: var(--color-primary);
-    }
+    .card-header.bg-info h5 { color: var(--color-primary); }
 
-    .card-body {
-        padding: 20px;
-    }
+    .card-body { padding: 20px; }
 
-    /* Labels */
     .form-label {
         font-size: 0.8rem;
         font-weight: 500;
@@ -132,11 +118,8 @@
         margin-bottom: 6px;
     }
 
-    .form-label .text-danger {
-        color: var(--color-danger) !important;
-    }
+    .form-label .text-danger { color: var(--color-danger) !important; }
 
-    /* Champs */
     .form-control,
     .form-select {
         border: 1px solid var(--color-border);
@@ -155,12 +138,8 @@
         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
     }
 
-    textarea.form-control {
-        resize: vertical;
-        min-height: 80px;
-    }
+    textarea.form-control { resize: vertical; min-height: 80px; }
 
-    /* Remise card */
     .remise-card {
         background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%);
         color: white;
@@ -169,11 +148,7 @@
         margin-bottom: 20px;
     }
 
-    .remise-card .form-label {
-        color: white !important;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
+    .remise-card .form-label { color: white !important; font-weight: 600; font-size: 0.9rem; }
 
     .remise-card .form-control {
         background: rgba(255,255,255,0.2);
@@ -195,7 +170,6 @@
         color: white;
     }
 
-    /* Tableau */
     .table-custom {
         width: 100%;
         border-collapse: collapse;
@@ -223,26 +197,12 @@
         vertical-align: middle;
     }
 
-    .table-custom tbody tr:last-child td {
-        border-bottom: none;
-    }
+    .table-custom tbody tr:last-child td { border-bottom: none; }
 
-    .drag-handle {
-        cursor: grab;
-        text-align: center;
-        color: var(--color-text-secondary);
-    }
+    .drag-handle { cursor: grab; text-align: center; color: var(--color-text-secondary); }
+    .drag-handle:active { cursor: grabbing; }
+    .sortable-ghost { opacity: 0.3; background: var(--color-gray-50); }
 
-    .drag-handle:active {
-        cursor: grabbing;
-    }
-
-    .sortable-ghost {
-        opacity: 0.3;
-        background: var(--color-gray-50);
-    }
-
-    /* Totaux */
     .totaux-section {
         background: var(--color-gray-50);
         border-radius: var(--radius);
@@ -258,9 +218,7 @@
         border-bottom: 1px solid var(--color-border);
     }
 
-    .totaux-ligne:last-child {
-        border-bottom: none;
-    }
+    .totaux-ligne:last-child { border-bottom: none; }
 
     .total-global-card {
         background: linear-gradient(135deg, var(--color-success) 0%, #047857 100%);
@@ -278,17 +236,9 @@
         letter-spacing: 0.5px;
     }
 
-    .total-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
+    .total-value { font-size: 1.5rem; font-weight: 700; }
+    .sous-total { font-weight: 600; color: var(--color-primary); }
 
-    .sous-total {
-        font-weight: 600;
-        color: var(--color-primary);
-    }
-
-    /* Boutons */
     .btn {
         font-size: 0.85rem;
         font-weight: 500;
@@ -298,10 +248,7 @@
         border: 1px solid transparent;
     }
 
-    .btn-sm {
-        font-size: 0.78rem;
-        padding: 5px 12px;
-    }
+    .btn-sm { font-size: 0.78rem; padding: 5px 12px; }
 
     .btn-submit {
         background: var(--color-warning);
@@ -311,10 +258,7 @@
         padding: 10px 25px;
     }
 
-    .btn-submit:hover {
-        background: #d97706;
-        border-color: #d97706;
-    }
+    .btn-submit:hover { background: #d97706; border-color: #d97706; }
 
     .btn-cancel {
         background: var(--color-white);
@@ -327,33 +271,14 @@
         gap: 8px;
     }
 
-    .btn-cancel:hover {
-        background: var(--color-gray-50);
-        color: var(--color-text);
-    }
+    .btn-cancel:hover { background: var(--color-gray-50); color: var(--color-text); }
 
-    .btn-add {
-        background: var(--color-success);
-        color: #fff;
-        border-color: var(--color-success);
-    }
+    .btn-add { background: var(--color-success); color: #fff; border-color: var(--color-success); }
+    .btn-add:hover { background: #047857; border-color: #047857; }
 
-    .btn-add:hover {
-        background: #047857;
-        border-color: #047857;
-    }
+    .btn-danger { background: var(--color-white); color: var(--color-danger); border-color: var(--color-danger); }
+    .btn-danger:hover { background: #fef2f2; }
 
-    .btn-danger {
-        background: var(--color-white);
-        color: var(--color-danger);
-        border-color: var(--color-danger);
-    }
-
-    .btn-danger:hover {
-        background: #fef2f2;
-    }
-
-    /* Responsive */
     @media (max-width: 768px) {
         .card-body { padding: 16px; }
         .edit-header { flex-direction: column; text-align: center; }
@@ -366,12 +291,9 @@
 
 {% block content %}
 <div class="container mt-4">
-    <!-- En-tête -->
     <div class="edit-header">
         <div>
-            <h1>
-                <i class="fas fa-edit"></i> Modifier Proforma
-            </h1>
+            <h1><i class="fas fa-edit"></i> Modifier Proforma</h1>
             <span class="badge-numero">N° {{ proforma.numero }}</span>
         </div>
         <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-back">
@@ -380,59 +302,45 @@
     </div>
 
     <form method="POST" id="proformaForm">
-        <!-- Section Client -->
+        <!-- Client -->
         <div class="card">
-            <div class="card-header">
-                <h5>
-                    <i class="fas fa-user"></i> Informations Client
-                </h5>
-            </div>
+            <div class="card-header"><h5><i class="fas fa-user"></i> Informations Client</h5></div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="client_id" class="form-label">
-                            Client <span class="text-danger">*</span>
-                        </label>
+                        <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
                         <select name="client_id" id="client_id" class="form-select" required>
                             <option value="">Sélectionnez un client</option>
                             {% for client in clients %}
-                            <option value="{{ client.id }}" {% if proforma.client_id == client.id %}selected{% endif %}>
-                                {{ client.nom_client }}
-                            </option>
+                            <option value="{{ client.id }}" {% if proforma.client_id == client.id %}selected{% endif %}>{{ client.nom_client }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label for="attn" class="form-label">ATTN (À l'attention de)</label>
+                        <label for="attn" class="form-label">ATTN</label>
                         <input type="text" name="attn" id="attn" class="form-control" value="{{ proforma.attn or '' }}" placeholder="Personne à contacter">
                     </div>
                     <div class="col-md-3">
                         <label for="service_concerne" class="form-label">Service concerné <span class="text-danger">*</span></label>
                         <select name="service_concerne" id="service_concerne" class="form-select" required>
-                            <option value="">-- Choisir le service --</option>
-                            <option value="service commercial" {% if proforma.service_concerne == 'service commercial' %}selected{% endif %}>Service Commercial</option>
-                            <option value="responsable commercial" {% if proforma.service_concerne == 'responsable commercial' %}selected{% endif %}>Responsable Commercial</option>
-                            <option value="service technique" {% if proforma.service_concerne == 'service technique' %}selected{% endif %}>Service Technique</option>
-                            <option value="responsable technique" {% if proforma.service_concerne == 'responsable technique' %}selected{% endif %}>Responsable Technique</option>
-                            <option value="gerant" {% if proforma.service_concerne == 'gerant' %}selected{% endif %}>Gérant</option>
+                            <option value="">-- Choisir --</option>
+                            {% for s in ['service commercial','responsable commercial','service technique','responsable technique','gerant'] %}
+                            <option value="{{ s }}" {% if proforma.service_concerne == s %}selected{% endif %}>{{ s|capitalize }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section Conditions Commerciales -->
+        <!-- Conditions Commerciales -->
         <div class="card">
-            <div class="card-header">
-                <h5>
-                    <i class="fas fa-handshake"></i> Conditions Commerciales
-                </h5>
-            </div>
+            <div class="card-header"><h5><i class="fas fa-handshake"></i> Conditions Commerciales</h5></div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="condition_paiement" class="form-label">Conditions de paiement</label>
-                        <input type="text" name="condition_paiement" id="condition_paiement" class="form-control" value="{{ proforma.condition_paiement or '' }}" placeholder="Ex: 50% à la commande, 50% à la livraison">
+                        <input type="text" name="condition_paiement" id="condition_paiement" class="form-control" value="{{ proforma.condition_paiement or '' }}" placeholder="Ex: 50% à la commande">
                     </div>
                     <div class="col-md-4">
                         <label for="delai_livraison" class="form-label">Délai de livraison</label>
@@ -446,70 +354,48 @@
             </div>
         </div>
 
-        <!-- Section Informations complémentaires -->
+        <!-- Infos complémentaires -->
         <div class="card">
-            <div class="card-header bg-info">
-                <h5>
-                    <i class="fas fa-info-circle"></i> Informations complémentaires
-                </h5>
-            </div>
+            <div class="card-header bg-info"><h5><i class="fas fa-info-circle"></i> Informations complémentaires</h5></div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-12">
-                        <label for="proforma_title" class="form-label">Titre de la proforma (optionnel)</label>
-                        <input type="text" name="proforma_title" id="proforma_title" class="form-control" 
-                               placeholder="Ex: DEVIS MATERIEL MEDICAL - CAMPAGNE 2025"
-                               value="{{ proforma.proforma_title or '' }}">
+                        <label for="proforma_title" class="form-label">Titre de la proforma</label>
+                        <input type="text" name="proforma_title" id="proforma_title" class="form-control" value="{{ proforma.proforma_title or '' }}" placeholder="Ex: DEVIS MATERIEL MEDICAL">
                     </div>
                     <div class="col-12">
-                        <label for="proforma_comment" class="form-label">Commentaire (optionnel)</label>
-                        <textarea name="proforma_comment" id="proforma_comment" class="form-control" rows="3" 
-                                  placeholder="Ex: Livraison à prévoir avant le 30/03/2025. Installation incluse.">{{ proforma.proforma_comment or '' }}</textarea>
+                        <label for="proforma_comment" class="form-label">Commentaire</label>
+                        <textarea name="proforma_comment" id="proforma_comment" class="form-control" rows="3" placeholder="Commentaire">{{ proforma.proforma_comment or '' }}</textarea>
                     </div>
                     <div class="col-12">
-                        <label for="proforma_comment2" class="form-label">Commentaire 2 (optionnel)</label>
-                        <textarea name="proforma_comment2" id="proforma_comment2" class="form-control" rows="2" 
-                                  placeholder="Commentaire supplémentaire">{{ proforma.proforma_comment2 or '' }}</textarea>
+                        <label for="proforma_comment2" class="form-label">Commentaire 2</label>
+                        <textarea name="proforma_comment2" id="proforma_comment2" class="form-control" rows="2" placeholder="Commentaire supplémentaire">{{ proforma.proforma_comment2 or '' }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section Remise -->
+        <!-- Remise -->
         <div class="remise-card">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <label for="remise" class="form-label">
-                        <i class="fas fa-tag"></i> REMISE GLOBALE (Montant fixe en FCFA)
-                    </label>
+                    <label for="remise" class="form-label"><i class="fas fa-tag"></i> REMISE GLOBALE (FCFA)</label>
                     <div class="input-group">
-                        <input type="number" 
-                               name="remise" 
-                               id="remise" 
-                               class="form-control" 
-                               value="{{ proforma.remise or 0 }}" 
-                               step="1" 
-                               min="0"
-                               placeholder="Ex: 2000000">
+                        <input type="number" name="remise" id="remise" class="form-control" value="{{ proforma.remise or 0 }}" step="1" min="0" placeholder="Ex: 2000000">
                         <span class="input-group-text">FCFA</span>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <small style="color: rgba(255,255,255,0.9);">
-                        <i class="fas fa-info-circle"></i> 
-                        Cette remise sera déduite du sous-total global
-                    </small>
+                    <small style="color: rgba(255,255,255,0.9);"><i class="fas fa-info-circle"></i> Cette remise sera déduite du sous-total global</small>
                     <div id="remiseDetail" class="mt-1" style="font-size: 0.85rem; display: none;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Section Produits -->
+        <!-- Produits -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>
-                    <i class="fas fa-boxes"></i> Produits
-                </h5>
+                <h5><i class="fas fa-boxes"></i> Produits</h5>
                 <button type="button" class="btn btn-add btn-sm" onclick="ajouterLigne()">
                     <i class="fas fa-plus-circle"></i> Ajouter un produit
                 </button>
@@ -519,27 +405,25 @@
                     <table class="table-custom" id="produitsTable">
                         <thead>
                             <tr>
-                                <th style="width: 40px;"></th>
-                                <th style="width: 30%">Produit</th>
-                                <th style="width: 15%">Conditionnement</th>
-                                <th style="width: 10%">Quantité</th>
-                                <th style="width: 15%">Prix Unitaire (FCFA)</th>
-                                <th style="width: 15%">Sous-Total</th>
-                                <th style="width: 50px">Action</th>
+                                <th style="width:40px;"></th>
+                                <th style="width:30%">Produit</th>
+                                <th style="width:15%">Conditionnement</th>
+                                <th style="width:10%">Qté</th>
+                                <th style="width:15%">Prix Unitaire</th>
+                                <th style="width:15%">Sous-Total</th>
+                                <th style="width:50px">Action</th>
                             </tr>
                         </thead>
                         <tbody id="lignesContainer">
                             {% for ligne in proforma.lignes %}
                             <tr class="ligne-produit">
-                                <td class="drag-handle">
-                                    <i class="fas fa-grip-vertical"></i>
-                                </td>
+                                <td class="drag-handle"><i class="fas fa-grip-vertical"></i></td>
                                 <td>
                                     <select name="produit_id[]" class="form-select produit-select" required>
                                         <option value="">Choisir</option>
                                         {% for produit in produits %}
                                         <option value="{{ produit.id }}" data-prix="{{ produit.prix_vente or 0 }}" {% if ligne.produit_id == produit.id %}selected{% endif %}>
-                                            {{ produit.nom_produit }} - {{ produit.marque or '' }}
+                                            {{ produit.nom_produit }} - {{ produit.marque or '' }} - {{ produit.model or '' }}
                                         </option>
                                         {% endfor %}
                                     </select>
@@ -552,252 +436,142 @@
                                         {% endfor %}
                                     </select>
                                 </td>
-                                <td>
-                                    <input type="number" name="quantite[]" class="form-control quantite" value="{{ ligne.quantite }}" min="1" step="1" required>
-                                </td>
-                                <td>
-                                    <input type="number" name="prix[]" class="form-control prix-unitaire" value="{{ ligne.prix_unitaire }}" min="0" step="1" required>
-                                </td>
-                                <td>
-                                    <span class="sous-total">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }} FCFA</span>
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)" title="Supprimer">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
+                                <td><input type="number" name="quantite[]" class="form-control quantite" value="{{ ligne.quantite }}" min="1" step="1" required></td>
+                                <td><input type="number" name="prix[]" class="form-control prix-unitaire" value="{{ ligne.prix_unitaire }}" min="0" step="1" required></td>
+                                <td><span class="sous-total">{{ "{:,.0f}".format(ligne.sous_total).replace(',', ' ') }} FCFA</span></td>
+                                <td class="text-center"><button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)" title="Supprimer"><i class="fas fa-trash-alt"></i></button></td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Section totaux -->
+                <!-- Totaux -->
                 <div class="totaux-section">
                     <div class="totaux-ligne">
                         <span><strong>Sous-total global :</strong></span>
                         <span id="sousTotalGlobal">{{ "{:,.0f}".format(proforma.total_ht or proforma.total).replace(',', ' ') }} FCFA</span>
                     </div>
-
-                    <div id="remiseLigne" class="totaux-ligne" {% if not proforma.remise or proforma.remise == 0 %}style="display: none;"{% endif %}>
+                    <div id="remiseLigne" class="totaux-ligne" {% if not proforma.remise or proforma.remise == 0 %}style="display:none;"{% endif %}>
                         <span><strong>Remise :</strong></span>
                         <span id="montantRemise" class="text-danger">- {{ "{:,.0f}".format(proforma.remise or 0).replace(',', ' ') }} FCFA</span>
                     </div>
-
                     <div class="total-global-card">
-                        <div class="total-label">
-                            <i class="fas fa-calculator"></i> TOTAL GLOBAL
-                        </div>
-                        <div class="total-value" id="totalGlobal">
-                            {{ "{:,.0f}".format(proforma.total).replace(',', ' ') }} FCFA
-                        </div>
+                        <div class="total-label"><i class="fas fa-calculator"></i> TOTAL GLOBAL</div>
+                        <div class="total-value" id="totalGlobal">{{ "{:,.0f}".format(proforma.total).replace(',', ' ') }} FCFA</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Boutons d'action -->
+        <!-- Actions -->
         <div class="d-flex justify-content-end gap-3 mb-5">
-            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-cancel">
-                <i class="fas fa-times"></i> Annuler
-            </a>
-            <button type="submit" class="btn btn-submit">
-                <i class="fas fa-save"></i> Enregistrer les modifications
-            </button>
+            <a href="{{ url_for('details_proforma', proforma_id=proforma.id) }}" class="btn-cancel"><i class="fas fa-times"></i> Annuler</a>
+            <button type="submit" class="btn btn-submit"><i class="fas fa-save"></i> Enregistrer</button>
         </div>
     </form>
 </div>
 
-<!-- Inclusion de SortableJS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
-<!-- Script JavaScript -->
 <script>
-    const produitsData = {
-        {% for produit in produits %}
-        {{ produit.id }}: {{ produit.prix_vente or 0 }},
-        {% endfor %}
-    };
-    
     let sortable = null;
-    
+
     function initSortable() {
-        const container = document.getElementById('lignesContainer');
-        if (container && !sortable) {
-            sortable = new Sortable(container, {
-                handle: '.drag-handle',
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                onEnd: function() {
-                    recalculerTousLesTotaux();
-                }
-            });
+        const c = document.getElementById('lignesContainer');
+        if (c && !sortable) {
+            sortable = new Sortable(c, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: recalculerTousLesTotaux });
         }
     }
-    
-    function getRemise() {
-        return parseFloat(document.getElementById('remise').value) || 0;
-    }
-    
+
+    function getRemise() { return parseFloat(document.getElementById('remise').value) || 0; }
+
     function recalculerTousLesTotaux() {
-        document.querySelectorAll('.ligne-produit').forEach(row => {
-            const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
-            const prixUnitaire = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
-            const sousTotal = quantite * prixUnitaire;
-            const sousTotalSpan = row.querySelector('.sous-total');
-            sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' FCFA';
+        document.querySelectorAll('.ligne-produit').forEach(r => {
+            const q = parseFloat(r.querySelector('.quantite').value) || 0;
+            const p = parseFloat(r.querySelector('.prix-unitaire').value) || 0;
+            r.querySelector('.sous-total').textContent = (q * p).toLocaleString('fr-FR') + ' FCFA';
         });
         calculerTotalGlobal();
     }
-    
+
     function ajouterLigne() {
         const tbody = document.getElementById('lignesContainer');
-        const newRow = document.createElement('tr');
-        newRow.className = 'ligne-produit';
-        newRow.innerHTML = `
-            <td class="drag-handle">
-                <i class="fas fa-grip-vertical"></i>
-            </td>
-            <td>
-                <select name="produit_id[]" class="form-select produit-select" required>
-                    <option value="">Choisir</option>
-                    {% for produit in produits %}
-                    <option value="{{ produit.id }}" data-prix="{{ produit.prix_vente or 0 }}">
-                        {{ produit.nom_produit }} - {{ produit.marque or '' }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="conditionnement[]" class="form-select">
-                    <option value="">Standard</option>
-                    {% for cond in conditionnements %}
-                    <option value="{{ cond.value }}">{{ cond.value|capitalize }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required>
-            </td>
-            <td>
-                <input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1" required>
-            </td>
-            <td>
-                <span class="sous-total">0 FCFA</span>
-            </td>
-            <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)" title="Supprimer">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(newRow);
-        
-        const newSelect = newRow.querySelector('.produit-select');
-        newSelect.addEventListener('change', function() { mettreAJourPrix(this); });
-        const newQuantite = newRow.querySelector('.quantite');
-        newQuantite.addEventListener('input', function() { calculerTotalLigne(this); });
-        const newPrix = newRow.querySelector('.prix-unitaire');
-        newPrix.addEventListener('input', function() { calculerTotalLigne(this); });
+        const tr = document.createElement('tr');
+        tr.className = 'ligne-produit';
+        tr.innerHTML = `
+            <td class="drag-handle"><i class="fas fa-grip-vertical"></i></td>
+            <td><select name="produit_id[]" class="form-select produit-select" required><option value="">Choisir</option>{% for p in produits %}<option value="{{ p.id }}" data-prix="{{ p.prix_vente or 0 }}">{{ p.nom_produit }} - {{ p.marque or '' }}</option>{% endfor %}</select></td>
+            <td><select name="conditionnement[]" class="form-select"><option value="">Standard</option>{% for c in conditionnements %}<option value="{{ c.value }}">{{ c.value|capitalize }}</option>{% endfor %}</select></td>
+            <td><input type="number" name="quantite[]" class="form-control quantite" value="1" min="1" step="1" required></td>
+            <td><input type="number" name="prix[]" class="form-control prix-unitaire" value="0" min="0" step="1" required></td>
+            <td><span class="sous-total">0 FCFA</span></td>
+            <td class="text-center"><button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)"><i class="fas fa-trash-alt"></i></button></td>`;
+        tbody.appendChild(tr);
     }
-    
+
     function mettreAJourPrix(select) {
         const row = select.closest('tr');
-        const prixInput = row.querySelector('.prix-unitaire');
-        const selectedOption = select.options[select.selectedIndex];
-        const prix = selectedOption.getAttribute('data-prix') || 0;
-        prixInput.value = prix;
-        calculerTotalLigne(prixInput);
-    }
-    
-    function calculerTotalLigne(element) {
-        const row = element.closest('tr');
-        const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
-        const prixUnitaire = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
-        const sousTotal = quantite * prixUnitaire;
+        const opt = select.options[select.selectedIndex];
+        const prix = opt && opt.value ? (parseFloat(opt.getAttribute('data-prix')) || 0) : 0;
         
-        const sousTotalSpan = row.querySelector('.sous-total');
-        sousTotalSpan.textContent = sousTotal.toLocaleString('fr-FR') + ' FCFA';
+        row.querySelector('.prix-unitaire').value = prix;
+        
+        const qte = parseFloat(row.querySelector('.quantite').value) || 1;
+        row.querySelector('.sous-total').textContent = (qte * prix).toLocaleString('fr-FR') + ' FCFA';
         
         calculerTotalGlobal();
     }
-    
+
+    function calculerTotalLigne(el) {
+        const row = el.closest('tr');
+        const q = parseFloat(row.querySelector('.quantite').value) || 0;
+        const p = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
+        row.querySelector('.sous-total').textContent = (q * p).toLocaleString('fr-FR') + ' FCFA';
+        calculerTotalGlobal();
+    }
+
     function calculerTotalGlobal() {
-        let sousTotalGlobal = 0;
-        
-        document.querySelectorAll('.sous-total').forEach(span => {
-            const valeur = parseFloat(span.textContent.replace('FCFA', '').replace(/\s/g, '')) || 0;
-            sousTotalGlobal += valeur;
-        });
+        let st = 0;
+        document.querySelectorAll('.sous-total').forEach(s => { st += parseFloat(s.textContent.replace(/[^\d]/g, '')) || 0; });
         
         const remise = getRemise();
-        let montantRemise = remise;
-        if (montantRemise > sousTotalGlobal) {
-            montantRemise = sousTotalGlobal;
-        }
-        
-        const totalGlobal = sousTotalGlobal - montantRemise;
-        
-        document.getElementById('sousTotalGlobal').textContent = 
-            sousTotalGlobal.toLocaleString('fr-FR') + ' FCFA';
-        
-        document.getElementById('totalGlobal').textContent = 
-            totalGlobal.toLocaleString('fr-FR') + ' FCFA';
-        
-        const remiseLigne = document.getElementById('remiseLigne');
-        const remiseDetail = document.getElementById('remiseDetail');
-        
+        const mRemise = remise > st ? st : remise;
+        const total = st - mRemise;
+
+        document.getElementById('sousTotalGlobal').textContent = st.toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('totalGlobal').textContent = total.toLocaleString('fr-FR') + ' FCFA';
+
+        const rl = document.getElementById('remiseLigne');
+        const rd = document.getElementById('remiseDetail');
         if (remise > 0) {
-            remiseLigne.style.display = 'flex';
-            document.getElementById('montantRemise').textContent = 
-                '- ' + montantRemise.toLocaleString('fr-FR') + ' FCFA';
-            
-            const pourcentage = sousTotalGlobal > 0 
-                ? ((montantRemise / sousTotalGlobal) * 100).toFixed(1) 
-                : 0;
-            
-            remiseDetail.style.display = 'block';
-            remiseDetail.innerHTML = 
-                `<i class="fas fa-calculator"></i> 
-                 Remise de ${montantRemise.toLocaleString('fr-FR')} FCFA 
-                 (${pourcentage}% du sous-total)`;
+            rl.style.display = 'flex';
+            document.getElementById('montantRemise').textContent = '- ' + mRemise.toLocaleString('fr-FR') + ' FCFA';
+            const pct = st > 0 ? ((mRemise / st) * 100).toFixed(1) : 0;
+            rd.style.display = 'block';
+            rd.innerHTML = '<i class="fas fa-calculator"></i> Remise: ' + mRemise.toLocaleString('fr-FR') + ' FCFA (' + pct + '%)';
         } else {
-            remiseLigne.style.display = 'none';
-            remiseDetail.style.display = 'none';
+            rl.style.display = 'none';
+            rd.style.display = 'none';
         }
     }
-    
+
     function supprimerLigne(btn) {
-        const row = btn.closest('tr');
         if (document.querySelectorAll('.ligne-produit').length > 1) {
-            row.remove();
+            btn.closest('tr').remove();
             calculerTotalGlobal();
         } else {
-            alert("Vous devez conserver au moins une ligne de produit");
+            alert("Gardez au moins une ligne.");
         }
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         initSortable();
-        
-        document.querySelectorAll('.produit-select').forEach(select => {
-            select.addEventListener('change', function() { mettreAJourPrix(this); });
-        });
-        
-        document.querySelectorAll('.quantite').forEach(input => {
-            input.addEventListener('input', function() { calculerTotalLigne(this); });
-        });
-        
-        document.querySelectorAll('.prix-unitaire').forEach(input => {
-            input.addEventListener('input', function() { calculerTotalLigne(this); });
-        });
-        
+        const lc = document.getElementById('lignesContainer');
+        lc.addEventListener('change', e => { if (e.target.classList.contains('produit-select')) mettreAJourPrix(e.target); });
+        lc.addEventListener('input', e => { if (e.target.classList.contains('quantite') || e.target.classList.contains('prix-unitaire')) calculerTotalLigne(e.target); });
         document.getElementById('remise').addEventListener('input', calculerTotalGlobal);
-        
         calculerTotalGlobal();
     });
 </script>
-
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

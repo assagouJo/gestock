@@ -580,7 +580,7 @@
                                                     {% for produit in produits %}
                                                     <option value="{{ produit.id }}" 
                                                             {% if produit.id == ligne.produit_id %}selected{% endif %}>
-                                                        {{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }}{% endif %}
+                                                        {{ produit.nom_produit }}{% if produit.model %} - {{ produit.model }} - {{ produit.model or '' }} {% endif %}
                                                     </option>
                                                     {% endfor %}
                                                 </select>
