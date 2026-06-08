@@ -550,7 +550,7 @@ class Proforma(db.Model):
     total_ht = db.Column(db.Float, default=0)
     remise = db.Column(db.Float, default=0)
     numero = db.Column(db.String(50), unique=True, nullable=False)
-    service_concerne = db.Column(db.String(20), default='commercial')
+    service_concerne = db.Column(db.String(50), default='commercial')
 
     client_id = db.Column(
         db.Integer,
@@ -773,7 +773,7 @@ class BonLivraison(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero = db.Column(db.String(30), unique=True, nullable=False)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
-    service_concerne = db.Column(db.String(20), default='commercial')
+    service_concerne = db.Column(db.String(50), default='commercial')
     nota_bene = db.Column(db.Text)
 
     status = db.Column(
