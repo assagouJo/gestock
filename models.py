@@ -489,7 +489,12 @@ class KitProforma(db.Model):
 
     prix_global = db.Column(db.Float)
 
-    client = db.relationship("Client")
+    client = db.relationship(
+        "Client", 
+        foreign_keys=[client_id],
+        backref="kits_proforma",  # Ajoutez cette ligne pour faciliter les requêtes inverse
+        lazy='joined'  # Force le chargement immédiat du client
+    )
 
     lignes = db.relationship(
         "LigneKitProforma",
