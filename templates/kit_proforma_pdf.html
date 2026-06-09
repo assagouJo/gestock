@@ -430,9 +430,11 @@
         ATTN : <strong style="font-size: 12px;">{{ kit.attn or '' }}</strong>
     </div>
     <div style="font-size: 12px;">
-        Tel : {{ kit.client.telephone if kit.client else '' }}<br>
+        {% if kit.client and kit.client.telephone %}
+            Tel : {{ kit.client.telephone }}<br>
+        {% endif %}
         {% if kit.client and kit.client.adresse %}
-            Ville : {{ kit.client.adresse if kit.client else '' }}
+            Ville : {{ kit.client.adresse }}
         {% endif %}
     </div>
 </div>

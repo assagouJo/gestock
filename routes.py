@@ -3727,6 +3727,13 @@ def kit_proforma_pdf(kit_id):
         db.joinedload(KitProforma.lignes)
             .joinedload(LigneKitProforma.produit)
     ).get_or_404(kit_id)
+
+    if kit.client:
+        print(f"Client: {kit.client.nom_client}")
+        print(f"Téléphone: {kit.client.telephone}")
+        print(f"Adresse: {kit.client.adresse}")
+    else:
+        print("AUCUN CLIENT ASSOCIÉ AU KIT")
     
     compagnie = Compagnie.query.first()
     
