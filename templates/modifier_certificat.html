@@ -1,0 +1,414 @@
+<!-- templates/modifier_certificat.html -->
+{% extends "base.html" %}
+
+{% block title %}Modifier Certificat {{ certificat.ref_certif }}{% endblock %}
+
+{% block head %}
+<style>
+    .table-lignes th {
+        background-color: #f8f9fa;
+        font-size: 0.85rem;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    
+    .table-lignes td {
+        vertical-align: middle;
+    }
+    
+    .info-auto {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .btn-delete {
+        padding: 2px 8px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="bi bi-pencil-square me-2"></i>Modifier Certificat d'Installation
+        </h1>
+        <a href="{{ url_for('details_certificat_installation', certificat_id=certificat.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour aux détails
+        </a>
+    </div>
+    
+    <!-- Messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" id="certificatForm">
+        <!-- Informations générales -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informations Générales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="client_id" class="form-label">Client *</label>
+                        <select name="client_id" id="client_id" class="form-select" required>
+                            <option value="">-- Sélectionnez un client --</option>
+                            {% for client in clients %}
+                                <option value="{{ client.id }}" {% if client.id == certificat.client_id %}selected{% endif %}>
+                                    {{ client.nom_client }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="ref_certif" class="form-label">Référence *</label>
+                        <input type="text" name="ref_certif" id="ref_certif" 
+                               class="form-control" required 
+                               value="{{ certificat.ref_certif }}">
+                        <div id="refFeedback" class="mt-1"></div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="date_installation" class="form-label">Date d'installation *</label>
+                        <input type="date" name="date_installation" id="date_installation" 
+                               class="form-control" required 
+                               value="{{ certificat.date_installation.strftime('%Y-%m-%d') }}">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="attn" class="form-label">À l'attention de</label>
+                        <input type="text" name="attn" id="attn" 
+                               class="form-control" value="{{ certificat.attn or '' }}"
+                               placeholder="Ex: M. Dupont">
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="numero_serie" class="form-label">Numéro de série global</label>
+                        <input type="text" name="numero_serie" id="numero_serie" 
+                               class="form-control" value="{{ certificat.numero_serie or '' }}"
+                               placeholder="Ex: SN-2024-001">
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="ville" class="form-label">Ville</label>
+                        <input type="text" name="ville" id="ville" 
+                               class="form-control" value="{{ certificat.ville or '' }}"
+                               placeholder="Ex: Paris">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lignes de produits -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-boxes me-2"></i>Produits Installés
+                    <span class="badge bg-light text-dark ms-2" id="compteurLignes">{{ certificat.lignes|length }}</span>
+                </h5>
+                <button type="button" class="btn btn-light btn-sm" onclick="ajouterLigne()">
+                    <i class="bi bi-plus me-1"></i>Ajouter un produit
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-lignes" id="tableLignes">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 25%;">Produit *</th>
+                                <th style="width: 15%;">Marque</th>
+                                <th style="width: 15%;">Modèle</th>
+                                <th style="width: 10%;">Qté</th>
+                                <th style="width: 25%;">N° Série</th>
+                                <th style="width: 10%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if certificat.lignes %}
+                                {% for ligne in certificat.lignes %}
+                                <tr id="ligne-{{ loop.index }}">
+                                    <td>
+                                        <select name="produit_id[]" class="form-select form-select-sm produit-select" 
+                                                required onchange="mettreAJourInfoProduit(this, {{ loop.index }})">
+                                            <option value="">-- Choisir un produit --</option>
+                                            {% for produit in produits %}
+                                                <option value="{{ produit.id }}"
+                                                        data-marque="{{ produit.marque or '' }}"
+                                                        data-model="{{ produit.model or '' }}"
+                                                        {% if produit.id == ligne.produit_id %}selected{% endif %}>
+                                                    {{ produit.nom_produit }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="marque[]" id="marque-{{ loop.index }}" 
+                                               class="form-control form-control-sm bg-light" 
+                                               value="{{ ligne.produit_rel.marque or '' }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="modele[]" id="modele-{{ loop.index }}" 
+                                               class="form-control form-control-sm bg-light" 
+                                               value="{{ ligne.produit_rel.model or '' }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantite[]" 
+                                               class="form-control form-control-sm" 
+                                               value="{{ ligne.quantite }}" min="1">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="numero_serie_produit[]" 
+                                               class="form-control form-control-sm" 
+                                               value="{{ ligne.numero_serie_produit or '' }}"
+                                               placeholder="N° série">
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                                                onclick="supprimerLigne({{ loop.index }})" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="ligne-1">
+                                    <td>
+                                        <select name="produit_id[]" class="form-select form-select-sm produit-select" 
+                                                required onchange="mettreAJourInfoProduit(this, 1)">
+                                            <option value="">-- Choisir un produit --</option>
+                                            {% for produit in produits %}
+                                                <option value="{{ produit.id }}"
+                                                        data-marque="{{ produit.marque or '' }}"
+                                                        data-model="{{ produit.model or '' }}">
+                                                    {{ produit.nom_produit }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="marque[]" id="marque-1" 
+                                               class="form-control form-control-sm info-auto" 
+                                               placeholder="Auto" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="modele[]" id="modele-1" 
+                                               class="form-control form-control-sm info-auto" 
+                                               placeholder="Auto" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantite[]" 
+                                               class="form-control form-control-sm" 
+                                               value="1" min="1">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="numero_serie_produit[]" 
+                                               class="form-control form-control-sm" 
+                                               placeholder="N° série">
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                                                onclick="supprimerLigne(1)" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Commentaires -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Commentaires</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="comment1" class="form-label">Commentaire 1</label>
+                        <textarea name="comment1" id="comment1" class="form-control" rows="3" 
+                                  placeholder="Premier commentaire...">{{ certificat.comment1 or '' }}</textarea>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="comment2" class="form-label">Commentaire 2</label>
+                        <textarea name="comment2" id="comment2" class="form-control" rows="3" 
+                                  placeholder="Deuxième commentaire...">{{ certificat.comment2 or '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Boutons -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{{ url_for('details_certificat_installation', certificat_id=certificat.id) }}" class="btn btn-secondary btn-lg">
+                <i class="bi bi-x-lg me-2"></i>Annuler
+            </a>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-floppy me-2"></i>Enregistrer les modifications
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+let ligneCount = {{ certificat.lignes|length if certificat.lignes else 1 }};
+
+// Stocker les données des produits
+const produitsInfo = {
+    {% for produit in produits %}
+        "{{ produit.id }}": {
+            "marque": "{{ produit.marque|default('', true)|e }}",
+            "model": "{{ produit.model|default('', true)|e }}"
+        }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date_installation').setAttribute('max', today);
+    
+    document.getElementById('ref_certif').addEventListener('input', function() {
+        const ref = this.value.trim();
+        const feedback = document.getElementById('refFeedback');
+        
+        if (ref.length < 2) {
+            feedback.innerHTML = '';
+            return;
+        }
+        
+        fetch('/api/check-ref-certificat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                ref: ref,
+                certificat_id: {{ certificat.id }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                feedback.innerHTML = '<small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Cette référence existe déjà</small>';
+            } else {
+                feedback.innerHTML = '<small class="text-success"><i class="bi bi-check-circle"></i> Référence disponible</small>';
+            }
+        });
+    });
+});
+
+function mettreAJourInfoProduit(selectElement, ligneId) {
+    const produitId = selectElement.value;
+    const marqueInput = document.getElementById('marque-' + ligneId);
+    const modeleInput = document.getElementById('modele-' + ligneId);
+    
+    if (produitId && produitsInfo[produitId]) {
+        const info = produitsInfo[produitId];
+        marqueInput.value = info.marque;
+        modeleInput.value = info.model;
+        marqueInput.classList.remove('info-auto');
+        marqueInput.classList.add('bg-light');
+        modeleInput.classList.remove('info-auto');
+        modeleInput.classList.add('bg-light');
+    } else {
+        marqueInput.value = '';
+        modeleInput.value = '';
+        marqueInput.classList.add('info-auto');
+        marqueInput.classList.remove('bg-light');
+        modeleInput.classList.add('info-auto');
+        modeleInput.classList.remove('bg-light');
+    }
+}
+
+function ajouterLigne() {
+    ligneCount++;
+    
+    const tbody = document.querySelector('#tableLignes tbody');
+    const tr = document.createElement('tr');
+    tr.id = 'ligne-' + ligneCount;
+    
+    let optionsHtml = '<option value="">-- Choisir un produit --</option>';
+    {% for produit in produits %}
+    optionsHtml += `<option value="{{ produit.id }}"
+                            data-marque="{{ produit.marque or '' }}"
+                            data-model="{{ produit.model or '' }}">
+                        {{ produit.nom_produit|e }}
+                    </option>`;
+    {% endfor %}
+    
+    tr.innerHTML = `
+        <td>
+            <select name="produit_id[]" class="form-select form-select-sm produit-select" 
+                    required onchange="mettreAJourInfoProduit(this, ${ligneCount})">
+                ${optionsHtml}
+            </select>
+        </td>
+        <td>
+            <input type="text" name="marque[]" id="marque-${ligneCount}" 
+                   class="form-control form-control-sm info-auto" 
+                   placeholder="Auto" readonly>
+        </td>
+        <td>
+            <input type="text" name="modele[]" id="modele-${ligneCount}" 
+                   class="form-control form-control-sm info-auto" 
+                   placeholder="Auto" readonly>
+        </td>
+        <td>
+            <input type="number" name="quantite[]" 
+                   class="form-control form-control-sm" 
+                   value="1" min="1">
+        </td>
+        <td>
+            <input type="text" name="numero_serie_produit[]" 
+                   class="form-control form-control-sm" 
+                   placeholder="N° série">
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                    onclick="supprimerLigne(${ligneCount})" title="Supprimer">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    tbody.appendChild(tr);
+    updateCompteur();
+}
+
+function supprimerLigne(id) {
+    const lignes = document.querySelectorAll('#tableLignes tbody tr');
+    
+    if (lignes.length > 1) {
+        if (confirm('Supprimer cette ligne ?')) {
+            const ligne = document.getElementById('ligne-' + id);
+            if (ligne) {
+                ligne.remove();
+                updateCompteur();
+            }
+        }
+    } else {
+        alert('Vous devez avoir au moins un produit.');
+    }
+}
+
+function updateCompteur() {
+    const count = document.querySelectorAll('#tableLignes tbody tr').length;
+    document.getElementById('compteurLignes').textContent = count;
+}
+</script>
+{% endblock %}

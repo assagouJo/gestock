@@ -2,7 +2,7 @@ from app import app, db, login_manager
 from datetime import datetime, timezone
 from flask import request, render_template, flash, redirect, url_for, get_flashed_messages, abort, make_response, current_app, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma, BlocKit, CertificatReparation, ReparationDetail
+from models import User, Client, Produit, Compagnie, Vente, LigneVente, Log, Stock, Paiement, Facture, Proforma, LigneProforma, Magasin, Vendeur, VendeurCompagnie, TypeConditionnement, BonCommande, LigneBonCommande, Achat, LigneAchat, Fournisseur, BonLivraison, LigneBonLivraison, KitProforma,LigneKitProforma, BlocKit, CertificatReparation, ReparationDetail, CertificatInstallation, LigneCertificat
 from forms import LoginForm, ClientForm, MagasinForm, LogFilterForm, ProduitForm, UserForm, ChangePasswordForm, CompagnieForm, ProformaForm, FournisseurForm, CertificatReparationForm, ReparationDetailForm, RechercheProduitForm
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -2682,48 +2682,6 @@ def modifier_bon_livraison(id):
 
 
 
-@app.route("/certificat-installation/<int:id>")
-def certificat_installation(id):
-
-    bon = BonLivraison.query.get_or_404(id)
-    compagnie = Compagnie.query.first()
-
-    # transformer BL en CI
-    numero_ci = bon.numero.replace("BL", "CI")
-
-    return render_template(
-        "certificat_installation.html",
-        bon=bon,
-        numero_ci=numero_ci,
-        compagnie=compagnie
-    )
-
-
-@app.route("/certificat-installation/pdf/<int:id>")
-def certificat_installation_pdf(id):
-
-    bon = BonLivraison.query.get_or_404(id)
-    compagnie = Compagnie.query.first()
-
-    numero_ci = bon.numero.replace("BL", "CI")
-
-    html = render_template(
-        "certificat_installation.html",
-        bon=bon,
-        compagnie=compagnie,
-        numero_ci=numero_ci,
-        pdf_mode=True
-    )
-
-    pdf = HTML(string=html, base_url=request.root_url).write_pdf()
-
-    response = make_response(pdf)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"inline; filename=CI_{bon.numero}.pdf"
-
-    return response
-
-
 @app.route("/vendeur/ajouter", methods=["POST"])
 @login_required
 def ajouter_vendeur():
@@ -5305,6 +5263,320 @@ def recherche_certificats():
                          search_term=search_term,
                          date_debut=date_debut,
                          date_fin=date_fin)
+
+
+# routes.py
+
+@app.route("/certificat-installation")
+@login_required
+def list_certificat_installation():
+    """Liste tous les certificats d'installation"""
+    certificats = CertificatInstallation.query\
+        .join(Client)\
+        .order_by(CertificatInstallation.date_installation.desc())\
+        .all()
+
+    return render_template(
+        "certificat_installation.html",
+        certificats=certificats
+    )
+
+
+@app.route("/certificat-installation/creer", methods=['GET', 'POST'])
+@login_required
+def creer_certificat_installation():
+    """Créer un nouveau certificat d'installation avec lignes de produits"""
+    
+    if request.method == 'POST':
+        # Récupération des données du formulaire
+        client_id = request.form.get('client_id')
+        ref_certif = request.form.get('ref_certif', '').strip()
+        attn = request.form.get('attn', '').strip()
+        numero_serie = request.form.get('numero_serie', '').strip()
+        ville = request.form.get('ville', '').strip()
+        comment1 = request.form.get('comment1', '').strip()
+        comment2 = request.form.get('comment2', '').strip()
+        date_installation_str = request.form.get('date_installation')
+        
+        # Récupération des lignes de produits (SANS observation)
+        produits_ids = request.form.getlist('produit_id[]')
+        quantites = request.form.getlist('quantite[]')
+        numeros_serie_produits = request.form.getlist('numero_serie_produit[]')
+        
+        # Validation manuelle
+        errors = []
+        
+        if not client_id:
+            errors.append('Veuillez sélectionner un client')
+        
+        if not ref_certif:
+            errors.append('La référence est obligatoire')
+        else:
+            # Vérifier l'unicité de la référence
+            existing = CertificatInstallation.query.filter_by(ref_certif=ref_certif).first()
+            if existing:
+                errors.append(f'La référence "{ref_certif}" existe déjà')
+        
+        if not date_installation_str:
+            errors.append('La date d\'installation est obligatoire')
+        
+        # Vérifier qu'il y a au moins un produit sélectionné
+        if not produits_ids or not any(pid for pid in produits_ids if pid):
+            errors.append('Veuillez ajouter au moins un produit')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'danger')
+            clients = Client.query.order_by(Client.nom_client).all()
+            produits = Produit.query.order_by(Produit.nom_produit).all()
+            return render_template('creer_certificat_installation.html', 
+                                 clients=clients, produits=produits)
+        
+        try:
+            # Création du certificat
+            certificat = CertificatInstallation(
+                client_id=int(client_id),
+                ref_certif=ref_certif,
+                attn=attn if attn else None,
+                numero_serie=numero_serie if numero_serie else None,
+                ville=ville if ville else None,
+                comment1=comment1 if comment1 else None,
+                comment2=comment2 if comment2 else None,
+                date_installation=datetime.strptime(date_installation_str, '%Y-%m-%d')
+            )
+            
+            db.session.add(certificat)
+            db.session.flush()  # Pour obtenir l'ID du certificat avant le commit
+            
+            # Ajout des lignes de produits (SANS observation)
+            for i in range(len(produits_ids)):
+                if produits_ids[i] and produits_ids[i].strip():
+                    ligne = LigneCertificat(
+                        certificat_id=certificat.id,
+                        produit_id=int(produits_ids[i]),
+                        quantite=int(quantites[i]) if quantites[i] and quantites[i].strip() else 1,
+                        numero_serie_produit=numeros_serie_produits[i].strip() if i < len(numeros_serie_produits) and numeros_serie_produits[i] and numeros_serie_produits[i].strip() else None
+                    )
+                    db.session.add(ligne)
+            
+            db.session.commit()
+            
+            flash(f'Certificat "{ref_certif}" créé avec succès!', 'success')
+            return redirect(url_for('details_certificat_installation', certificat_id=certificat.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erreur lors de la création: {str(e)}', 'danger')
+            import traceback
+            traceback.print_exc()
+    
+    # GET request
+    clients = Client.query.order_by(Client.nom_client).all()
+    produits = Produit.query.order_by(Produit.nom_produit).all()
+    
+    # Debug dans la console
+    print(f"DEBUG - Nombre de clients: {len(clients)}")
+    print(f"DEBUG - Nombre de produits: {len(produits)}")
+    
+    return render_template('creer_certificat_installation.html', 
+                         clients=clients, 
+                         produits=produits)
+
+
+@app.route("/certificat-installation/<int:certificat_id>")
+@login_required
+def details_certificat_installation(certificat_id):
+    """Affiche les détails d'un certificat d'installation"""
+    
+    certificat = CertificatInstallation.query.get_or_404(certificat_id)
+
+    return render_template(
+        "details_certificat.html",
+        certificat=certificat
+    )
+
+
+@app.route("/certificat-installation/<int:certificat_id>/modifier", methods=['GET', 'POST'])
+@login_required
+def modifier_certificat_installation(certificat_id):
+    """Modifier un certificat d'installation existant"""
+    
+    certificat = CertificatInstallation.query.get_or_404(certificat_id)
+    
+    if request.method == 'POST':
+        # Récupération des données
+        client_id = request.form.get('client_id')
+        ref_certif = request.form.get('ref_certif', '').strip()
+        attn = request.form.get('attn', '').strip()
+        numero_serie = request.form.get('numero_serie', '').strip()
+        ville = request.form.get('ville', '').strip()
+        comment1 = request.form.get('comment1', '').strip()
+        comment2 = request.form.get('comment2', '').strip()
+        date_installation_str = request.form.get('date_installation')
+        
+        # Récupération des lignes de produits (SANS observation)
+        produits_ids = request.form.getlist('produit_id[]')
+        quantites = request.form.getlist('quantite[]')
+        numeros_serie_produits = request.form.getlist('numero_serie_produit[]')
+        
+        # Validation
+        errors = []
+        
+        if not client_id:
+            errors.append('Veuillez sélectionner un client')
+        
+        if not ref_certif:
+            errors.append('La référence est obligatoire')
+        else:
+            # Vérifier l'unicité (en excluant le certificat actuel)
+            existing = CertificatInstallation.query.filter(
+                CertificatInstallation.ref_certif == ref_certif,
+                CertificatInstallation.id != certificat_id
+            ).first()
+            if existing:
+                errors.append(f'La référence "{ref_certif}" existe déjà')
+        
+        if not date_installation_str:
+            errors.append('La date d\'installation est obligatoire')
+        
+        if not produits_ids or not any(pid for pid in produits_ids if pid):
+            errors.append('Veuillez ajouter au moins un produit')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'danger')
+            clients = Client.query.order_by(Client.nom_client).all()
+            produits = Produit.query.order_by(Produit.nom_produit).all()
+            return render_template('modifier_certificat.html', 
+                                 certificat=certificat, clients=clients, produits=produits)
+        
+        try:
+            # Mise à jour du certificat
+            certificat.client_id = int(client_id)
+            certificat.ref_certif = ref_certif
+            certificat.attn = attn if attn else None
+            certificat.numero_serie = numero_serie if numero_serie else None
+            certificat.ville = ville if ville else None
+            certificat.comment1 = comment1 if comment1 else None
+            certificat.comment2 = comment2 if comment2 else None
+            certificat.date_installation = datetime.strptime(date_installation_str, '%Y-%m-%d')
+            
+            # Supprimer toutes les anciennes lignes
+            for ligne in certificat.lignes:
+                db.session.delete(ligne)
+            
+            # Ajouter les nouvelles lignes (SANS observation)
+            for i in range(len(produits_ids)):
+                if produits_ids[i] and produits_ids[i].strip():
+                    ligne = LigneCertificat(
+                        certificat_id=certificat.id,
+                        produit_id=int(produits_ids[i]),
+                        quantite=int(quantites[i]) if quantites[i] and quantites[i].strip() else 1,
+                        numero_serie_produit=numeros_serie_produits[i].strip() if i < len(numeros_serie_produits) and numeros_serie_produits[i] and numeros_serie_produits[i].strip() else None
+                    )
+                    db.session.add(ligne)
+            
+            db.session.commit()
+            
+            flash('Certificat mis à jour avec succès!', 'success')
+            return redirect(url_for('details_certificat_installation', certificat_id=certificat.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erreur lors de la modification: {str(e)}', 'danger')
+            import traceback
+            traceback.print_exc()
+    
+    # GET request
+    clients = Client.query.order_by(Client.nom_client).all()
+    produits = Produit.query.order_by(Produit.nom_produit).all()
+    return render_template('modifier_certificat.html', 
+                         certificat=certificat, 
+                         clients=clients, 
+                         produits=produits)
+
+
+@app.route("/certificat-installation/<int:certificat_id>/supprimer", methods=['POST'])
+@login_required
+def supprimer_certificat_installation(certificat_id):
+    """Supprimer un certificat d'installation"""
+    
+    certificat = CertificatInstallation.query.get_or_404(certificat_id)
+    
+    try:
+        ref = certificat.ref_certif
+        db.session.delete(certificat)
+        db.session.commit()
+        flash(f'Certificat "{ref}" supprimé!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'danger')
+    
+    return redirect(url_for('list_certificat_installation'))
+
+
+
+
+@app.route("/certificat-installation/<int:certificat_id>/pdf")
+@login_required
+def certificat_installation_pdf(certificat_id):
+    """Générer le PDF du certificat d'installation"""
+    
+    certificat = CertificatInstallation.query.get_or_404(certificat_id)
+    
+    # Récupérer la compagnie si vous avez ce modèle
+    compagnie = Compagnie.query.first() if hasattr(Compagnie, 'query') else None
+    
+    # Générer le HTML
+    html = render_template(
+        "certificat_installation_pdf.html",
+        certificat=certificat,
+        compagnie=compagnie
+    )
+    
+    # Créer le PDF avec base_url (IMPORTANT pour le logo et les images)
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url  # C'est ça qui fait fonctionner le logo !
+    ).write_pdf()
+    
+    # Créer la réponse
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers[
+        "Content-Disposition"
+    ] = f"inline; filename=certificat_{certificat.ref_certif}.pdf"
+    
+    return response
+
+
+@app.route("/certificat-installation/<int:certificat_id>/telecharger-pdf")
+@login_required
+def telecharger_certificat_pdf(certificat_id):
+    """Télécharger le PDF du certificat d'installation"""
+    
+    certificat = CertificatInstallation.query.get_or_404(certificat_id)
+    compagnie = Compagnie.query.first() if hasattr(Compagnie, 'query') else None
+    
+    html = render_template(
+        "certificat_installation_pdf.html",
+        certificat=certificat,
+        compagnie=compagnie
+    )
+    
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url
+    ).write_pdf()
+    
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers[
+        "Content-Disposition"
+    ] = f"attachment; filename=certificat_{certificat.ref_certif}.pdf"
+    
+    return response
+
 
 
 @app.route('/gestion_materiel/user')

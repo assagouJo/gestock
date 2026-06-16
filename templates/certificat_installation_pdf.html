@@ -1,0 +1,428 @@
+<!-- templates/certificat_installation_pdf.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificat {{ certificat.ref_certif }}</title>
+    
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+            @top-center {
+                content: "CERTIFICAT D'INSTALLATION";
+                font-size: 10px;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " / " counter(pages);
+                font-size: 9px;
+                color: #999;
+            }
+            @bottom-right {
+                content: "{{ certificat.ref_certif }}";
+                font-size: 8px;
+                color: #999;
+            }
+        }
+        
+        @page :first {
+            @top-center {
+                content: none;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        /* ========== HEADER ========== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .header-left img {
+            max-height: 70px;
+            max-width: 120px;
+        }
+        
+        .header-left .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .header-right {
+            text-align: right;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+        
+        .header-right .company-title {
+            color: red;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        /* ========== TITRE ========== */
+        .title-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 12px;
+            background-color: #f0f8ff;
+            border-left: 4px solid #0066cc;
+            border-right: 4px solid #0066cc;
+        }
+        
+        .title-section h1 {
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #0066cc;
+            margin: 0;
+        }
+        
+        /* ========== INFOS DOCUMENT ========== */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f5f5f5;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .info-bar div {
+            font-size: 11px;
+        }
+        
+        .info-bar strong {
+            color: #333;
+        }
+        
+        /* ========== CLIENT BOX ========== */
+        .client-section {
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        
+        .client-section .label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .client-section .value {
+            font-size: 12px;
+        }
+        
+        /* ========== TABLEAU PRODUITS ========== */
+        .products-section {
+            margin: 20px 0;
+        }
+        
+        .products-section h3 {
+            font-size: 14px;
+            color: #0066cc;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #0066cc;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .products-table thead th {
+            background: #0066cc;
+            color: white;
+            padding: 8px 10px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .products-table tbody td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 11px;
+        }
+        
+        .products-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .col-num { width: 5%; text-align: center; }
+        .col-produit { width: 30%; }
+        .col-marque { width: 15%; }
+        .col-modele { width: 15%; }
+        .col-qte { width: 8%; text-align: center; }
+        .col-serie { width: 27%; }
+        
+        .produit-nom {
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .produit-code {
+            font-size: 9px;
+            color: #888;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* ========== RÉSUMÉ ========== */
+        .summary {
+            text-align: center;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+        
+        .summary strong {
+            color: #0066cc;
+        }
+        
+        /* ========== DÉCLARATION ========== */
+        .declaration {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        
+        /* ========== COMMENTAIRES ========== */
+        .comment-box {
+            margin: 15px 0;
+            padding: 10px 15px;
+            border-left: 4px solid #17a2b8;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .comment-box-2 {
+            margin: 15px 0;
+            padding: 10px 15px;
+            border-left: 4px solid #ffc107;
+            background: #fffdf0;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #856404;
+        }
+        
+        /* ========== SIGNATURES ========== */
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            width: 100%;
+        }
+        
+        .signature-box {
+            width: 35%;
+            text-align: center;
+        }
+        
+        .signature-box .title {
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .signature-box .details {
+            margin-top: 30px;
+            font-size: 10px;
+            color: #888;
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer-mention {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 8px;
+            color: #999;
+        }
+        
+        /* ========== IMPRESSION ========== */
+        @media print {
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .products-table thead th {
+                background: #0066cc !important;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .products-table tbody tr:nth-child(even) {
+                background: #f9f9f9 !important;
+            }
+            
+            .title-section {
+                background: #f0f8ff !important;
+            }
+            
+            .products-table tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            {% if compagnie and compagnie.logo %}
+            <img src="{{ compagnie.logo }}" alt="Logo">
+            {% endif %}
+        </div>
+        <div class="header-right">
+            <div class="company-title">TIME INTERNATIONAL CO. LTD</div>
+            REPRESENTATION A ABIDJAN<br>
+            <span class="company-title">I - MEDICAL</span><br>
+            Tél : (225) 27 21 59 38 82<br>
+            E-mail : info@imboe.com<br>
+            MARCORY BOULEVARD VGE<br>
+            RÉPUBLIQUE DE CÔTE D'IVOIRE
+        </div>
+    </div>
+
+    <!-- TITRE -->
+    <div class="title-section">
+        <h1>Certificat d'Installation</h1>
+    </div>
+
+    <!-- INFOS -->
+    <div class="info-bar">
+        <div><strong>Référence :</strong> {{ certificat.ref_certif }}</div>
+        <div><strong>Date d'installation :</strong> {{ certificat.date_installation.strftime('%d/%m/%Y') if certificat.date_installation else '' }}</div>
+    </div>
+
+    <!-- CLIENT -->
+    <div class="client-section">
+        <div>
+            <span class="label">CLIENT :</span><br>
+            <span class="value">{{ certificat.client_rel.nom_client if certificat.client_rel else '' }}</span><br>
+            {% if certificat.attn or (certificat.client_rel and certificat.client_rel.attn) %}
+            <span style="font-size: 11px;">À l'attention de : {{ certificat.attn or certificat.client_rel.attn }}</span>
+            {% endif %}
+        </div>
+        <div>
+            {% if certificat.client_rel and certificat.client_rel.telephone %}
+            <span style="font-size: 11px;">Tél : {{ certificat.client_rel.telephone }}</span><br>
+            {% endif %}
+            {% if certificat.client_rel and certificat.client_rel.adresse %}
+            <span style="font-size: 11px;">Adresse : {{ certificat.client_rel.adresse }}</span><br>
+            {% endif %}
+            {% if certificat.ville %}
+            <span style="font-size: 11px;">Ville : {{ certificat.ville }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- COMMENTAIRE 1 -->
+    {% if certificat.comment1 %}
+    <div class="comment-box">
+        <strong>Commentaire :</strong> {{ certificat.comment1 }}
+    </div>
+    {% endif %}
+
+    <!-- TABLEAU PRODUITS -->
+    <div class="products-section">
+        <h3>PRODUITS INSTALLÉS</h3>
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th class="col-num">N°</th>
+                    <th class="col-produit">DÉSIGNATION</th>
+                    <th class="col-marque">MARQUE</th>
+                    <th class="col-modele">MODÈLE</th>
+                    <th class="col-qte">QTÉ</th>
+                    <th class="col-serie">N° SÉRIE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in certificat.lignes %}
+                <tr>
+                    <td class="col-num">{{ loop.index }}</td>
+                    <td class="col-produit">
+                        <span class="produit-nom">{{ ligne.produit_rel.nom_produit if ligne.produit_rel else 'Produit' }}</span>
+                        {% if ligne.produit_rel and ligne.produit_rel.code_produit %}
+                        <br><span class="produit-code">Code: {{ ligne.produit_rel.code_produit }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-marque">{{ ligne.produit_rel.marque if ligne.produit_rel else '-' }}</td>
+                    <td class="col-modele">{{ ligne.produit_rel.model if ligne.produit_rel else '-' }}</td>
+                    <td class="col-qte">{{ ligne.quantite }}</td>
+                    <td class="col-serie">{{ ligne.numero_serie_produit or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- COMMENTAIRE 2 -->
+    {% if certificat.comment2 %}
+    <div class="comment-box-2">
+        <strong>Note :</strong> {{ certificat.comment2 }}
+    </div>
+    {% endif %}
+
+    <!-- DÉCLARATION -->
+    <div class="declaration">
+        Nous certifions que les produits mentionnés ci-dessus ont été installés conformément 
+        aux normes et spécifications du fabricant, et sont en bon état de fonctionnement.
+    </div>
+
+    <!-- SIGNATURES -->
+    <div class="signatures">
+        <div class="signature-box">
+            <div class="title">LE CLIENT</div>
+            <div class="details">
+                Signature et cachet
+            </div>
+        </div>
+        <div class="signature-box">
+            <div class="title">LE SERVICE TECHNIQUE</div>
+            <div class="details">
+                Fait à {{ certificat.ville or 'Abidjan' }}, le {{ certificat.date_installation.strftime('%d/%m/%Y') if certificat.date_installation else '' }}<br>
+                Signature et cachet
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

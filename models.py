@@ -43,6 +43,10 @@ class Client(db.Model):
     adresse = db.Column(db.String(255), nullable=False)
     attn = db.Column(db.String(255))
 
+    certificats = db.relationship('CertificatInstallation', 
+                                 backref='client_rel', 
+                                 lazy=True)
+
     bons_commande = db.relationship(
         "BonCommande",
         back_populates="client",
@@ -94,6 +98,8 @@ class Produit(db.Model):
     image = db.Column(db.String(255))
 
     stocks = db.relationship("Stock", backref="produit", lazy=True)
+
+    lignes_certificat = db.relationship('LigneCertificat', backref='produit_rel', lazy=True)
 
     lignes_bon_commande = db.relationship(
         "LigneBonCommande",
@@ -541,6 +547,43 @@ class LigneKitProforma(db.Model):
 
     quantite = db.Column(db.Integer, nullable=False, default=1)
     produit = db.relationship("Produit")
+
+
+class CertificatInstallation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
+    attn = db.Column(db.String(400))
+    ref_certif = db.Column(db.String(200), unique=True, nullable=False)
+    numero_serie = db.Column(db.String(200))
+    ville = db.Column(db.String(200))
+    comment1 = db.Column(db.String(400))
+    comment2 = db.Column(db.String(400))
+    date_installation = db.Column(db.DateTime, nullable=False)
+
+    lignes = db.relationship('LigneCertificat', 
+                            backref='certificat_rel', 
+                            lazy=True,
+                            cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f'<CertificatInstallation {self.ref_certif}>'
+    
+
+class LigneCertificat(db.Model):
+    __tablename__ = 'ligne_certificat'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    certificat_id = db.Column(db.Integer, db.ForeignKey('certificat_installation.id'), nullable=False)
+    produit_id = db.Column(db.Integer, db.ForeignKey('produit.id'), nullable=False)
+    quantite = db.Column(db.Integer, default=1)
+    numero_serie_produit = db.Column(db.String(200))
+    observation = db.Column(db.String(400))
+    
+    def __repr__(self):
+        if self.produit_rel:
+            return f'<LigneCertificat {self.produit_rel.nom_produit} x{self.quantite}>'
+        return f'<LigneCertificat ID:{self.id}>'
+    
 
 
 class Proforma(db.Model):

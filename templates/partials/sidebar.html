@@ -106,6 +106,11 @@
                         <i class="bi bi-truck"></i> Bons de Livraison
                     </a>
                 </li>
+                <li class="nav-item-custom {% if is_active('list_certificat_installation') %}active{% endif %}">
+                    <a class="nav-link-custom" href="{{ url_for('list_certificat_installation') }}">
+                        <i class="bi bi-truck"></i> Certificat Installation
+                    </a>
+                </li>
                 <li class="nav-item-custom {% if is_active('creer_certificat') %}active{% endif %}">
                     <a class="nav-link-custom" href="{{ url_for('creer_certificat') }}">
                         <i class="bi bi-wrench"></i> Réparations
