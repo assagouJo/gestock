@@ -445,12 +445,16 @@
 <!-- HEADER ENTREPRISE -->
 <div class="header">
     <div class="left">
-        {% if compagnie and compagnie.logo %}
-            <img src="{{ url_for('static', filename='logos/' + compagnie.logo) }}" alt="{{ compagnie.nom }}" style="max-height: 80px;">
+    {% if compagnie and compagnie.logo %}
+        {% if compagnie.logo.startswith('http') %}
+            <img src="{{ compagnie.logo }}" alt="{{ compagnie.nom }}" style="max-height: 80px;">
         {% else %}
-            <div style="font-size: 18px; font-weight: bold;">LOGO</div>
+            <img src="{{ url_for('static', filename='logos/' + compagnie.logo) }}" alt="{{ compagnie.nom }}" style="max-height: 80px;">
         {% endif %}
-    </div>
+    {% else %}
+        <div style="font-size: 18px; font-weight: bold;">LOGO</div>
+    {% endif %}
+</div>
     <div class="right">
     <span style="color: red; font-weight: 700;">{{ compagnie.nom if compagnie else '' }}</span><br>
     {% if compagnie and compagnie.telephone %}Tél : {{ compagnie.telephone }}<br>{% endif %}
