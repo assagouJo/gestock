@@ -429,7 +429,7 @@
 
                 <!-- Informations client et date -->
                 <div class="row g-3 mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label">
                             Client <span class="text-danger">*</span>
                         </label>
@@ -443,22 +443,34 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Compagnie <span class="text-danger">*</span>
+                        </label>
+                        <select name="compagnie_id" class="form-select" required>
+                            <option value="">Sélectionnez</option>
+                            {% for compagnie in compagnies %}
+                            <option value="{{ compagnie.id }}" 
+                                    {% if compagnie.id == kit.compagnie_id %}selected{% endif %}>
+                                {{ compagnie.nom }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="col-md-3">
                         <label class="form-label">ATTN (À l'attention de)</label>
                         <input type="text" name="attn" class="form-control" 
-                               value="{{ kit.attn or '' }}" 
-                               placeholder="Nom du contact">
+                            value="{{ kit.attn or '' }}" 
+                            placeholder="Nom du contact">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">
-                            Date de la proforma <span class="text-danger">*</span>
+                            Date <span class="text-danger">*</span>
                         </label>
                         <input type="date" name="date_proforma" class="form-control" 
-                               value="{{ kit.date.strftime('%Y-%m-%d') if kit.date else '' }}" required>
-                        <small>Choisissez la date souhaitée</small>
+                            value="{{ kit.date.strftime('%Y-%m-%d') if kit.date else '' }}" required>
                     </div>
                 </div>
-
                 <!-- Service concerné -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">

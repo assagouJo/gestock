@@ -302,17 +302,26 @@
     </div>
 
     <form method="POST" id="proformaForm">
-        <!-- Client -->
+        <!-- Client -->        
         <div class="card">
             <div class="card-header"><h5><i class="fas fa-user"></i> Informations Client</h5></div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
                         <select name="client_id" id="client_id" class="form-select" required>
                             <option value="">Sélectionnez un client</option>
                             {% for client in clients %}
                             <option value="{{ client.id }}" {% if proforma.client_id == client.id %}selected{% endif %}>{{ client.nom_client }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="compagnie_id" class="form-label">Compagnie <span class="text-danger">*</span></label>
+                        <select name="compagnie_id" id="compagnie_id" class="form-select" required>
+                            <option value="">Sélectionnez une compagnie</option>
+                            {% for compagnie in compagnies %}
+                            <option value="{{ compagnie.id }}" {% if proforma.compagnie_id == compagnie.id %}selected{% endif %}>{{ compagnie.nom }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -332,7 +341,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Conditions Commerciales -->
         <div class="card">
             <div class="card-header"><h5><i class="fas fa-handshake"></i> Conditions Commerciales</h5></div>

@@ -2953,12 +2953,14 @@ def nouvelle_proforma():
     clients = Client.query.order_by(Client.nom_client.asc()).all()  # ← Trier les clients aussi
     produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
     conditionnements = TypeConditionnement
+    compagnies = Compagnie.query.order_by(Compagnie.nom.asc()).all()
 
     return render_template(
         "nouvelle_proforma.html",
         clients=clients,
         produits=produits,
-        conditionnements=conditionnements
+        conditionnements=conditionnements,
+        compagnies=compagnies
     )
 
 
@@ -2975,6 +2977,7 @@ def create_proforma():
         # Champs formulaire
         # =========================
         client_id = request.form.get("client_id")
+        compagnie_id = request.form.get("compagnie_id")
 
         # Récupération du service concerné
         service_concerne = request.form.get("service_concerne", "service commercial")
@@ -2997,6 +3000,10 @@ def create_proforma():
             flash("Veuillez choisir un client", "danger")
             return redirect(url_for("nouvelle_proforma"))
 
+        if not compagnie_id:  # AJOUT
+            flash("Veuillez choisir une compagnie", "danger")
+            return redirect(url_for("nouvelle_proforma"))
+
         # =========================
         # Récupération remise FIXE
         # =========================
@@ -3017,6 +3024,7 @@ def create_proforma():
         # =========================
         proforma = Proforma(
             client_id=client_id,
+            compagnie_id=compagnie_id,
             condition_paiement=condition_paiement,
             delai_livraison=delai_livraison,
             garantie=garantie,
@@ -3148,17 +3156,20 @@ def modifier_proforma(proforma_id):
         clients = Client.query.order_by(Client.nom_client.asc()).all()
         produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
         conditionnements = TypeConditionnement
+        compagnies = Compagnie.query.order_by(Compagnie.nom.asc()).all()
         
         return render_template(
             "modifier_proforma.html",
             proforma=proforma,
             clients=clients,
             produits=produits,
-            conditionnements=conditionnements
+            conditionnements=conditionnements,
+            compagnies=compagnies
         )
     
     # METHOD POST - Mise à jour
     client_id = request.form.get("client_id")
+    compagnie_id = request.form.get("compagnie_id")
     condition_paiement = request.form.get("condition_paiement")
     delai_livraison = request.form.get("delai_livraison")
     garantie = request.form.get("garantie")
@@ -3183,6 +3194,7 @@ def modifier_proforma(proforma_id):
     
     # Mise à jour des informations de la proforma
     proforma.client_id = client_id
+    proforma.compagnie_id = compagnie_id
     proforma.condition_paiement = condition_paiement
     proforma.delai_livraison = delai_livraison
     proforma.garantie = garantie
@@ -3293,6 +3305,7 @@ def dupliquer_proforma(proforma_id):
         nouvelle_proforma = Proforma(
             numero=nouveau_numero,
             client_id=proforma_original.client_id,
+            compagnie_id=proforma_original.compagnie_id,
             condition_paiement=proforma_original.condition_paiement,
             delai_livraison=proforma_original.delai_livraison,
             garantie=proforma_original.garantie,
@@ -3343,7 +3356,7 @@ def proforma_pdf(proforma_id):
     from num2words import num2words
     
     proforma = Proforma.query.get_or_404(proforma_id)
-    compagnie = Compagnie.query.first()
+    compagnie = proforma.compagnie
     
     # récupérer tous les produits
     produits = Produit.query.all()
@@ -3383,11 +3396,13 @@ def nouveau_kit_proforma():
 
     clients = Client.query.order_by(Client.nom_client.asc()).all()  # ← Trier les clients aussi
     produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
+    compagnies = Compagnie.query.order_by(Compagnie.nom.asc()).all()
 
     return render_template(
         "nouveau_kit.html",
         clients=clients,
-        produits=produits
+        produits=produits,
+        compagnies=compagnies
     )
 
 
@@ -3396,6 +3411,7 @@ def nouveau_kit_proforma():
 def create_kit_proforma():
     try:
         client_id = request.form.get("client_id")
+        compagnie_id = request.form.get("compagnie_id")
         prix_global = float(request.form.get("prix_global", 0))  # ✅ Prix saisi manuellement
         attn = request.form.get("attn")
         condition_paiement = request.form.get("condition_paiement")
@@ -3436,8 +3452,8 @@ def create_kit_proforma():
             proforma_title=proforma_title,
             proforma_comment=proforma_comment,
             proforma_comment2=proforma_comment2,
-            service_concerne=service_concerne
-            
+            service_concerne=service_concerne,
+            compagnie_id=compagnie_id,
         )
         db.session.add(kit)
         db.session.flush()
@@ -3505,6 +3521,7 @@ def modifier_kit_proforma(kit_id):
         try:
             # Mise à jour des informations de base du kit
             kit.client_id = request.form.get('client_id')
+            kit.compagnie_id = request.form.get('compagnie_id')
             kit.attn = request.form.get('attn')
             kit.date = datetime.strptime(request.form.get('date_proforma'), '%Y-%m-%d').date()
             kit.condition_paiement = request.form.get('condition_paiement')
@@ -3617,11 +3634,12 @@ def modifier_kit_proforma(kit_id):
     # GET request
     clients = Client.query.order_by(Client.nom_client.asc()).all()
     produits = Produit.query.order_by(Produit.nom_produit.asc()).all()
+    compagnies = Compagnie.query.order_by(Compagnie.nom.asc()).all()
     
     return render_template('modifier_kit_proforma.html', 
                          kit=kit, 
                          clients=clients, 
-                         produits=produits)
+                         produits=produits,compagnies=compagnies)
 
 
 # Route pour supprimer un kit
@@ -3693,7 +3711,7 @@ def kit_proforma_pdf(kit_id):
     else:
         print("AUCUN CLIENT ASSOCIÉ AU KIT")
     
-    compagnie = Compagnie.query.first()
+    compagnie = kit.compagnie
     
     # Vérifier si le prix_global existe
     prix = kit.prix_global if kit.prix_global else 0

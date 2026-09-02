@@ -266,8 +266,7 @@
         </div>
         
         <div class="card-body">
-            <form method="POST" action="{{ url_for('create_kit_proforma') }}" id="kitForm">
-                
+            <form method="POST" action="{{ url_for('create_kit_proforma') }}" id="kitForm">                
                 <!-- Informations client -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3">
@@ -282,6 +281,15 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label">ATTN (À l'attention de)</label>
                         <input type="text" name="attn" class="form-control" placeholder="Nom du contact">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Compagnie émettrice <span class="text-danger">*</span></label>
+                        <select name="compagnie_id" class="form-select" required>
+                            <option value="">Sélectionnez une compagnie</option>
+                            {% for compagnie in compagnies %}
+                            <option value="{{ compagnie.id }}">{{ compagnie.nom }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Date de la proforma <span class="text-danger">*</span></label>
@@ -301,7 +309,6 @@
                         <small style="color: var(--color-text-secondary); font-size: 0.75rem;">Apparaîtra comme signataire sur le PDF</small>
                     </div>
                 </div>
-
                 <!-- Conditions -->
                 <div class="row mb-4">
                     <div class="col-md-4 mb-3">

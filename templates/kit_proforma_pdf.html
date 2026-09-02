@@ -400,19 +400,19 @@
 <div class="header">
     <div class="left">
         {% if compagnie and compagnie.logo %}
-        <img src="{{ compagnie.logo }}" alt="Logo">
+            <img src="{{ url_for('static', filename='logos/' + compagnie.logo) }}" alt="{{ compagnie.nom }}" style="max-height: 80px;">
+        {% else %}
+            <div style="font-size: 18px; font-weight: bold;">LOGO</div>
         {% endif %}
     </div>
     <div class="right">
-        <span style="color: red;">TIME INTERNATIONAL CO. LTD</span><br>
-        REPRESENTATION A ABIDJAN <br>
-        <span style="color: red;">I - MEDICAL</span><br>
-        Tel : (225) 27 21 59 38 82 <br>
-        E-MAIL : info@imboe.com <br>
-        MARCORY BOULEVARD VGE <br>
-        FACEBOOK: IMBOE I-MEDICAL <br>
-        REPUBLIQUE DE COTE D'IVOIRE
-    </div>
+    <span style="color: red; font-weight: 700;">{{ compagnie.nom if compagnie else '' }}</span><br>
+    {% if compagnie and compagnie.telephone %}Tél : {{ compagnie.telephone }}<br>{% endif %}
+    {% if compagnie and compagnie.email %}E-mail : {{ compagnie.email }}<br>{% endif %}
+    {% if compagnie and compagnie.adresse %}{{ compagnie.adresse }}<br>{% endif %}
+    {% if compagnie and compagnie.ville %}{{ compagnie.ville }}<br>{% endif %}
+    RÉPUBLIQUE DE CÔTE D'IVOIRE
+</div>
 </div>
 
 <div class="entete">

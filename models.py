@@ -193,6 +193,20 @@ class LigneAchat(db.Model):
         self.total_ligne = self.quantite * self.prix_unitaire
 
 
+class Compagnie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(150), nullable=False)
+    telephone = db.Column(db.String(50))
+    email = db.Column(db.String(150))
+    adresse = db.Column(db.String(250))
+    ville = db.Column(db.String(100))
+    numero_rcc = db.Column(db.String(100))
+    logo = db.Column(db.String(255))  # chemin/nom du fichier uploadé
+
+    def __repr__(self):
+        return f"<Compagnie {self.nom}>"
+
+
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -480,6 +494,16 @@ class KitProforma(db.Model):
     service_concerne = db.Column(db.String(50), default='commercial')
     date = db.Column(db.DateTime, default=datetime.utcnow)
 
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("compagnie.id"),
+        nullable=False
+    )
+    compagnie = db.relationship(
+        "Compagnie",
+        backref=db.backref("kits_proforma", lazy=True)
+    )
+
     client_id = db.Column(
         db.Integer,
         db.ForeignKey("client.id"),
@@ -599,6 +623,16 @@ class Proforma(db.Model):
     remise = db.Column(db.Float, default=0)
     numero = db.Column(db.String(50), unique=True, nullable=False)
     service_concerne = db.Column(db.String(50), default='commercial')
+
+    compagnie_id = db.Column(
+        db.Integer,
+        db.ForeignKey("compagnie.id"),
+        nullable=False
+    )
+    compagnie = db.relationship(
+        "Compagnie",
+        backref=db.backref("proformas", lazy=True)
+    )
 
     client_id = db.Column(
         db.Integer,
@@ -976,18 +1010,6 @@ class ReparationDetail(db.Model):
         return f"<ReparationDetail {self.produit.nom_produit}>"
 
 
-class Compagnie(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(150), nullable=False)
-    telephone = db.Column(db.String(30))
-    email = db.Column(db.String(255))
-    adresse = db.Column(db.String(255))
-    ville = db.Column(db.String(100))
-    numero_rcc = db.Column(db.String(50))
-    logo = db.Column(db.String(255)) 
-
-
-
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
@@ -996,6 +1018,8 @@ class Log(db.Model):
     table_name = db.Column(db.String(100))
     record_id = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 
 
 
