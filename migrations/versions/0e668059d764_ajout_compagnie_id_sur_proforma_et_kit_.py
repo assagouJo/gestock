@@ -37,14 +37,25 @@ def upgrade():
                existing_nullable=True)
 
     with op.batch_alter_table('kit_proforma', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=False))
+        batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=True))
         batch_op.create_foreign_key('fk_kit_proforma_compagnie_id_compagnie', 'compagnie', ['compagnie_id'], ['id'])
 
     with op.batch_alter_table('proforma', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=False))
+        batch_op.add_column(sa.Column('compagnie_id', sa.Integer(), nullable=True))
         batch_op.create_foreign_key('fk_proforma_compagnie_id_compagnie', 'compagnie', ['compagnie_id'], ['id'])
 
     # ### end Alembic commands ###
+    # Backfill : toutes les proformas existantes -> iMedical
+    op.execute("""
+        UPDATE kit_proforma
+        SET compagnie_id = (SELECT id FROM compagnie WHERE nom = 'iMedical')
+        WHERE compagnie_id IS NULL
+    """)
+    op.execute("""
+        UPDATE proforma
+        SET compagnie_id = (SELECT id FROM compagnie WHERE nom = 'iMedical')
+        WHERE compagnie_id IS NULL
+    """)
 
 
 def downgrade():
