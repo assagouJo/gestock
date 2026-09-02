@@ -4388,47 +4388,34 @@ def bon_commande_pdf(bon_id):
 
     return response
 
-
-
-@app.route('/gestion_materiel/compagnie', methods=['GET', 'POST'])
+@app.route('/gestion_materiel/compagnies')
 @login_required
-def compagnie():
-    form = CompagnieForm()
-    compagnie = Compagnie.query.first()
+def compagnies_liste():
+    compagnies = Compagnie.query.all()
+    return render_template('compagnies_liste.html', compagnies=compagnies)
+
+
+@app.route('/gestion_materiel/compagnie/<int:compagnie_id>', methods=['GET', 'POST'])
+@login_required
+def compagnie(compagnie_id):
+    compagnie = Compagnie.query.get_or_404(compagnie_id)
+    form = CompagnieForm(obj=compagnie)
 
     if form.validate_on_submit():
-        if not compagnie:
-            compagnie = Compagnie()
+        ancien_logo = compagnie.logo  # on garde une copie avant populate_obj
 
         form.populate_obj(compagnie)
+        compagnie.logo = ancien_logo  # on restaure, au cas où pas de nouveau fichier
 
         if form.logo.data:
-            upload = cloudinary.uploader.upload(
-                form.logo.data,
-                folder="logos"
-            )
+            upload = cloudinary.uploader.upload(form.logo.data, folder="logos")
             compagnie.logo = upload["secure_url"]
 
-        db.session.add(compagnie)
         db.session.commit()
-
         flash("Informations enregistrées avec succès", "success")
-        return redirect(url_for('compagnie'))
+        return redirect(url_for('compagnie', compagnie_id=compagnie_id))
 
-    # Pré-remplissage
-    if compagnie:
-        form.nom.data = compagnie.nom
-        form.telephone.data = compagnie.telephone
-        form.email.data = compagnie.email
-        form.adresse.data = compagnie.adresse
-        form.ville.data = compagnie.ville
-        form.numero_rcc.data = compagnie.numero_rcc
-
-    return render_template(
-        'compagnie.html',
-        form=form,
-        compagnie=compagnie
-    )
+    return render_template('compagnie.html', form=form, compagnie=compagnie)
 
 
 @app.route("/rapport/stock")

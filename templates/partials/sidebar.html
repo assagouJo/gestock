@@ -197,11 +197,11 @@
     {# MA COMPAGNIE - Tous les rôles authentifiés #}
     {# ============================================================ #}
     {% if has_role('admin', 'superadmin', 'finance', 'operateur') %}
-        <li class="nav-item-custom {% if is_active('compagnie') %}active{% endif %}">
-            <a class="nav-link-custom" href="{{ url_for('compagnie') }}">
-                <i class="bi bi-building"></i>
-                <span>Ma Compagnie</span>
-            </a>
-        </li>
-    {% endif %}
+    <li class="nav-item-custom {% if is_active('compagnies_liste') %}active{% endif %}">
+        <a class="nav-link-custom" href="{{ url_for('compagnies_liste') }}">
+            <i class="bi bi-building"></i>
+            <span>Ma Compagnie</span>
+        </a>
+    </li>
+{% endif %}
 </ul>
